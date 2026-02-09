@@ -47,8 +47,8 @@ export function getNationalLawApiKey(): string {
 }
 
 export function getSupabaseUrl(): string {
-    // URL is usually not sensitive, but we can treat it as a standard setting
-    const env = process.env.SUPABASE_URL;
+    // Check both possible environment variable names
+    const env = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
     if (env) return env;
 
     try {
