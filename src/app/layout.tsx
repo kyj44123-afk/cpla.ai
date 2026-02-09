@@ -20,7 +20,7 @@ const notoSerifKr = Noto_Serif_KR({
 });
 
 export const metadata: Metadata = {
-  title: "CPLA+AI | AI로 증강된 공인노무사 상담",
+  title: "CPLA+AI | AI로 증강된 공인노무사 | 대표노무사 곽영준",
   description: "AI 기술로 증강된 전문 공인노무사 상담 서비스",
 };
 
