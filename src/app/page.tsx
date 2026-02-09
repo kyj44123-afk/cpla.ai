@@ -192,10 +192,10 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-white relative overflow-hidden flex flex-col font-sans">
+    <main className="min-h-screen bg-white flex flex-col font-sans">
       <Header />
 
-      <section className="flex-1 flex flex-col justify-center items-center relative z-0 w-full max-w-[1200px] mx-auto px-4 md:px-8">
+      <section className="flex-1 flex flex-col justify-center items-center w-full max-w-[1200px] mx-auto px-4 md:px-8 py-4 md:py-8">
         <AnimatePresence mode="wait">
           {step === "landing" && (
             <motion.div
@@ -203,14 +203,14 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, x: -50 }}
-              className="w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center"
+              className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-center"
             >
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 <motion.h1
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="text-5xl md:text-7xl font-light text-slate-800 leading-tight tracking-tight"
+                  className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-light text-slate-800 leading-tight tracking-tight"
                 >
                   지금<br />
                   <span className="font-bold">어떤 문제</span>를<br />
@@ -218,8 +218,8 @@ export default function Home() {
                 </motion.h1>
               </div>
 
-              <div className="w-full flex flex-col items-center md:items-start">
-                <div className="text-xs text-slate-400 mb-2 self-start md:self-auto w-full max-w-lg text-right md:text-left pl-1">
+              <div className="w-full flex flex-col items-center md:items-start mt-4 md:mt-0">
+                <div className="text-[10px] md:text-xs text-slate-400 mb-2 w-full max-w-lg text-center md:text-left">
                   * 아래 입력창을 클릭하시면 입력창이 확대됩니다.
                 </div>
                 <div
@@ -227,10 +227,10 @@ export default function Home() {
                   className="relative w-full max-w-lg cursor-pointer"
                 >
                   <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <span className="text-slate-400 font-bold text-lg">Q.</span>
+                    <div className="absolute inset-y-0 left-0 pl-3 md:pl-4 flex items-center pointer-events-none">
+                      <span className="text-slate-400 font-bold text-base md:text-lg">Q.</span>
                     </div>
-                    <div className="w-full bg-white border-2 border-slate-300 rounded-none py-4 pl-10 pr-12 text-lg text-slate-700 shadow-sm cursor-pointer h-[58px] overflow-hidden">
+                    <div className="w-full bg-white border-2 border-slate-300 rounded-none py-3 md:py-4 pl-8 md:pl-10 pr-10 md:pr-12 text-sm md:text-lg text-slate-700 shadow-sm cursor-pointer h-[50px] md:h-[58px] overflow-hidden">
                       <RotatingQuestions />
                     </div>
                     <div className="absolute inset-y-0 right-0 px-4 flex items-center text-slate-400">
@@ -258,20 +258,20 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-12"
+              className="flex flex-col md:flex-row items-center gap-6 md:gap-12 px-4"
             >
-              <div className="hidden md:flex w-64 h-64 bg-[#1a4f75] items-center justify-center text-white/50 overflow-hidden">
+              <div className="hidden md:flex w-48 md:w-64 h-48 md:h-64 bg-[#1a4f75] items-center justify-center text-white/50 overflow-hidden flex-shrink-0">
                 {profileImage ? (
                   <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   "프로필사진"
                 )}
               </div>
-              <div className="text-left space-y-4">
-                <h2 className="text-3xl md:text-4xl text-slate-800">
+              <div className="text-center md:text-left space-y-3 md:space-y-4">
+                <h2 className="text-2xl md:text-4xl text-slate-800">
                   AI가 답변을 작성하고 있습니다.
                 </h2>
-                <p className="text-slate-500 text-lg">
+                <p className="text-slate-500 text-sm md:text-lg leading-relaxed">
                   그리고 공인노무사 디렉터는 AI의 답변을<br />
                   <span className="text-[#E97132] font-bold">정확하게 검증</span>해드릴 수 있습니다.
                 </p>
@@ -323,28 +323,28 @@ export default function Home() {
               key="goodbye"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="w-full h-full flex flex-col items-center justify-center text-center"
+              className="w-full flex-1 flex flex-col items-center justify-center text-center px-4"
             >
-              {/* CPLA + AI with robot image - slightly above center */}
-              <div className="flex items-center gap-0 -translate-y-12">
-                <h1 className="text-7xl md:text-9xl font-bold -translate-x-6">
+              {/* CPLA + AI with robot image */}
+              <div className="flex items-center gap-0">
+                <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-9xl font-bold">
                   <span className="text-[#E97132]">CPLA</span>
                   <span className="text-[#1a4f75]"> + AI</span>
                 </h1>
                 <img
                   src="/ai-robot.png"
                   alt="AI Robot"
-                  className="w-24 h-24 md:w-32 md:h-32 object-contain"
+                  className="w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 object-contain"
                 />
               </div>
 
-              {/* Company Info - positioned at bottom */}
-              <div className="space-y-1 mt-auto mb-4">
-                <p className="text-xl font-bold">
+              {/* Company Info */}
+              <div className="space-y-1 mt-8 md:mt-12">
+                <p className="text-lg md:text-xl font-bold">
                   <span className="text-[#1a4f75]">노무법인</span>{" "}
                   <span className="text-[#E97132]">호연</span>
                 </p>
-                <p className="text-slate-600">
+                <p className="text-sm md:text-base text-slate-600">
                   대표노무사 <span className="text-[#E97132] font-medium">곽영준</span>
                 </p>
               </div>
