@@ -1,0 +1,22 @@
+[2026-02-09T01:27:00.315Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%A7%81%EC%9E%A5%EB%82%B4%EA%B4%B4%EB%A1%AD%ED%9E%98&display=3&search=1
+[2026-02-09T01:27:00.478Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%82%AC%EC%9E%A5%EB%8B%98%EC%9D%B4+%EC%99%95%EB%94%B0%EC%8B%9C%EC%BC%9C%EC%84%9C+%EB%84%88%EB%AC%B4+%ED%9E%98%EB%93%A4%EC%96%B4%EC%9A%94.&display=3&search=1
+[2026-02-09T01:55:25.977Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%A7%81%EC%9E%A5%EB%82%B4%EA%B4%B4%EB%A1%AD%ED%9E%98&search=1&display=3 | Filter: None
+[2026-02-09T01:55:26.149Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%82%AC%EC%9E%A5%EB%8B%98%EC%9D%B4+%EC%99%95%EB%94%B0%EC%8B%9C%EC%BC%9C%EC%84%9C+%EB%84%88%EB%AC%B4+%ED%9E%98%EB%93%A4%EC%96%B4%EC%9A%94.&search=1&display=3 | Filter: None
+[2026-02-09T01:56:12.598Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%A7%81%EC%9E%A5%EB%82%B4%EA%B4%B4%EB%A1%AD%ED%9E%98&search=1&display=3 | Filter: None
+[2026-02-09T01:56:12.842Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%82%AC%EC%9E%A5%EB%8B%98%EC%9D%B4+%EC%99%95%EB%94%B0%EC%8B%9C%EC%BC%9C%EC%84%9C+%EB%84%88%EB%AC%B4+%ED%9E%98%EB%93%A4%EC%96%B4%EC%9A%94.&search=1&display=3 | Filter: None
+[2026-02-09T01:57:44.972Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%86%90%ED%95%B4%EB%B0%B0%EC%83%81&search=1&display=15 | Filter: 괴롭힘
+[2026-02-09T01:58:05.286Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%86%90%ED%95%B4%EB%B0%B0%EC%83%81&search=1&display=15 | Filter: 괴롭힘
+[2026-02-09T01:58:23.401Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%86%90%ED%95%B4%EB%B0%B0%EC%83%81&search=1&display=15 | Filter: 괴롭힘
+[2026-02-09T01:58:55.081Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%86%90%ED%95%B4%EB%B0%B0%EC%83%81&search=1&display=15 | Filter: 괴롭힘
+[2026-02-09T01:59:27.239Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%A7%95%EA%B3%84&search=1&display=15 | Filter: 괴롭힘
+[2026-02-09T01:59:39.779Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%A7%95%EA%B3%84&search=1&display=15 | Filter: 괴롭힘
+[2026-02-09T02:02:17.089Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%82%B0%EC%9E%AC&search=1&display=15 | Filter: 괴롭힘
+[2026-02-09T02:07:18.191Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%A7%95%EA%B3%84&search=1&display=15 | Filter: 괴롭힘
+[2026-02-09T02:24:13.453Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%A7%95%EA%B3%84&search=1&display=15 | Filter: 괴롭힘
+[2026-02-09T02:24:36.709Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%A7%95%EA%B3%84&search=1&display=15 | Filter: 괴롭힘
+[2026-02-09T02:28:11.152Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%82%B0%EC%9E%AC&search=1&display=15 | Filter: 괴롭힘
+[2026-02-09T02:33:40.875Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%A7%95%EA%B3%84&search=1&display=20 | Filter: 괴롭힘
+[2026-02-09T02:34:14.993Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%A7%95%EA%B3%84&search=1&display=20 | Filter: 괴롭힘
+[2026-02-09T02:34:41.128Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%A7%95%EA%B3%84&search=1&display=20 | Filter: 괴롭힘
+[2026-02-09T02:35:45.620Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%A7%95%EA%B3%84&search=1&display=20 | Filter: 괴롭힘
+[2026-02-09T02:36:45.273Z] URL: https://www.law.go.kr/DRF/lawSearch.do?OC=kd_uck&target=prec&type=XML&query=%EC%82%B0%EC%9E%AC&search=1&display=20 | Filter: 괴롭힘

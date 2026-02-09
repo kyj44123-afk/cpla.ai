@@ -1,0 +1,25 @@
+Starting Benchmark
+
+--- Searching Category: "근로기준법" for Keyword: "괴롭힘" ---
+Fetched 20 case IDs for category "근로기준법".
+Result: 0 / 20 cases in "근로기준법" contain "괴롭힘".
+
+--- Searching Category: "산재" for Keyword: "괴롭힘" ---
+Fetched 20 case IDs for category "산재".
+Result: 0 / 20 cases in "산재" contain "괴롭힘".
+
+--- Searching Category: "위자료" for Keyword: "괴롭힘" ---
+Fetched 19 case IDs for category "위자료".
+Result: 0 / 19 cases in "위자료" contain "괴롭힘".
+
+--- Searching Category: "손해배상(기)" for Keyword: "괴롭힘" ---
+Fetched 20 case IDs for category "손해배상(기)".
+Result: 0 / 20 cases in "손해배상(기)" contain "괴롭힘".
+
+--- Searching Category: "남녀고용평등" for Keyword: "괴롭힘" ---
+Fetched 6 case IDs for category "남녀고용평등".
+Result: 0 / 6 cases in "남녀고용평등" contain "괴롭힘".
+
+--- Searching Category: "모욕" for Keyword: "괴롭힘" ---
+Fetched 19 case IDs for category "모욕".
+Result: 0 / 19 cases in "모욕" contain "괴롭힘".

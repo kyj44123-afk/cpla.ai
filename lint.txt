@@ -1,0 +1,188 @@
+﻿
+> cpla.ai@0.1.0 lint
+> eslint
+
+
+C:\cpla.ai\debug_detail.js
+   1:15  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   2:12  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   3:14  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   4:16  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  14:14  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+  29:14  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\cpla.ai\debug_harassment.js
+   1:14  error    A `require()` style import is forbidden              @typescript-eslint/no-require-imports
+   2:15  error    A `require()` style import is forbidden              @typescript-eslint/no-require-imports
+   3:12  error    A `require()` style import is forbidden              @typescript-eslint/no-require-imports
+  27:16  warning  'checkCategoryForKeyword' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\cpla.ai\debug_law_api.js
+    1:15  error    A `require()` style import is forbidden           @typescript-eslint/no-require-imports
+    2:14  error    A `require()` style import is forbidden           @typescript-eslint/no-require-imports
+    3:12  error    A `require()` style import is forbidden           @typescript-eslint/no-require-imports
+   14:10  warning  'getApiKey' is defined but never used             @typescript-eslint/no-unused-vars
+   28:7   warning  'SEARCH_USER' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   49:16  warning  'testSearch' is defined but never used            @typescript-eslint/no-unused-vars
+   70:16  warning  'testDetail' is defined but never used            @typescript-eslint/no-unused-vars
+  114:15  warning  'cases' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  115:15  warning  'regex' is assigned a value but never used        @typescript-eslint/no-unused-vars
+
+C:\cpla.ai\debug_precedent.js
+   1:15  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   2:12  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   3:14  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   4:16  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  14:14  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+  29:14  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\cpla.ai\src\app\admin\analytics\page.tsx
+  4:10  warning  'Users' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\cpla.ai\src\app\admin\inquiries\page.tsx
+  4:20  warning  'MessageSquare' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\cpla.ai\src\app\admin\page.tsx
+  4:42  warning  'Clock' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\cpla.ai\src\app\admin\settings\page.tsx
+   74:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  124:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\cpla.ai\src\app\api\admin\ingest\route.ts
+  36:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\cpla.ai\src\app\api\admin\inquiries\route.ts
+  21:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\cpla.ai\src\app\api\admin\search\route.ts
+  63:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\cpla.ai\src\app\api\admin\settings\route.ts
+  57:36  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\cpla.ai\src\app\api\chat\route.ts
+   24:28  warning  'request' is defined but never used                      @typescript-eslint/no-unused-vars
+   74:11  warning  'numberRatio' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  141:53  error    Unexpected any. Specify a different type                 @typescript-eslint/no-explicit-any
+  142:18  warning  'e' is defined but never used                            @typescript-eslint/no-unused-vars
+  149:31  error    Unexpected any. Specify a different type                 @typescript-eslint/no-explicit-any
+  320:13  error    'systemPrompt' is never reassigned. Use 'const' instead  prefer-const
+  363:45  error    Unexpected any. Specify a different type                 @typescript-eslint/no-explicit-any
+  382:70  error    Unexpected any. Specify a different type                 @typescript-eslint/no-explicit-any
+  398:21  error    Unexpected any. Specify a different type                 @typescript-eslint/no-explicit-any
+
+C:\cpla.ai\src\app\api\cron\cleanup\route.ts
+  71:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\cpla.ai\src\app\dashboard\page.tsx
+  30:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\cpla.ai\src\app\dashboard\page.tsx:30:7
+  28 |       supabase = createSupabaseBrowserClient();
+  29 |     } catch {
+> 30 |       setLoading(false);
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  31 |       return;
+  32 |     }
+  33 |     (async () => {  react-hooks/set-state-in-effect
+
+C:\cpla.ai\src\app\page.tsx
+   75:48  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  265:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  334:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\cpla.ai\src\components\admin\ProposalModal.tsx
+   4:39  warning  'Check' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+   5:1   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  63:17  error    'content' is never reassigned. Use 'const' instead                                                                   prefer-const
+
+C:\cpla.ai\src\components\chat\ChatInterface.tsx
+   5:16  warning  'User' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+   5:22  warning  'Bot' is defined but never used                                                                                                      @typescript-eslint/no-unused-vars
+   5:27  warning  'Paperclip' is defined but never used                                                                                                @typescript-eslint/no-unused-vars
+  79:8   warning  React Hook useEffect has missing dependencies: 'isLoading' and 'streamResponse'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\cpla.ai\src\components\landing\LatestPostsPreview.tsx
+  49:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\cpla.ai\src\components\landing\LatestPostsPreview.tsx:49:7
+  47 |       supabase = createSupabaseBrowserClient();
+  48 |     } catch {
+> 49 |       setError(
+     |       ^^^^^^^^ Avoid calling setState() directly within an effect
+  50 |         "Supabase ?섍꼍 蹂?섍? ?놁뒿?덈떎. .env.local??NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY瑜??ㅼ젙??二쇱꽭??"
+  51 |       );
+  52 |       setLoading(false);  react-hooks/set-state-in-effect
+
+C:\cpla.ai\src\components\query\QueryForm.tsx
+  34:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\cpla.ai\src\components\result\ResultView.tsx
+  26:82  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\cpla.ai\src\lib\keywordMapper.ts
+  45:11  error  'primary' is never reassigned. Use 'const' instead    prefer-const
+  45:20  error  'secondary' is never reassigned. Use 'const' instead  prefer-const
+
+C:\cpla.ai\src\lib\nationalLaw.ts
+  149:17  error  'cleaned' is never reassigned. Use 'const' instead     prefer-const
+  188:21  error  'reasonText' is never reassigned. Use 'const' instead  prefer-const
+
+C:\cpla.ai\src\lib\settings.ts
+  28:44  error    A `require()` style import is forbidden   @typescript-eslint/no-require-imports
+  59:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  67:53  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\cpla.ai\test_api.js
+  2:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:16  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  5:15  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\cpla.ai\test_colloquial.js
+   1:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  31:24  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  59:20  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\cpla.ai\test_decrypt.js
+  2:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:16  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\cpla.ai\test_keyword_scenarios.js
+   1:14  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+  28:17  warning  'data' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\cpla.ai\test_labor_filter.js
+   1:14  error    A `require()` style import is forbidden     @typescript-eslint/no-require-imports
+  21:7   warning  'query' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  32:24  error    A `require()` style import is forbidden     @typescript-eslint/no-require-imports
+
+C:\cpla.ai\test_supabase.js
+   1:26  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   5:12  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   6:14  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  31:40  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  33:18  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\cpla.ai\verify_chat.js
+  21:22  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+??88 problems (56 errors, 32 warnings)
+  6 errors and 0 warnings potentially fixable with the `--fix` option.
+
