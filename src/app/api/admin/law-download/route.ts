@@ -6,6 +6,22 @@ import { getNationalLawApiKey } from "@/lib/settings";
 export const runtime = "nodejs";
 
 const LAW_API_BASE = "https://www.law.go.kr/DRF";
+const SEARCH_PAGE_SIZE = 100;
+const SEARCH_MAX_PAGES = 50;
+
+type SearchTarget = "prec" | "admrul";
+
+interface SearchItem {
+  id: string;
+  title: string;
+}
+
+interface SavedFile {
+  category: "precedent" | "administrative_ruling";
+  id: string;
+  title: string;
+  path: string;
+}
 
 function stripTagContent(value: string): string {
   return value
@@ -19,9 +35,11 @@ function extractTagValues(xml: string, tagName: string): string[] {
   const regex = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\\/${tagName}>`, "g");
   const values: string[] = [];
   let match: RegExpExecArray | null;
+
   while ((match = regex.exec(xml)) !== null) {
     values.push(stripTagContent(match[1] || ""));
   }
+
   return values;
 }
 
@@ -33,29 +51,11 @@ function extractFirstTagValue(xml: string, tagNames: string[]): string {
   return "";
 }
 
-function normalizeArticleNumber(input: string): string {
-  return input.replace(/[^0-9]/g, "");
-}
-
-function parseRequestedArticles(raw: string): string[] {
-  return raw
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .map((item) => normalizeArticleNumber(item))
-    .filter(Boolean);
-}
-
 function sanitizeForFilename(input: string): string {
   return input
     .replace(/[\\/:*?"<>|]/g, "-")
     .replace(/\s+/g, "_")
     .slice(0, 80);
-}
-
-interface LawSearchItem {
-  id: string;
-  title: string;
 }
 
 async function decodeXmlResponse(response: Response): Promise<string> {
@@ -97,33 +97,158 @@ function extractApiError(xml: string): string {
   return candidates.find(Boolean) || "";
 }
 
-function parseLawSearchResults(xml: string): LawSearchItem[] {
-  const items = xml.match(/<law[\s\S]*?<\/law>/g) || [];
+function extractHtmlErrorMessage(html: string): string {
+  const normalized = html.replace(/\s+/g, " ").trim();
+  if (!/<html[\s>]/i.test(normalized) && !/^<!doctype html/i.test(normalized)) {
+    return "";
+  }
+
+  const h2Match = normalized.match(/<h2[^>]*>(.*?)<\/h2>/i);
+  const h2Text = h2Match ? stripTagContent(h2Match[1]) : "";
+
+  if (normalized.includes("미신청된 목록/본문에 대한 접근")) {
+    return "API 권한 미신청: 국가법령정보 OPEN API에서 판례/행정해석 목록·본문 권한을 신청해 주세요.";
+  }
+
+  return h2Text || "국가법령정보센터가 HTML 오류 페이지를 반환했습니다.";
+}
+
+function parseSearchItems(xml: string, target: SearchTarget): SearchItem[] {
+  const itemTag = target === "prec" ? "prec" : "admrul";
+  const idTags =
+    target === "prec"
+      ? ["판례일련번호", "판례정보일련번호"]
+      : ["행정해석일련번호", "행정규칙일련번호", "유권해석일련번호", "법령해석례일련번호"];
+  const titleTags =
+    target === "prec"
+      ? ["사건명", "판례명", "제목"]
+      : ["안건명", "제목", "건명", "해석례명"];
+
+  const items = xml.match(new RegExp(`<${itemTag}[\\s\\S]*?<\\/${itemTag}>`, "g")) || [];
   return items
-    .map((item) => {
-      const id = extractFirstTagValue(item, ["법령ID", "법령일련번호", "법령일련번호ID"]);
-      const title = extractFirstTagValue(item, ["법령명한글", "법령명_한글", "법령명"]);
-      return { id, title };
-    })
+    .map((item) => ({
+      id: extractFirstTagValue(item, idTags),
+      title: extractFirstTagValue(item, titleTags),
+    }))
     .filter((item) => Boolean(item.id && item.title));
 }
 
-function parseLawArticles(xml: string) {
-  const articleBlocks = xml.match(/<조문단위[\s\S]*?<\/조문단위>/g) || [];
+function removeWhitespace(input: string): string {
+  return input.replace(/\s+/g, "");
+}
 
-  return articleBlocks
-    .map((block) => {
-      const articleNumberLabel = extractFirstTagValue(block, ["조문번호", "조문번호한글"]);
-      const articleTitle = extractFirstTagValue(block, ["조문제목", "조문명"]);
-      const articleContent = extractFirstTagValue(block, ["조문내용"]);
-      return {
-        articleNumberLabel,
-        articleTitle,
-        articleContent,
-        articleNumberNormalized: normalizeArticleNumber(articleNumberLabel),
-      };
-    })
-    .filter((article) => article.articleNumberLabel && article.articleContent);
+function hasLawCitation(detailXml: string, lawName: string): boolean {
+  const normalizedLaw = removeWhitespace(lawName);
+  const citationTags = [
+    "참조조문",
+    "참조법령",
+    "관련법령",
+    "근거법령",
+    "법령명",
+    "법령명_한글",
+    "인용법령",
+    "법조문",
+  ];
+
+  const citationText = citationTags
+    .flatMap((tag) => extractTagValues(detailXml, tag))
+    .join(" ");
+
+  if (removeWhitespace(citationText).includes(normalizedLaw)) {
+    return true;
+  }
+
+  return removeWhitespace(stripTagContent(detailXml)).includes(normalizedLaw);
+}
+
+function summarizePrecedent(detailXml: string): string {
+  const summary =
+    extractFirstTagValue(detailXml, ["판결요지", "판시사항"]) ||
+    extractFirstTagValue(detailXml, ["판례내용"]);
+  return summary || "요약을 추출하지 못했습니다.";
+}
+
+function summarizeAdmrul(detailXml: string): string {
+  const summary =
+    extractFirstTagValue(detailXml, ["질의요지", "회답", "내용", "해석", "이유"]) ||
+    extractFirstTagValue(detailXml, ["판단", "요지"]);
+  return summary || "요약을 추출하지 못했습니다.";
+}
+
+async function fetchDetailXml(target: SearchTarget, id: string, apiKey: string): Promise<string> {
+  const detailUrl = new URL(`${LAW_API_BASE}/lawService.do`);
+  detailUrl.searchParams.set("OC", apiKey);
+  detailUrl.searchParams.set("target", target);
+  detailUrl.searchParams.set("ID", id);
+  detailUrl.searchParams.set("type", "XML");
+
+  const detailRes = await fetch(detailUrl.toString());
+  if (!detailRes.ok) {
+    throw new Error(`${target} 상세 조회 실패 (status=${detailRes.status})`);
+  }
+
+  const detailXml = await decodeXmlResponse(detailRes);
+  const htmlError = extractHtmlErrorMessage(detailXml);
+  if (htmlError) {
+    throw new Error(htmlError);
+  }
+
+  const apiError = extractApiError(detailXml);
+  if (apiError) {
+    throw new Error(`국가법령정보센터 상세 조회 오류: ${apiError}`);
+  }
+
+  return detailXml;
+}
+
+async function searchAllItems(target: SearchTarget, lawName: string, apiKey: string): Promise<{ items: SearchItem[]; truncated: boolean }> {
+  const dedup = new Map<string, SearchItem>();
+  let truncated = false;
+
+  for (let page = 1; page <= SEARCH_MAX_PAGES; page += 1) {
+    const searchUrl = new URL(`${LAW_API_BASE}/lawSearch.do`);
+    searchUrl.searchParams.set("OC", apiKey);
+    searchUrl.searchParams.set("target", target);
+    searchUrl.searchParams.set("type", "XML");
+    searchUrl.searchParams.set("query", lawName);
+    searchUrl.searchParams.set("display", String(SEARCH_PAGE_SIZE));
+    searchUrl.searchParams.set("page", String(page));
+
+    const searchRes = await fetch(searchUrl.toString());
+    if (!searchRes.ok) {
+      throw new Error(`${target} 검색 실패 (status=${searchRes.status})`);
+    }
+
+    const searchXml = await decodeXmlResponse(searchRes);
+    const htmlError = extractHtmlErrorMessage(searchXml);
+    if (htmlError) {
+      throw new Error(htmlError);
+    }
+
+    const apiError = extractApiError(searchXml);
+    if (apiError) {
+      throw new Error(`국가법령정보센터 검색 오류: ${apiError}`);
+    }
+
+    const pageItems = parseSearchItems(searchXml, target);
+    if (pageItems.length === 0) {
+      break;
+    }
+
+    pageItems.forEach((item) => {
+      if (!dedup.has(item.id)) dedup.set(item.id, item);
+    });
+
+    if (pageItems.length < SEARCH_PAGE_SIZE) {
+      break;
+    }
+
+    if (page === SEARCH_MAX_PAGES) {
+      truncated = true;
+    }
+  }
+
+  return { items: Array.from(dedup.values()), truncated };
 }
 
 export async function POST(req: Request) {
@@ -132,128 +257,120 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "국가법령정보센터 API 키가 설정되지 않았습니다." }, { status: 400 });
   }
 
-  const { lawName, articleNumbers } = await req.json();
-
+  const { lawName } = await req.json();
   if (!lawName || typeof lawName !== "string") {
     return NextResponse.json({ error: "법령명을 입력해 주세요." }, { status: 400 });
   }
 
-  if (articleNumbers !== undefined && articleNumbers !== null && typeof articleNumbers !== "string") {
-    return NextResponse.json({ error: "조문 번호를 쉼표로 구분해 입력해 주세요." }, { status: 400 });
+  const trimmedLawName = lawName.trim();
+  if (!trimmedLawName) {
+    return NextResponse.json({ error: "법령명을 입력해 주세요." }, { status: 400 });
   }
 
-  const requestedArticles = parseRequestedArticles(typeof articleNumbers === "string" ? articleNumbers : "");
-  const downloadAllArticles = requestedArticles.length === 0;
-
   try {
-    const searchUrl = new URL(`${LAW_API_BASE}/lawSearch.do`);
-    searchUrl.searchParams.set("OC", apiKey);
-    searchUrl.searchParams.set("target", "law");
-    searchUrl.searchParams.set("type", "XML");
-    searchUrl.searchParams.set("query", lawName.trim());
-    searchUrl.searchParams.set("display", "20");
+    const [precResult, admrulResult] = await Promise.all([
+      searchAllItems("prec", trimmedLawName, apiKey),
+      searchAllItems("admrul", trimmedLawName, apiKey),
+    ]);
 
-    const searchRes = await fetch(searchUrl.toString());
-    if (!searchRes.ok) {
-      return NextResponse.json({ error: "법령 검색에 실패했습니다." }, { status: 502 });
+    const precedentCandidates = precResult.items;
+    const admrulCandidates = admrulResult.items;
+
+    const baseDir = path.join(process.cwd(), "law-data", sanitizeForFilename(trimmedLawName));
+    const precedentDir = path.join(baseDir, "precedents");
+    const admrulDir = path.join(baseDir, "administrative-rulings");
+    await fs.mkdir(precedentDir, { recursive: true });
+    await fs.mkdir(admrulDir, { recursive: true });
+
+    const savedFiles: SavedFile[] = [];
+
+    for (const item of precedentCandidates) {
+      const detailXml = await fetchDetailXml("prec", item.id, apiKey);
+      if (!hasLawCitation(detailXml, trimmedLawName)) continue;
+
+      const caseNumber = extractFirstTagValue(detailXml, ["사건번호"]);
+      const judgeDate = extractFirstTagValue(detailXml, ["선고일자"]);
+      const citation = extractFirstTagValue(detailXml, ["참조조문", "참조법령"]);
+      const summary = summarizePrecedent(detailXml);
+      const fileName = `${sanitizeForFilename(item.id)}_${sanitizeForFilename(item.title)}.txt`;
+      const filePath = path.join(precedentDir, fileName);
+
+      const body = [
+        "자료유형: 판례",
+        `법령명: ${trimmedLawName}`,
+        `판례일련번호: ${item.id}`,
+        `사건명: ${item.title}`,
+        caseNumber ? `사건번호: ${caseNumber}` : "",
+        judgeDate ? `선고일자: ${judgeDate}` : "",
+        citation ? `참조법령/조문: ${citation}` : "",
+        "",
+        summary,
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      await fs.writeFile(filePath, body, "utf-8");
+      savedFiles.push({
+        category: "precedent",
+        id: item.id,
+        title: item.title,
+        path: path.relative(process.cwd(), filePath),
+      });
     }
 
-    const searchXml = await decodeXmlResponse(searchRes);
-    const searchError = extractApiError(searchXml);
-    if (searchError) {
-      return NextResponse.json({ error: `국가법령정보센터 검색 오류: ${searchError}` }, { status: 502 });
+    for (const item of admrulCandidates) {
+      const detailXml = await fetchDetailXml("admrul", item.id, apiKey);
+      if (!hasLawCitation(detailXml, trimmedLawName)) continue;
+
+      const issueNumber = extractFirstTagValue(detailXml, ["안건번호", "문서번호", "회시번호"]);
+      const answerDate = extractFirstTagValue(detailXml, ["회시일자", "작성일자"]);
+      const citation = extractFirstTagValue(detailXml, ["참조법령", "근거법령", "관련법령"]);
+      const summary = summarizeAdmrul(detailXml);
+      const fileName = `${sanitizeForFilename(item.id)}_${sanitizeForFilename(item.title)}.txt`;
+      const filePath = path.join(admrulDir, fileName);
+
+      const body = [
+        "자료유형: 행정해석",
+        `법령명: ${trimmedLawName}`,
+        `일련번호: ${item.id}`,
+        `제목: ${item.title}`,
+        issueNumber ? `안건번호/문서번호: ${issueNumber}` : "",
+        answerDate ? `회시일자: ${answerDate}` : "",
+        citation ? `참조법령: ${citation}` : "",
+        "",
+        summary,
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      await fs.writeFile(filePath, body, "utf-8");
+      savedFiles.push({
+        category: "administrative_ruling",
+        id: item.id,
+        title: item.title,
+        path: path.relative(process.cwd(), filePath),
+      });
     }
 
-    const searchItems = parseLawSearchResults(searchXml);
-    const normalizedLawName = lawName.replace(/\s+/g, "");
-    const selectedLaw =
-      searchItems.find((item) => item.title.replace(/\s+/g, "") === normalizedLawName) ||
-      searchItems.find((item) => item.title.includes(lawName.trim())) ||
-      searchItems[0];
-
-    if (!selectedLaw) {
-      return NextResponse.json(
-        {
-          error: "해당 법령을 찾을 수 없습니다.",
-          debug: {
-            query: lawName.trim(),
-            totalSearchItems: searchItems.length,
-          },
-        },
-        { status: 404 }
-      );
-    }
-
-    const detailUrl = new URL(`${LAW_API_BASE}/lawService.do`);
-    detailUrl.searchParams.set("OC", apiKey);
-    detailUrl.searchParams.set("target", "law");
-    detailUrl.searchParams.set("ID", selectedLaw.id);
-    detailUrl.searchParams.set("type", "XML");
-
-    const detailRes = await fetch(detailUrl.toString());
-    if (!detailRes.ok) {
-      return NextResponse.json({ error: "법령 상세 조회에 실패했습니다." }, { status: 502 });
-    }
-
-    const detailXml = await decodeXmlResponse(detailRes);
-    const detailError = extractApiError(detailXml);
-    if (detailError) {
-      return NextResponse.json({ error: `국가법령정보센터 상세 조회 오류: ${detailError}` }, { status: 502 });
-    }
-
-    const lawTitle =
-      extractFirstTagValue(detailXml, ["법령명_한글", "법령명한글"]) ||
-      selectedLaw.title;
-
-    const articles = parseLawArticles(detailXml);
-    const matchedArticles = downloadAllArticles
-      ? articles
-      : articles.filter((article) => requestedArticles.includes(article.articleNumberNormalized));
-
-    if (matchedArticles.length === 0) {
-      if (downloadAllArticles) {
-        return NextResponse.json({ error: "해당 법령에서 저장할 조문을 찾지 못했습니다." }, { status: 404 });
-      }
-      return NextResponse.json({ error: "요청하신 조문을 찾지 못했습니다." }, { status: 404 });
-    }
-
-    const baseDir = path.join(process.cwd(), "law-data", sanitizeForFilename(lawTitle));
-    await fs.mkdir(baseDir, { recursive: true });
-
-    const savedFiles = await Promise.all(
-      matchedArticles.map(async (article) => {
-        const fileName = `${sanitizeForFilename(lawTitle)}_${sanitizeForFilename(article.articleNumberLabel)}.txt`;
-        const filePath = path.join(baseDir, fileName);
-        const body = [
-          `법령명: ${lawTitle}`,
-          `조문: ${article.articleNumberLabel}`,
-          article.articleTitle ? `조문제목: ${article.articleTitle}` : "",
-          "",
-          article.articleContent,
-        ]
-          .filter(Boolean)
-          .join("\n");
-
-        await fs.writeFile(filePath, body, "utf-8");
-
-        return {
-          article: article.articleNumberLabel,
-          title: article.articleTitle,
-          path: path.relative(process.cwd(), filePath),
-        };
-      })
-    );
+    const precedentSaved = savedFiles.filter((f) => f.category === "precedent").length;
+    const admrulSaved = savedFiles.filter((f) => f.category === "administrative_ruling").length;
 
     return NextResponse.json({
       success: true,
-      lawTitle,
-      totalRequested: downloadAllArticles ? matchedArticles.length : requestedArticles.length,
-      downloadedAllArticles: downloadAllArticles,
+      lawName: trimmedLawName,
+      totalPrecedentCandidates: precedentCandidates.length,
+      totalAdmrulCandidates: admrulCandidates.length,
+      totalPrecedentsSaved: precedentSaved,
+      totalAdmrulsSaved: admrulSaved,
       totalSaved: savedFiles.length,
+      truncated: precResult.truncated || admrulResult.truncated,
       savedFiles,
     });
   } catch (error) {
-    console.error("Law download error:", error);
-    return NextResponse.json({ error: "법령 다운로드 중 오류가 발생했습니다." }, { status: 500 });
+    console.error("Reference material download error:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "자료 다운로드 중 오류가 발생했습니다." },
+      { status: 500 }
+    );
   }
 }

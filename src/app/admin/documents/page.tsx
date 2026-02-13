@@ -17,11 +17,13 @@ export default function DocumentsPage() {
     const [showUpload, setShowUpload] = useState(false);
     const [newDoc, setNewDoc] = useState({ title: "", content: "" });
     const [lawLoading, setLawLoading] = useState(false);
-    const [lawForm, setLawForm] = useState({ lawName: "", articleNumbers: "" });
+    const [lawForm, setLawForm] = useState({ lawName: "" });
     const [lawResult, setLawResult] = useState<{
-        lawTitle: string;
+        lawName: string;
         totalSaved: number;
-        savedFiles: { article: string; path: string }[];
+        totalPrecedentsSaved: number;
+        totalAdmrulsSaved: number;
+        savedFiles: { category: "precedent" | "administrative_ruling"; title: string; path: string }[];
     } | null>(null);
     const [lawError, setLawError] = useState("");
 
@@ -101,8 +103,10 @@ export default function DocumentsPage() {
             }
 
             setLawResult({
-                lawTitle: data.lawTitle,
+                lawName: data.lawName,
                 totalSaved: data.totalSaved,
+                totalPrecedentsSaved: data.totalPrecedentsSaved || 0,
+                totalAdmrulsSaved: data.totalAdmrulsSaved || 0,
                 savedFiles: data.savedFiles || [],
             });
         } catch (error) {
@@ -177,9 +181,9 @@ export default function DocumentsPage() {
 
             {/* Documents List */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-bold text-slate-800 mb-4">국가법령정보센터 일괄 다운로드</h2>
+                <h2 className="text-xl font-bold text-slate-800 mb-4">인용 판례/행정해석 다운로드</h2>
                 <p className="text-sm text-slate-500 mb-4">
-                    법령명과 조문 번호를 입력하면 해당 조문을 자동으로 수집해 <code>law-data/</code> 폴더에 TXT로 저장합니다. 조문 번호를 비우면 해당 법령의 전체 조문을 저장합니다.
+                    법령명을 입력하면 해당 법령을 인용하는 판례와 행정해석 자료를 수집해 <code>law-data/</code> 폴더에 TXT로 저장합니다.
                 </p>
 
                 <form onSubmit={handleLawDownload} className="space-y-4">
@@ -193,23 +197,12 @@ export default function DocumentsPage() {
                             className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500"
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">조문 번호</label>
-                        <input
-                            type="text"
-                            value={lawForm.articleNumbers}
-                            onChange={(e) => setLawForm({ ...lawForm, articleNumbers: e.target.value })}
-                            placeholder="예: 23, 24, 76 (비워두면 전체)"
-                            className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500"
-                        />
-                    </div>
-
                     <button
                         type="submit"
                         disabled={lawLoading}
                         className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
                     >
-                        {lawLoading ? "다운로드 중..." : "조문 일괄 다운로드"}
+                        {lawLoading ? "다운로드 중..." : "인용 자료 다운로드"}
                     </button>
                 </form>
 
@@ -218,12 +211,15 @@ export default function DocumentsPage() {
                 {lawResult && (
                     <div className="mt-6 border border-indigo-100 bg-indigo-50 rounded-lg p-4">
                         <p className="font-medium text-slate-800">
-                            {lawResult.lawTitle} 조문 {lawResult.totalSaved}건 저장 완료
+                            {lawResult.lawName} 인용 자료 {lawResult.totalSaved}건 저장 완료
+                        </p>
+                        <p className="mt-2 text-sm text-slate-700">
+                            판례 {lawResult.totalPrecedentsSaved}건, 행정해석 {lawResult.totalAdmrulsSaved}건
                         </p>
                         <ul className="mt-3 space-y-2 text-sm text-slate-700">
                             {lawResult.savedFiles.map((file) => (
                                 <li key={file.path}>
-                                    {file.article} → <code>{file.path}</code>
+                                    [{file.category === "precedent" ? "판례" : "행정해석"}] {file.title} → <code>{file.path}</code>
                                 </li>
                             ))}
                         </ul>
