@@ -26,7 +26,11 @@ type DraftResult = {
   title: string;
   content: string;
   hashtags: string[];
-  imagePrompts: ImagePrompt[]; // Added imagePrompts
+  imagePrompts: ImagePrompt[];
+  qualityReport?: {
+    score: number;
+    improvements: string[];
+  };
 };
 
 export default function BlogWriterPage() {
@@ -38,6 +42,7 @@ export default function BlogWriterPage() {
   // Step 1 State
   const [keyword, setKeyword] = useState("");
   const [tone, setTone] = useState<ToneType>("polite");
+  const [styleSample, setStyleSample] = useState("");
 
   // Step 2 State (Ideation)
   const [ideation, setIdeation] = useState<IdeationResult | null>(null);
@@ -87,6 +92,7 @@ export default function BlogWriterPage() {
           title: selectedTitle,
           outline,
           tone,
+          styleSample,
         }),
       });
 
@@ -99,7 +105,8 @@ export default function BlogWriterPage() {
         title: data.draft.title,
         content: data.markdown,
         hashtags: data.draft.hashtags || [],
-        imagePrompts: data.imagePrompts || []
+        imagePrompts: data.imagePrompts || [],
+        qualityReport: data.qualityReport,
       });
 
       setStep("result");
@@ -184,6 +191,16 @@ export default function BlogWriterPage() {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>내 글 샘플 (선택)</Label>
+            <textarea
+              value={styleSample}
+              onChange={(e) => setStyleSample(e.target.value)}
+              placeholder="내가 직접 쓴 문단을 붙여넣으면 문체와 전문성 신호를 추출해 반영합니다."
+              className="w-full min-h-[140px] rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+            />
           </div>
 
           <Button
@@ -314,6 +331,14 @@ export default function BlogWriterPage() {
                   <span key={tag} className="text-blue-500 text-sm font-medium">{tag}</span>
                 ))}
               </div>
+              {draft?.qualityReport && (
+                <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                  <p className="text-sm font-semibold text-emerald-900">품질 점수: {draft.qualityReport.score}/100</p>
+                  {draft.qualityReport.improvements?.length > 0 && (
+                    <p className="mt-1 text-xs text-emerald-800">{draft.qualityReport.improvements.join(" / ")}</p>
+                  )}
+                </div>
+              )}
             </div>
             <div className="p-8 prose prose-slate max-w-none prose-headings:font-bold prose-h2:text-xl prose-p:text-slate-600 prose-p:leading-relaxed">
               {draft?.content.split("\n").map((line, i) => {

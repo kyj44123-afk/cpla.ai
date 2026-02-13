@@ -3,7 +3,12 @@ import * as path from "path";
 
 const SETTINGS_PATH = path.join(process.cwd(), ".settings.json");
 
-export function getApiKey(keyName: "openai_api_key" | "national_law_api_key"): string {
+export type ApiKeyName =
+    | "openai_api_key"
+    | "national_law_api_key"
+    | "supabase_service_role_key";
+
+export function getApiKey(keyName: ApiKeyName): string {
     // First check environment variable
     const envMap: Record<string, string> = {
         openai_api_key: "OPENAI_API_KEY",
@@ -62,8 +67,5 @@ export function getSupabaseUrl(): string {
 }
 
 export function getSupabaseServiceRoleKey(): string {
-    // Service Role Key is sensitive, reuse getApiKey logic (which handles encryption path if we enable it for this key)
-    // We need to allow getApiKey to accept this new key name.
-    // However, getApiKey is typed restricted. Let's cast or update the type.
-    return getApiKey("supabase_service_role_key" as any);
+    return getApiKey("supabase_service_role_key");
 }

@@ -56,6 +56,16 @@ const BlogWriterSchema = z.object({
   tone: z.string().optional(),
   length: z.enum(["short", "medium", "long"]).optional(),
   preset: z.string().optional(),
+  styleSample: z.string().optional(),
+  styleBlueprint: z
+    .object({
+      voiceRules: z.array(z.string()).optional(),
+      expertiseSignals: z.array(z.string()).optional(),
+      forbiddenPatterns: z.array(z.string()).optional(),
+      naverExposurePlaybook: z.array(z.string()).optional(),
+      qualityChecklist: z.array(z.string()).optional(),
+    })
+    .optional(),
 });
 
 type RequestBody = z.infer<typeof BlogWriterSchema>;
@@ -94,6 +104,14 @@ type PresetConfig = {
 type QualityReport = {
   score: number;
   improvements: string[];
+};
+
+type StyleBlueprint = {
+  voiceRules: string[];
+  expertiseSignals: string[];
+  forbiddenPatterns: string[];
+  naverExposurePlaybook: string[];
+  qualityChecklist: string[];
 };
 
 function createPreset(config: {
@@ -467,6 +485,72 @@ function normalizeQualityReport(value: unknown): QualityReport {
   return { score, improvements };
 }
 
+function normalizeStyleBlueprint(value: unknown): StyleBlueprint {
+  const row = (value ?? {}) as Record<string, unknown>;
+  return {
+    voiceRules: normalizeStringArray(row.voiceRules, 0, 12),
+    expertiseSignals: normalizeStringArray(row.expertiseSignals, 0, 12),
+    forbiddenPatterns: normalizeStringArray(row.forbiddenPatterns, 0, 12),
+    naverExposurePlaybook: normalizeStringArray(row.naverExposurePlaybook, 0, 16),
+    qualityChecklist: normalizeStringArray(row.qualityChecklist, 0, 20),
+  };
+}
+
+async function buildStyleBlueprint(params: {
+  openai: ReturnType<typeof getOpenAI>;
+  keyword: string;
+  styleSample: string;
+  sampledPosts: Array<{
+    keyword: string;
+    title: string;
+    description: string;
+    bloggerName: string;
+    link: string;
+    postDate: string;
+  }>;
+}): Promise<StyleBlueprint> {
+  if (!params.styleSample && params.sampledPosts.length === 0) {
+    return {
+      voiceRules: [],
+      expertiseSignals: [],
+      forbiddenPatterns: [],
+      naverExposurePlaybook: [],
+      qualityChecklist: [],
+    };
+  }
+
+  const completion = await params.openai.chat.completions.create({
+    model: "gpt-4o",
+    temperature: 0.3,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content: [
+          "당신은 네이버 블로그 상위노출 전략가이자 전문 에디터다.",
+          "문체 샘플에서 강점만 추출해 재사용 가능한 규칙으로 정리한다.",
+          "네이버 샘플 포스트를 분석해 제목/서론/구조/체류시간 관점의 실행전략으로 변환한다.",
+          "응답은 JSON만 출력한다.",
+        ].join("\n"),
+      },
+      {
+        role: "user",
+        content: [
+          `핵심 키워드: ${params.keyword}`,
+          `사용자 문체 샘플:\n${params.styleSample || "미입력"}`,
+          `네이버 상위 샘플: ${JSON.stringify(params.sampledPosts.slice(0, 30))}`,
+          '출력 스키마: { "voiceRules": [""], "expertiseSignals": [""], "forbiddenPatterns": [""], "naverExposurePlaybook": [""], "qualityChecklist": [""] }',
+          "조건: 허위 과장/낚시 표현 금지, 실행 가능한 규칙형 문장으로 작성",
+        ].join("\n"),
+      },
+    ],
+  });
+
+  const raw = completion.choices[0]?.message?.content ?? "{}";
+  const parsed = JSON.parse(raw) as Record<string, unknown>;
+  return normalizeStyleBlueprint(parsed);
+}
+
 function buildMarkdown(draft: BlogDraft, imageUrl: string): string {
   const lines: string[] = [];
 
@@ -561,6 +645,7 @@ export async function POST(req: NextRequest) {
     const keyword = normalizeText(body.keyword);
     const tone = normalizeText(body.tone, presetConfig.defaultTone);
     const length = body.length ?? "medium";
+    const styleSample = normalizeText(body.styleSample);
 
     const lengthGuide: Record<NonNullable<RequestBody["length"]>, string> = {
       short: "총 1,000~1,500자",
@@ -569,6 +654,29 @@ export async function POST(req: NextRequest) {
     };
 
     const openai = getOpenAI();
+    const naverResearch = {
+      available: false,
+      reason: "DISABLED_FOR_NOW",
+      sampledKeywords: [] as string[],
+      sampledPosts: [] as Array<{
+        keyword: string;
+        title: string;
+        description: string;
+        bloggerName: string;
+        link: string;
+        postDate: string;
+      }>,
+    };
+    const styleBlueprint =
+      body.styleBlueprint
+        ? normalizeStyleBlueprint(body.styleBlueprint)
+        : await buildStyleBlueprint({
+          openai,
+          keyword,
+          styleSample,
+          sampledPosts: naverResearch.sampledPosts,
+        });
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
@@ -581,6 +689,8 @@ export async function POST(req: NextRequest) {
             "문장은 짧고 명확하게, 문단은 2~3문장 단위로 구성한다.",
             "형식적인 말보다 구체적인 행동 지침을 우선한다.",
             "SEO를 의식하되 키워드 반복/어색한 문장 금지.",
+            "E-E-A-T(경험/전문성/권위/신뢰) 신호를 글 내부에 드러낸다.",
+            "낚시형 제목, 과장형 문장, 단정형 법률자문 문장은 금지한다.",
           ].join("\n"),
         },
         {
@@ -592,6 +702,12 @@ export async function POST(req: NextRequest) {
             `분량 가이드: ${lengthGuide[length!]}`,
             `타깃 독자: ${presetConfig.targetAudience}`,
             `카테고리 플레이북: ${presetConfig.playbook.join(" / ")}`,
+            `문체 샘플: ${styleSample || "미입력"}`,
+            `문체 규칙: ${styleBlueprint.voiceRules.join(" / ") || "간결하고 전문적인 한국어 문체"}`,
+            `전문성 신호: ${styleBlueprint.expertiseSignals.join(" / ") || "사례, 조건, 예외, 체크리스트를 포함"}`,
+            `금지 패턴: ${styleBlueprint.forbiddenPatterns.join(" / ") || "근거 없는 과장, 반복 키워드, 추상적 미사여구"}`,
+            `네이버 노출 플레이북: ${styleBlueprint.naverExposurePlaybook.join(" / ") || "문제-해결-체크리스트-FAQ 구조"}`,
+            `네이버 상위 샘플: ${JSON.stringify(naverResearch.sampledPosts.slice(0, 8))}`,
             "출력 JSON 스키마:",
             '{ "title": "", "introHook": "", "introBody": "", "summaryBox": [""], "image": { "query": "", "alt": "", "caption": "" }, "sections": [ { "heading": "", "lead": "", "bullets": [""], "body": "" } ], "caseStudy": { "title": "", "situation": "", "solution": "", "result": "" }, "checklist": [""], "faq": [ { "question": "", "answer": "" } ], "conclusion": "", "cta": "", "hashtags": ["#태그"] }',
             "작성 규칙:",
@@ -602,6 +718,7 @@ export async function POST(req: NextRequest) {
             "- sections: 3~5개",
             "- 각 section의 body는 구체 행동/주의사항 중심으로 작성",
             "- hashtags: 7~12개",
+            "- 서론 3문장 안에 '누가, 어떤 문제를, 왜 지금 해결해야 하는지'를 명확히 제시",
           ].join("\n"),
         },
       ],
@@ -649,24 +766,92 @@ export async function POST(req: NextRequest) {
       (editedParsed.draft as Record<string, unknown> | undefined) && typeof editedParsed.draft === "object"
         ? (editedParsed.draft as Record<string, unknown>)
         : parsedDraft;
-    const qualityReport = normalizeQualityReport(editedParsed.qualityReport);
 
-    const sections = normalizeSections(parsed.sections);
-    const summaryBox = normalizeStringArray(parsed.summaryBox, 1, 4);
-    const checklist = normalizeStringArray(parsed.checklist, 1, 7);
-    const faq = normalizeFaq(parsed.faq);
+    const criticCompletion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      response_format: { type: "json_object" },
+      temperature: 0.2,
+      messages: [
+        {
+          role: "system",
+          content: [
+            "당신은 품질 감사자다. 블로그 글을 비평하고 구체적 개선지시를 작성한다.",
+            "점수 기준: 전문성(25), 독창성(20), 가독성(20), 검색의도 적합성(20), 네이버 노출 구조 적합성(15).",
+            "응답은 JSON만 출력한다.",
+          ].join("\n"),
+        },
+        {
+          role: "user",
+          content: [
+            `키워드: ${keyword}`,
+            `문체 규칙: ${styleBlueprint.voiceRules.join(" / ")}`,
+            `네이버 플레이북: ${styleBlueprint.naverExposurePlaybook.join(" / ")}`,
+            `체크리스트: ${styleBlueprint.qualityChecklist.join(" / ")}`,
+            `검토 대상 초안: ${JSON.stringify(parsed)}`,
+            '출력: { "score": 0, "improvements": [""], "rewriteDirectives": [""] }',
+          ].join("\n"),
+        },
+      ],
+    });
+    const criticRaw = criticCompletion.choices[0]?.message?.content ?? "{}";
+    const criticParsed = JSON.parse(criticRaw) as Record<string, unknown>;
+    const rewriteDirectives = normalizeStringArray((criticParsed as Record<string, unknown>).rewriteDirectives, 0, 10);
+
+    let finalParsed = parsed;
+    if (rewriteDirectives.length > 0) {
+      const rewriteCompletion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        response_format: { type: "json_object" },
+        temperature: 0.35,
+        messages: [
+          {
+            role: "system",
+            content: "당신은 시니어 블로그 에디터다. 지시사항을 반영해 초안을 개선한다. 응답은 JSON만 출력한다.",
+          },
+          {
+            role: "user",
+            content: [
+              `키워드: ${keyword}`,
+              `문체 샘플: ${styleSample || "미입력"}`,
+              `문체 규칙: ${styleBlueprint.voiceRules.join(" / ")}`,
+              `네이버 노출 플레이북: ${styleBlueprint.naverExposurePlaybook.join(" / ")}`,
+              `개선 지시: ${rewriteDirectives.join(" / ")}`,
+              `입력 초안: ${JSON.stringify(parsed)}`,
+              '출력 스키마: { "draft": { "title": "", "introHook": "", "introBody": "", "summaryBox": [""], "image": { "query": "", "alt": "", "caption": "" }, "sections": [ { "heading": "", "lead": "", "bullets": [""], "body": "" } ], "caseStudy": { "title": "", "situation": "", "solution": "", "result": "" }, "checklist": [""], "faq": [ { "question": "", "answer": "" } ], "conclusion": "", "cta": "", "hashtags": ["#태그"] } }',
+            ].join("\n"),
+          },
+        ],
+      });
+      const rewriteRaw = rewriteCompletion.choices[0]?.message?.content ?? "{}";
+      const rewriteParsed = JSON.parse(rewriteRaw) as Record<string, unknown>;
+      if (rewriteParsed.draft && typeof rewriteParsed.draft === "object") {
+        finalParsed = rewriteParsed.draft as Record<string, unknown>;
+      }
+    }
+
+    const editedQuality = normalizeQualityReport(editedParsed.qualityReport);
+    const criticImprovements = normalizeStringArray(criticParsed.improvements, 0, 5);
+    const qualityReport = normalizeQualityReport({
+      score: criticParsed.score,
+      improvements: criticImprovements.length > 0 ? criticImprovements : editedQuality.improvements,
+    });
+
+    const sections = normalizeSections(finalParsed.sections);
+    const summaryBox = normalizeStringArray(finalParsed.summaryBox, 1, 4);
+    const checklist = normalizeStringArray(finalParsed.checklist, 1, 7);
+    const faq = normalizeFaq(finalParsed.faq);
 
     const draft: BlogDraft = {
       title: normalizeText(
-        parsed.title,
+        finalParsed.title,
         `${keyword} ${presetConfig.titleSuffix}`,
       ),
       introHook: normalizeText(
-        parsed.introHook,
+        finalParsed.introHook,
         `${keyword}, 어디서부터 시작해야 할지 막막하셨다면 이 글이 기준을 잡아드립니다.`,
       ),
       introBody: normalizeText(
-        parsed.introBody,
+        finalParsed.introBody,
         preset === "rep_labor_attorney" || preset === "incident_investigation"
           ? `이 글에서는 ${keyword} 관련 노무 리스크와 실무 대응 순서를 현장 기준으로 정리합니다.`
           : `이 글에서는 ${keyword}의 핵심 원리와 현장 적용 포인트를 바로 실행 가능하게 정리합니다.`,
@@ -680,9 +865,9 @@ export async function POST(req: NextRequest) {
             "바로 실행 가능한 체크리스트를 제공합니다.",
           ],
       image: {
-        query: normalizeText((parsed.image as Record<string, unknown>)?.query, keyword),
-        alt: normalizeText((parsed.image as Record<string, unknown>)?.alt, `${keyword} 관련 대표 이미지`),
-        caption: normalizeText((parsed.image as Record<string, unknown>)?.caption, `${keyword} 핵심 포인트를 보여주는 이미지`),
+        query: normalizeText((finalParsed.image as Record<string, unknown>)?.query, keyword),
+        alt: normalizeText((finalParsed.image as Record<string, unknown>)?.alt, `${keyword} 관련 대표 이미지`),
+        caption: normalizeText((finalParsed.image as Record<string, unknown>)?.caption, `${keyword} 핵심 포인트를 보여주는 이미지`),
       },
       sections:
         sections.length > 0
@@ -697,12 +882,12 @@ export async function POST(req: NextRequest) {
           ],
       caseStudy: {
         title: normalizeText(
-          (parsed.caseStudy as Record<string, unknown>)?.title,
+          (finalParsed.caseStudy as Record<string, unknown>)?.title,
           `${keyword} ${presetConfig.caseStudySuffix}`,
         ),
-        situation: normalizeText((parsed.caseStudy as Record<string, unknown>)?.situation, `${keyword} 관련 이슈로 내부 의사결정이 지연된 상황`),
-        solution: normalizeText((parsed.caseStudy as Record<string, unknown>)?.solution, "핵심 쟁점을 우선순위로 나누고 단계별 실행안을 설계"),
-        result: normalizeText((parsed.caseStudy as Record<string, unknown>)?.result, "불확실성이 줄고 실행 속도가 개선됨"),
+        situation: normalizeText((finalParsed.caseStudy as Record<string, unknown>)?.situation, `${keyword} 관련 이슈로 내부 의사결정이 지연된 상황`),
+        solution: normalizeText((finalParsed.caseStudy as Record<string, unknown>)?.solution, "핵심 쟁점을 우선순위로 나누고 단계별 실행안을 설계"),
+        result: normalizeText((finalParsed.caseStudy as Record<string, unknown>)?.result, "불확실성이 줄고 실행 속도가 개선됨"),
       },
       checklist:
         checklist.length > 0
@@ -727,9 +912,9 @@ export async function POST(req: NextRequest) {
               answer: "최근 이슈 사례, 내부 기준 문서, 일정 계획표를 먼저 준비하면 상담 효율이 높아집니다.",
             },
           ],
-      conclusion: normalizeText(parsed.conclusion, `${keyword}는 구조를 이해하고 순서대로 실행하면 성과가 빠르게 나는 주제입니다. 오늘 체크리스트부터 적용해 보세요.`),
-      cta: normalizeText(parsed.cta, "현재 상황에 맞춘 실행안을 원하시면 사례 기준으로 간단 진단해드리겠습니다. 댓글이나 문의로 핵심 상황만 남겨주시면 바로 방향을 잡아드리겠습니다."),
-      hashtags: normalizeHashtags(parsed.hashtags, keyword),
+      conclusion: normalizeText(finalParsed.conclusion, `${keyword}는 구조를 이해하고 순서대로 실행하면 성과가 빠르게 나는 주제입니다. 오늘 체크리스트부터 적용해 보세요.`),
+      cta: normalizeText(finalParsed.cta, "현재 상황에 맞춘 실행안을 원하시면 사례 기준으로 간단 진단해드리겠습니다. 댓글이나 문의로 핵심 상황만 남겨주시면 바로 방향을 잡아드리겠습니다."),
+      hashtags: normalizeHashtags(finalParsed.hashtags, keyword),
     };
 
     const imageUrl = `https://source.unsplash.com/1600x900/?${encodeURIComponent(draft.image.query || keyword)}`;
@@ -743,6 +928,8 @@ export async function POST(req: NextRequest) {
       markdown,
       imagePrompts,
       qualityReport,
+      styleBlueprint,
+      naverResearch,
     });
   } catch (error) {
     console.error("Blog writer error:", error);

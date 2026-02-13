@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
-import { Key, Database, Bot, Save, Eye, EyeOff, User, Upload, Trash2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Key, Database, Bot, Save, Eye, EyeOff } from "lucide-react";
 
 interface Settings {
     openai_api_key: string;
@@ -24,17 +24,8 @@ export default function SettingsPage() {
     const [showNationalLaw, setShowNationalLaw] = useState(false);
     const [showSupabaseKey, setShowSupabaseKey] = useState(false);
 
-    // Profile Image State
-    const [profileImage, setProfileImage] = useState<string>("");
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
     useEffect(() => {
         fetchSettings();
-        // Load profile image from localStorage
-        const savedImage = localStorage.getItem("cpla_profile_image");
-        if (savedImage) {
-            setProfileImage(savedImage);
-        }
     }, []);
 
     const fetchSettings = async () => {
@@ -79,90 +70,9 @@ export default function SettingsPage() {
         }
     };
 
-    // Profile Image Handlers
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        // Check file size (max 2MB for localStorage)
-        if (file.size > 2 * 1024 * 1024) {
-            alert("이미지 크기는 2MB 이하로 해주세요.");
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const base64 = event.target?.result as string;
-            setProfileImage(base64);
-            localStorage.setItem("cpla_profile_image", base64);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const handleRemoveImage = () => {
-        setProfileImage("");
-        localStorage.removeItem("cpla_profile_image");
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
-    };
-
     return (
         <div className="space-y-8">
             <h1 className="text-3xl font-bold text-slate-800">설정</h1>
-
-            {/* Profile Image Settings */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <User className="w-5 h-5" />
-                    프로필 사진 설정
-                </h2>
-                <div className="flex items-start gap-6">
-                    {/* Preview */}
-                    <div className="w-32 h-32 bg-[#1a4f75] flex items-center justify-center text-white/50 overflow-hidden flex-shrink-0">
-                        {profileImage ? (
-                            <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-                        ) : (
-                            <span className="text-xs">미리보기</span>
-                        )}
-                    </div>
-                    {/* Upload Controls */}
-                    <div className="space-y-4">
-                        <p className="text-sm text-slate-600">
-                            AI 답변 작성 중 화면에 표시될 프로필 사진입니다.<br />
-                            2MB 이하의 정사각형 이미지를 권장합니다.
-                        </p>
-                        <div className="flex items-center gap-3">
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleImageUpload}
-                                className="hidden"
-                            />
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
-                            >
-                                <Upload className="w-4 h-4" />
-                                사진 업로드
-                            </button>
-                            {profileImage && (
-                                <button
-                                    onClick={handleRemoveImage}
-                                    className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    삭제
-                                </button>
-                            )}
-                        </div>
-                        {profileImage && (
-                            <p className="text-xs text-green-600">✓ 사진이 저장되었습니다. 메인 페이지에서 바로 적용됩니다.</p>
-                        )}
-                    </div>
-                </div>
-            </div>
 
             {/* API Keys Settings */}
             <div className="bg-white rounded-xl shadow-sm p-6">

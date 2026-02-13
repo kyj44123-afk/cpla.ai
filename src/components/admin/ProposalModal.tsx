@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { X, Download, Wand2, Loader2, Check, MessageSquare } from "lucide-react";
 // @ts-ignore removed static import
 
@@ -15,12 +15,13 @@ interface ProposalModalProps {
     onClose: () => void;
 }
 
-// ... existing code ...
+type ManagedService = {
+    name: string;
+    description: string;
+    keywords?: string[];
+};
 
-// ... existing code ...
-// ... existing code ...
-
-const SERVICE_TYPES = [
+const FALLBACK_SERVICE_TYPES = [
     "부당해고 구제신청",
     "임금체불 진정",
     "노동위원회 사건",
@@ -29,16 +30,52 @@ const SERVICE_TYPES = [
     "법률 자문 (1회)",
     "법률 자문 (월정액)",
     "규정 정비 컨설팅",
-    "기타",
 ];
+
+function normalizeText(value: string): string {
+    return value.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function inferBestServiceType(query: string, services: ManagedService[]): string | null {
+    const normalizedQuery = normalizeText(query);
+    if (!normalizedQuery) return null;
+
+    let best: { name: string; score: number } | null = null;
+    for (const service of services) {
+        const serviceName = normalizeText(service.name);
+        let score = 0;
+
+        if (normalizedQuery.includes(serviceName)) score += 10;
+
+        const nameTokens = serviceName.split(" ").filter((token) => token.length >= 2);
+        for (const token of nameTokens) {
+            if (normalizedQuery.includes(token)) score += 2;
+        }
+
+        for (const keyword of service.keywords || []) {
+            const key = normalizeText(keyword);
+            if (!key) continue;
+            if (normalizedQuery.includes(key)) score += 3;
+        }
+
+        if (!best || score > best.score) {
+            best = { name: service.name, score };
+        }
+    }
+
+    if (!best || best.score <= 0) return null;
+    return best.name;
+}
 
 export function ProposalModal({ inquiry, onClose }: ProposalModalProps) {
     const [step, setStep] = useState<"input" | "preview">("input");
     const [loading, setLoading] = useState(false);
     const [proposalContent, setProposalContent] = useState("");
+    const [serviceOptions, setServiceOptions] = useState<string[]>([]);
+    const [serviceMetadata, setServiceMetadata] = useState<ManagedService[]>([]);
 
     // Inputs
-    const [serviceType, setServiceType] = useState(SERVICE_TYPES[0]);
+    const [serviceType, setServiceType] = useState(FALLBACK_SERVICE_TYPES[0]);
     const [customServiceType, setCustomServiceType] = useState("");
 
     // Derived service type for generation
@@ -46,6 +83,59 @@ export function ProposalModal({ inquiry, onClose }: ProposalModalProps) {
     const [retainerFee, setRetainerFee] = useState<number>(0);
     const [progressFee, setProgressFee] = useState<number>(0);
     const [successFee, setSuccessFee] = useState<number>(0);
+
+    const allServiceOptions = useMemo(() => {
+        const base = serviceOptions.length > 0 ? serviceOptions : FALLBACK_SERVICE_TYPES;
+        return [...base, "기타"];
+    }, [serviceOptions]);
+
+    useEffect(() => {
+        const fetchServiceOptions = async () => {
+            try {
+                const res = await fetch("/api/admin/services");
+                if (!res.ok) return;
+                const data = (await res.json()) as {
+                    workerServices?: ManagedService[];
+                    employerServices?: ManagedService[];
+                };
+
+                const merged = [...(data.workerServices || []), ...(data.employerServices || [])]
+                    .filter((item) => item?.name)
+                    .map((item) => ({
+                        name: item.name.trim(),
+                        description: item.description || "",
+                        keywords: Array.isArray(item.keywords) ? item.keywords : [],
+                    }));
+
+                const uniqueByName = new Map<string, ManagedService>();
+                for (const service of merged) {
+                    if (!uniqueByName.has(service.name)) {
+                        uniqueByName.set(service.name, service);
+                    }
+                }
+                const uniqueServices = Array.from(uniqueByName.values());
+                if (uniqueServices.length === 0) return;
+
+                setServiceMetadata(uniqueServices);
+                const names = uniqueServices.map((service) => service.name);
+                setServiceOptions(names);
+
+                const inferred = inferBestServiceType(inquiry.query || "", uniqueServices);
+                if (inferred && names.includes(inferred)) {
+                    setServiceType(inferred);
+                    return;
+                }
+                if (!names.includes(serviceType)) {
+                    setServiceType(names[0]);
+                }
+            } catch (error) {
+                console.error("Failed to load proposal service options:", error);
+            }
+        };
+
+        void fetchServiceOptions();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [inquiry.query]);
 
     const handleGenerate = async () => {
         setLoading(true);
@@ -186,12 +276,17 @@ export function ProposalModal({ inquiry, onClose }: ProposalModalProps) {
                                         onChange={(e) => setServiceType(e.target.value)}
                                         className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 bg-white"
                                     >
-                                        {SERVICE_TYPES.map((t) => (
+                                        {allServiceOptions.map((t) => (
                                             <option key={t} value={t}>
                                                 {t}
                                             </option>
                                         ))}
                                     </select>
+                                    {serviceMetadata.length > 0 && (
+                                        <p className="text-xs text-slate-500 mt-2">
+                                            서비스 관리 목록과 자동 연동됩니다. 신규 서비스 추가 시 이 목록에도 자동 반영됩니다.
+                                        </p>
+                                    )}
                                     {serviceType === "기타" && (
                                         <input
                                             type="text"
