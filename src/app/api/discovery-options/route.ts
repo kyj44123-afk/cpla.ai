@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { buildWorkflowInfographicDataUrl, buildWorkflowSteps } from "@/lib/workflowInfographic";
 import { BASE_LABOR_SERVICES } from "@/lib/laborServicesCatalog";
+import { getOpenAI } from "@/lib/openai";
 
 type Body = {
   situation: string;
@@ -179,6 +180,66 @@ function scoreService(service: ManagedService, text: string) {
   const normalized = normalize(text);
   const keywords = (service.keywords && service.keywords.length > 0 ? service.keywords : inferKeywords(service)).map(normalize);
   return keywords.reduce((acc, keyword) => acc + (keyword && normalized.includes(keyword) ? 1 : 0), 0);
+}
+
+async function rankServicesWithAI(
+  services: ManagedService[],
+  combinedText: string,
+  audience: "worker" | "employer"
+): Promise<string[]> {
+  if (services.length === 0) return [];
+  try {
+    const openai = getOpenAI();
+    const catalog = services.map((s, idx) => ({
+      idx,
+      name: s.name,
+      description: s.description,
+      audience: s.audience || audience,
+    }));
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.1,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content:
+            "너는 노무 서비스 매칭기다. 키워드 단순 일치가 아니라 사용자의 의도, 목표, 상황의 맥락을 보고 가장 적합한 서비스 3개를 고른다. 반드시 제공된 카탈로그 안에서만 고른다.",
+        },
+        {
+          role: "user",
+          content: `사용자 유형: ${audience === "employer" ? "사업주/인사담당자" : "근로자"}
+사용자 입력:
+${combinedText}
+
+서비스 카탈로그(JSON):
+${JSON.stringify(catalog)}
+
+규칙:
+1) 반드시 카탈로그의 idx만 선택
+2) 총 3개 선택
+3) 이름 유사성보다 실제 업무 목적 적합도를 우선
+4) "임금체계 개선" 같은 문의는 "임금체불"보다 "임금체계 개편 자문" 계열을 우선
+
+JSON으로만 답변:
+{ "picked_idx": [0,1,2] }`,
+        },
+      ],
+    });
+
+    const raw = completion.choices[0]?.message?.content || "{}";
+    const parsed = JSON.parse(raw) as { picked_idx?: number[] };
+    const picked = Array.isArray(parsed.picked_idx) ? parsed.picked_idx : [];
+    const names = picked
+      .map((i) => (typeof i === "number" ? services[i] : null))
+      .filter((s): s is ManagedService => Boolean(s))
+      .map((s) => s.name);
+    return Array.from(new Set(names)).slice(0, 3);
+  } catch (error) {
+    console.error("AI service ranking failed, fallback to keyword ranking:", error);
+    return [];
+  }
 }
 
 function getKeywordLabel(category: Category) {
@@ -410,7 +471,7 @@ function recommendServices(category: Category, combinedText: string, audience: "
     audience: "worker",
   };
 
-  const ranked = mergedServices
+  const rankedByKeyword = mergedServices
     .map((service) => ({ service, score: scoreService(service, combinedText) }))
     .sort((a, b) => b.score - a.score)
     .map((item) => item.service);
@@ -433,16 +494,18 @@ function recommendServices(category: Category, combinedText: string, audience: "
     if (counseling) addUnique(picks, counseling);
   }
 
-  for (const candidate of ranked) {
-    if (picks.length >= 3) break;
-    addUnique(picks, candidate);
-  }
-  for (const fallback of [counseling, ...(audience === "worker" ? [wageClaim, substitutePayment] : []), ...mergedServices]) {
-    if (picks.length >= 3) break;
-    if (fallback) addUnique(picks, fallback);
-  }
+  return {
+    picks,
+    rankedByKeyword,
+    counseling,
+    wageClaim,
+    substitutePayment,
+    mergedServices,
+  };
+}
 
-  return picks.slice(0, 3).map((service) => ({
+function toServiceCards(services: ManagedService[]) {
+  return services.slice(0, 3).map((service) => ({
     name: service.name,
     description: service.description,
     workflowSteps: service.workflowSteps && service.workflowSteps.length > 0 ? service.workflowSteps : buildAutoWorkflow(service.name),
@@ -482,7 +545,25 @@ export async function POST(req: Request) {
 
     if (round === 1) {
       const second = buildSecondQuestion(category, combinedText);
-      const quickServices = recommendServices(category, combinedText, audience).slice(0, 2);
+      const rec = recommendServices(category, combinedText, audience);
+      const aiPickedNames = await rankServicesWithAI(rec.mergedServices, combinedText, audience);
+      const aiPicked = aiPickedNames
+        .map((name) => rec.mergedServices.find((s) => s.name === name))
+        .filter((s): s is ManagedService => Boolean(s));
+      const finalPicked: ManagedService[] = [];
+      const addUnique = (arr: ManagedService[], svc: ManagedService) => {
+        if (!arr.some((s) => s.name === svc.name)) arr.push(svc);
+      };
+      for (const svc of aiPicked) addUnique(finalPicked, svc);
+      for (const svc of rec.picks) {
+        if (finalPicked.length >= 3) break;
+        addUnique(finalPicked, svc);
+      }
+      for (const svc of rec.rankedByKeyword) {
+        if (finalPicked.length >= 3) break;
+        addUnique(finalPicked, svc);
+      }
+      const quickServices = toServiceCards(finalPicked).slice(0, 2);
       payload = {
         stage: "ask",
         keyword: getKeywordLabel(category),
@@ -493,7 +574,25 @@ export async function POST(req: Request) {
       };
     } else if (round === 2) {
       const third = buildThirdQuestion(category, combinedText);
-      const quickServices = recommendServices(category, combinedText, audience).slice(0, 2);
+      const rec = recommendServices(category, combinedText, audience);
+      const aiPickedNames = await rankServicesWithAI(rec.mergedServices, combinedText, audience);
+      const aiPicked = aiPickedNames
+        .map((name) => rec.mergedServices.find((s) => s.name === name))
+        .filter((s): s is ManagedService => Boolean(s));
+      const finalPicked: ManagedService[] = [];
+      const addUnique = (arr: ManagedService[], svc: ManagedService) => {
+        if (!arr.some((s) => s.name === svc.name)) arr.push(svc);
+      };
+      for (const svc of aiPicked) addUnique(finalPicked, svc);
+      for (const svc of rec.picks) {
+        if (finalPicked.length >= 3) break;
+        addUnique(finalPicked, svc);
+      }
+      for (const svc of rec.rankedByKeyword) {
+        if (finalPicked.length >= 3) break;
+        addUnique(finalPicked, svc);
+      }
+      const quickServices = toServiceCards(finalPicked).slice(0, 2);
       payload = {
         stage: "ask",
         keyword: getKeywordLabel(category),
@@ -503,10 +602,28 @@ export async function POST(req: Request) {
         round: 3,
       };
     } else {
-      const services = recommendServices(category, combinedText, audience);
+      const rec = recommendServices(category, combinedText, audience);
+      const aiPickedNames = await rankServicesWithAI(rec.mergedServices, combinedText, audience);
+      const aiPicked = aiPickedNames
+        .map((name) => rec.mergedServices.find((s) => s.name === name))
+        .filter((s): s is ManagedService => Boolean(s));
+      const finalPicked: ManagedService[] = [];
+      const addUnique = (arr: ManagedService[], svc: ManagedService) => {
+        if (!arr.some((s) => s.name === svc.name)) arr.push(svc);
+      };
+      for (const svc of aiPicked) addUnique(finalPicked, svc);
+      for (const svc of rec.picks) {
+        if (finalPicked.length >= 3) break;
+        addUnique(finalPicked, svc);
+      }
+      for (const svc of rec.rankedByKeyword) {
+        if (finalPicked.length >= 3) break;
+        addUnique(finalPicked, svc);
+      }
+
       payload = {
         stage: "finalize",
-        recommendedServices: services,
+        recommendedServices: toServiceCards(finalPicked),
         intakeSummary: buildSummary(situation, answers, category),
       };
     }
