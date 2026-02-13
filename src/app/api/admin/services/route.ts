@@ -107,7 +107,9 @@ export async function POST(req: Request) {
     };
 
     const workerNormalized = normalizeServices(body.workerServices, "worker").map((service) => {
-      const steps = buildWorkflowSteps(service.name);
+      const steps = service.workflowSteps && service.workflowSteps.length > 0
+        ? service.workflowSteps.slice(0, 6)
+        : buildWorkflowSteps(service.name);
       return {
         ...service,
         workflowSteps: steps,
@@ -116,7 +118,9 @@ export async function POST(req: Request) {
     });
 
     const employerNormalized = normalizeServices(body.employerServices, "employer").map((service) => {
-      const steps = buildWorkflowSteps(service.name);
+      const steps = service.workflowSteps && service.workflowSteps.length > 0
+        ? service.workflowSteps.slice(0, 6)
+        : buildWorkflowSteps(service.name);
       return {
         ...service,
         workflowSteps: steps,

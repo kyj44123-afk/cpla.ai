@@ -1,6 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getOpenAI } from "@/lib/openai";
+import { withSecurity, validateBody } from "@/lib/api-security";
+import { z } from "zod";
 
+// ... (Types kept same) ...
 type BlogImage = {
   query: string;
   alt: string;
@@ -26,6 +29,11 @@ type BlogFaq = {
   answer: string;
 };
 
+type SectionImagePrompt = {
+  section: string;
+  prompt: string;
+};
+
 type BlogDraft = {
   title: string;
   introHook: string;
@@ -41,18 +49,21 @@ type BlogDraft = {
   hashtags: string[];
 };
 
-type RequestBody = {
-  keyword?: string;
-  tone?: string;
-  length?: "short" | "medium" | "long";
-  preset?: PresetKey;
-};
+// Remove RequestBody type, use Zod inference or just manual
+// Zod Schema
+const BlogWriterSchema = z.object({
+  keyword: z.string().min(1, "키워드를 입력해주세요."),
+  tone: z.string().optional(),
+  length: z.enum(["short", "medium", "long"]).optional(),
+  preset: z.string().optional(),
+});
+
+type RequestBody = z.infer<typeof BlogWriterSchema>;
 
 type PresetKey =
   | "labor_firm_hoyeon"
   | "rep_labor_attorney"
   | "directions"
-  | "cpla_ai"
   | "labor_legal_advisory"
   | "ai_asks_labor_answers"
   | "advisory_cases"
@@ -68,14 +79,21 @@ type PresetKey =
   | "corporate_training"
   | "subsidy_application_support";
 
+// ... (PresetConfig and createPreset kept same) ...
 type PresetConfig = {
   label: string;
   defaultTone: string;
   targetAudience: string;
   systemRoleLines: string[];
   userRules: string[];
+  playbook: string[];
   titleSuffix: string;
   caseStudySuffix: string;
+};
+
+type QualityReport = {
+  score: number;
+  improvements: string[];
 };
 
 function createPreset(config: {
@@ -86,6 +104,7 @@ function createPreset(config: {
   targetAudience?: string;
   systemRoleLines?: string[];
   userRules?: string[];
+  playbook?: string[];
 }): PresetConfig {
   return {
     label: config.label,
@@ -107,6 +126,11 @@ function createPreset(config: {
       "- faq: 자주 묻는 질문 2~4개",
       "- cta: 과장 없이 진단/상담 유도",
     ],
+    playbook: config.playbook ?? [
+      "독자가 바로 실행할 수 있는 문장으로 작성",
+      "단정적 표현보다 조건/예외를 함께 제시",
+      "현장 사례 기반 문장 1개 이상 포함",
+    ],
     titleSuffix: config.titleSuffix,
     caseStudySuffix: config.caseStudySuffix,
   };
@@ -118,108 +142,187 @@ const PRESET_CONFIG: Record<PresetKey, PresetConfig> = {
     defaultTone: "법인 소개형, 신뢰 중심 톤",
     titleSuffix: "노무법인 서비스 안내",
     caseStudySuffix: "노무법인 수행 사례",
+    playbook: [
+      "법인 강점은 2~3개만 구체적으로 제시",
+      "서비스 선택 기준을 독자 관점 체크리스트로 제공",
+      "신뢰 형성을 위해 절차와 결과물을 명확히 설명",
+    ],
   }),
   rep_labor_attorney: createPreset({
     label: "대표노무사 곽영준",
     defaultTone: "노무사 칼럼형, 법적 리스크를 쉽게 설명하는 신뢰형 톤",
     titleSuffix: "노무 실무 가이드",
     caseStudySuffix: "노무 상담 사례",
+    playbook: [
+      "노무사가 직접 설명하는 칼럼 문체 유지",
+      "핵심 쟁점-판단기준-실무대응 순서로 전개",
+      "독자가 헷갈리는 표현을 쉬운 용어로 치환",
+    ],
   }),
   directions: createPreset({
     label: "오시는 길",
     defaultTone: "방문 안내형, 간결하고 친절한 톤",
     titleSuffix: "방문 안내 가이드",
     caseStudySuffix: "방문 상담 진행 사례",
-  }),
-  cpla_ai: createPreset({
-    label: "CPLA + AI",
-    defaultTone: "노무+AI 융합 인사이트형, 실무 자동화 중심 톤",
-    titleSuffix: "노무 AI 적용 가이드",
-    caseStudySuffix: "노무 AI 적용 사례",
+    playbook: [
+      "주소/교통/주차/방문 전 준비를 명확히 안내",
+      "처음 방문하는 독자 기준 동선형 설명 사용",
+      "문의 전 체크사항을 간단한 리스트로 제공",
+    ],
   }),
   labor_legal_advisory: createPreset({
     label: "노동법률 자문",
     defaultTone: "법률 자문형, 쟁점 정리 중심 톤",
     titleSuffix: "노동법률 자문 가이드",
     caseStudySuffix: "노동법률 자문 사례",
+    playbook: [
+      "법률 자문이 필요한 상황을 먼저 정의",
+      "사전 진단 포인트와 자문 후 기대효과를 분리",
+      "실수하기 쉬운 리스크를 경고형 문장으로 제시",
+    ],
   }),
   ai_asks_labor_answers: createPreset({
     label: "AI가 묻고 노무사가 답하다",
     defaultTone: "Q&A형, 쉬운 설명 중심 톤",
     titleSuffix: "노무 Q&A 가이드",
     caseStudySuffix: "질의응답 기반 사례",
+    playbook: [
+      "질문-답변 흐름을 유지하되 답변은 실행 중심",
+      "자주 오해하는 포인트를 반례로 설명",
+      "답변마다 체크해야 할 조건을 명시",
+    ],
   }),
   advisory_cases: createPreset({
     label: "자문 사례",
     defaultTone: "사례 분석형, 문제-해결 구조 톤",
     titleSuffix: "자문 사례 분석",
     caseStudySuffix: "대표 자문 사례",
+    playbook: [
+      "문제상황-개입전략-결과를 숫자/지표로 요약",
+      "사례는 익명화된 가상 형태로 구성",
+      "사례 후 일반화 가능한 교훈 3가지를 제시",
+    ],
   }),
   hr_er_consulting: createPreset({
     label: "HR·ER 컨설팅",
     defaultTone: "컨설팅 리포트형, 실행안 중심 톤",
     titleSuffix: "HR·ER 컨설팅 가이드",
     caseStudySuffix: "HR·ER 컨설팅 사례",
+    playbook: [
+      "조직 진단-설계-정착의 3단계로 설명",
+      "경영진/실무자 관점 요구사항을 분리",
+      "실행 순서와 예상 난관을 함께 제시",
+    ],
   }),
   hr_system_design: createPreset({
     label: "HR 제도설계",
     defaultTone: "제도설계형, 체계적 설명 톤",
     titleSuffix: "HR 제도설계 가이드",
     caseStudySuffix: "HR 제도설계 사례",
+    playbook: [
+      "제도 목적과 평가 기준을 먼저 합의",
+      "제도 설계 시 법적 리스크와 운영 리스크 분리",
+      "도입 후 점검지표를 명확히 제시",
+    ],
   }),
   hr_risk_management: createPreset({
     label: "HR 리스크관리",
     defaultTone: "리스크 매뉴얼형, 예방 중심 톤",
     titleSuffix: "HR 리스크관리 가이드",
     caseStudySuffix: "HR 리스크관리 사례",
+    playbook: [
+      "리스크를 발생확률/영향도로 구분",
+      "예방조치와 사후대응을 분리한 구조 사용",
+      "문서화·증빙 확보 항목을 반드시 포함",
+    ],
   }),
   er_labor_relations: createPreset({
     label: "ER 노사관계",
     defaultTone: "노사관계 실무형, 균형 잡힌 톤",
     titleSuffix: "ER 노사관계 가이드",
     caseStudySuffix: "노사관계 관리 사례",
+    playbook: [
+      "노사 양측 신뢰를 해치지 않는 표현 사용",
+      "갈등 발생 전 예방 대화를 강조",
+      "분쟁 시 커뮤니케이션 원칙을 단계별 제시",
+    ],
   }),
   er_collective_bargaining: createPreset({
     label: "ER 단체교섭",
     defaultTone: "단체교섭 전략형, 절차·논리 중심 톤",
     titleSuffix: "ER 단체교섭 가이드",
     caseStudySuffix: "단체교섭 대응 사례",
+    playbook: [
+      "교섭 준비-진행-합의 이행의 흐름 유지",
+      "주요 쟁점별 우선순위 설정법 제시",
+      "교섭 기록/합의문 문서화 포인트 포함",
+    ],
   }),
   workplace_innovation_consulting: createPreset({
     label: "일터혁신컨설팅",
     defaultTone: "혁신 실행형, 변화관리 중심 톤",
     titleSuffix: "일터혁신 컨설팅 가이드",
     caseStudySuffix: "일터혁신 적용 사례",
+    playbook: [
+      "현황 진단에서 시작해 개선 로드맵까지 제시",
+      "성과지표를 단기/중기 구분으로 제안",
+      "현장 저항을 줄이는 실행 커뮤니케이션 포함",
+    ],
   }),
   harassment_sexual: createPreset({
     label: "직장 내 괴롭힘·성희롱",
     defaultTone: "민감이슈 대응형, 보호·절차 중심 톤",
     titleSuffix: "괴롭힘·성희롱 대응 가이드",
     caseStudySuffix: "괴롭힘·성희롱 대응 사례",
+    playbook: [
+      "피해자 보호와 공정 절차를 동시에 강조",
+      "민감 주제이므로 자극적 표현 금지",
+      "신고 접수 후 즉시 해야 할 조치를 순서화",
+    ],
   }),
   incident_investigation: createPreset({
     label: "사건조사 및 심의",
     defaultTone: "사건조사 매뉴얼형, 절차와 증빙 중심 톤",
     titleSuffix: "사건조사·심의 실무 가이드",
     caseStudySuffix: "사건조사·심의 사례",
+    playbook: [
+      "조사위원 구성·중립성 확보를 분명히 제시",
+      "증거수집·진술정리·기록보존의 기준을 포함",
+      "심의 후 후속조치와 재발방지까지 연결",
+    ],
   }),
   report_related_advisory: createPreset({
     label: "신고 관련 자문",
     defaultTone: "신고 프로세스 안내형, 중립·보호 중심 톤",
     titleSuffix: "신고 관련 자문 가이드",
     caseStudySuffix: "신고 절차 자문 사례",
+    playbook: [
+      "신고 채널/보호조치/비밀보장 기준 명시",
+      "무고·보복 우려에 대한 균형 잡힌 설명",
+      "초기 대응 타임라인을 시간 순서로 제시",
+    ],
   }),
   corporate_training: createPreset({
     label: "기업교육",
     defaultTone: "교육기획형, 실무 적용 중심 톤",
     titleSuffix: "기업교육 운영 가이드",
     caseStudySuffix: "기업교육 운영 사례",
+    playbook: [
+      "교육 목표-대상-성과측정 구조를 명확히 구성",
+      "법정의무/실무교육을 구분해 안내",
+      "교육 후 행동변화 체크리스트 포함",
+    ],
   }),
   subsidy_application_support: createPreset({
     label: "지원금 신청 대행",
     defaultTone: "지원사업 안내형, 요건·절차 중심 톤",
     titleSuffix: "지원금 신청 가이드",
     caseStudySuffix: "지원금 신청 대행 사례",
+    playbook: [
+      "지원금 요건 확인 → 서류 준비 → 신청 후 관리 순서",
+      "누락/반려 포인트를 경고형으로 제시",
+      "일정 관리와 증빙 보관 팁 포함",
+    ],
   }),
 };
 
@@ -311,6 +414,59 @@ function normalizeHashtags(value: unknown, keyword: string): string[] {
   return [`#${keyword.replace(/\s+/g, "")}`];
 }
 
+function normalizeImagePrompts(value: unknown): SectionImagePrompt[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((item) => {
+      const row = item as Record<string, unknown>;
+      const section = normalizeText(row.section);
+      const prompt = normalizeText(row.prompt);
+      if (!section || !prompt) {
+        return null;
+      }
+      return { section, prompt };
+    })
+    .filter((item): item is SectionImagePrompt => item !== null)
+    .slice(0, 12);
+}
+
+function buildFallbackImagePrompts(draft: BlogDraft, keyword: string): SectionImagePrompt[] {
+  const prompts: SectionImagePrompt[] = [
+    {
+      section: "인트로",
+      prompt: `${keyword} 주제를 상징하는 한국 직장/오피스 장면, 자연광, 현실적인 인물 구도, editorial photo, high detail, 16:9`,
+    },
+  ];
+
+  for (const section of draft.sections) {
+    prompts.push({
+      section: section.heading,
+      prompt: `${section.heading}를 시각화한 한국 비즈니스 현장, 전문직 컨설팅 분위기, 문서/회의 요소 포함, clean composition, editorial style, 16:9`,
+    });
+  }
+
+  prompts.push({
+    section: "사례",
+    prompt: `${draft.caseStudy.title} 상황을 표현한 상담 테이블 장면, 중립적이고 신뢰감 있는 분위기, realistic photo style, 16:9`,
+  });
+  prompts.push({
+    section: "마무리",
+    prompt: `${keyword} 실행 체크리스트를 정리하는 장면, 노트북/문서/체크표시, 밝고 명확한 톤, realistic editorial photo, 16:9`,
+  });
+
+  return prompts.slice(0, 12);
+}
+
+function normalizeQualityReport(value: unknown): QualityReport {
+  const row = (value ?? {}) as Record<string, unknown>;
+  const rawScore = typeof row.score === "number" ? row.score : 0;
+  const score = Math.max(0, Math.min(100, Math.round(rawScore)));
+  const improvements = normalizeStringArray(row.improvements, 0, 5);
+  return { score, improvements };
+}
+
 function buildMarkdown(draft: BlogDraft, imageUrl: string): string {
   const lines: string[] = [];
 
@@ -389,18 +545,22 @@ function buildMarkdown(draft: BlogDraft, imageUrl: string): string {
   return lines.join("\n");
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // 1. Security Check
+  const securityError = await withSecurity(req, { checkAuth: true, rateLimit: { limit: 5, windowMs: 60000 } });
+  if (securityError) return securityError;
+
+  // 2. Validation
+  const validation = await validateBody(req, BlogWriterSchema);
+  if (!validation.success) return validation.error;
+  const body = validation.data;
+
   try {
-    const body = (await req.json()) as RequestBody;
     const preset = parsePreset(body.preset);
     const presetConfig = PRESET_CONFIG[preset];
     const keyword = normalizeText(body.keyword);
     const tone = normalizeText(body.tone, presetConfig.defaultTone);
     const length = body.length ?? "medium";
-
-    if (!keyword) {
-      return NextResponse.json({ error: "키워드를 입력해주세요." }, { status: 400 });
-    }
 
     const lengthGuide: Record<NonNullable<RequestBody["length"]>, string> = {
       short: "총 1,000~1,500자",
@@ -410,13 +570,18 @@ export async function POST(req: Request) {
 
     const openai = getOpenAI();
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini",
       response_format: { type: "json_object" },
-      temperature: 0.75,
+      temperature: 0.85,
       messages: [
         {
           role: "system",
-          content: presetConfig.systemRoleLines.join("\n"),
+          content: [
+            ...presetConfig.systemRoleLines,
+            "문장은 짧고 명확하게, 문단은 2~3문장 단위로 구성한다.",
+            "형식적인 말보다 구체적인 행동 지침을 우선한다.",
+            "SEO를 의식하되 키워드 반복/어색한 문장 금지.",
+          ].join("\n"),
         },
         {
           role: "user",
@@ -424,8 +589,9 @@ export async function POST(req: Request) {
             `주제 키워드: ${keyword}`,
             `프리셋: ${presetConfig.label}`,
             `문체/톤: ${tone}`,
-            `분량 가이드: ${lengthGuide[length]}`,
+            `분량 가이드: ${lengthGuide[length!]}`,
             `타깃 독자: ${presetConfig.targetAudience}`,
+            `카테고리 플레이북: ${presetConfig.playbook.join(" / ")}`,
             "출력 JSON 스키마:",
             '{ "title": "", "introHook": "", "introBody": "", "summaryBox": [""], "image": { "query": "", "alt": "", "caption": "" }, "sections": [ { "heading": "", "lead": "", "bullets": [""], "body": "" } ], "caseStudy": { "title": "", "situation": "", "solution": "", "result": "" }, "checklist": [""], "faq": [ { "question": "", "answer": "" } ], "conclusion": "", "cta": "", "hashtags": ["#태그"] }',
             "작성 규칙:",
@@ -434,6 +600,7 @@ export async function POST(req: Request) {
             "- introBody: 2~3문장으로 글에서 얻을 이익 제시",
             "- summaryBox: 3~4개 핵심 포인트",
             "- sections: 3~5개",
+            "- 각 section의 body는 구체 행동/주의사항 중심으로 작성",
             "- hashtags: 7~12개",
           ].join("\n"),
         },
@@ -441,7 +608,48 @@ export async function POST(req: Request) {
     });
 
     const raw = completion.choices[0]?.message?.content ?? "{}";
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const parsedDraft = JSON.parse(raw) as Record<string, unknown>;
+
+    const editCompletion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      response_format: { type: "json_object" },
+      temperature: 0.35,
+      messages: [
+        {
+          role: "system",
+          content: [
+            "당신은 네이버 블로그 전문 에디터다.",
+            "초안을 품질 기준으로 교정해 최종본을 만든다.",
+            "품질 기준:",
+            "1) 제목/서론이 문제를 즉시 제시하는가",
+            "2) 본문이 실제 행동 가능한 지침을 제공하는가",
+            "3) 군더더기 표현 없이 읽기 쉬운가",
+            "4) 프리셋 카테고리 목적에 맞는가",
+            "응답은 JSON만 출력한다.",
+          ].join("\n"),
+        },
+        {
+          role: "user",
+          content: [
+            `키워드: ${keyword}`,
+            `프리셋: ${presetConfig.label}`,
+            `카테고리 플레이북: ${presetConfig.playbook.join(" / ")}`,
+            "아래 초안을 품질 높게 교정하고, 개선 포인트를 함께 반환하세요.",
+            "출력 JSON 스키마:",
+            '{ "draft": { "title": "", "introHook": "", "introBody": "", "summaryBox": [""], "image": { "query": "", "alt": "", "caption": "" }, "sections": [ { "heading": "", "lead": "", "bullets": [""], "body": "" } ], "caseStudy": { "title": "", "situation": "", "solution": "", "result": "" }, "checklist": [""], "faq": [ { "question": "", "answer": "" } ], "conclusion": "", "cta": "", "hashtags": ["#태그"] }, "imagePrompts": [ { "section": "", "prompt": "" } ], "qualityReport": { "score": 0, "improvements": [""] } }',
+            `초안 JSON: ${JSON.stringify(parsedDraft)}`,
+          ].join("\n"),
+        },
+      ],
+    });
+
+    const editedRaw = editCompletion.choices[0]?.message?.content ?? "{}";
+    const editedParsed = JSON.parse(editedRaw) as Record<string, unknown>;
+    const parsed =
+      (editedParsed.draft as Record<string, unknown> | undefined) && typeof editedParsed.draft === "object"
+        ? (editedParsed.draft as Record<string, unknown>)
+        : parsedDraft;
+    const qualityReport = normalizeQualityReport(editedParsed.qualityReport);
 
     const sections = normalizeSections(parsed.sections);
     const summaryBox = normalizeStringArray(parsed.summaryBox, 1, 4);
@@ -461,16 +669,16 @@ export async function POST(req: Request) {
         parsed.introBody,
         preset === "rep_labor_attorney" || preset === "incident_investigation"
           ? `이 글에서는 ${keyword} 관련 노무 리스크와 실무 대응 순서를 현장 기준으로 정리합니다.`
-          : `이 글에서는 ${keyword}의 핵심 원리와 AI/실무 적용 포인트를 바로 실행 가능하게 정리합니다.`,
+          : `이 글에서는 ${keyword}의 핵심 원리와 현장 적용 포인트를 바로 실행 가능하게 정리합니다.`,
       ),
       summaryBox:
         summaryBox.length > 0
           ? summaryBox
           : [
-              `${keyword} 핵심 구조를 먼저 이해합니다.`,
-              "실무에서 자주 놓치는 리스크를 점검합니다.",
-              "바로 실행 가능한 체크리스트를 제공합니다.",
-            ],
+            `${keyword} 핵심 구조를 먼저 이해합니다.`,
+            "실무에서 자주 놓치는 리스크를 점검합니다.",
+            "바로 실행 가능한 체크리스트를 제공합니다.",
+          ],
       image: {
         query: normalizeText((parsed.image as Record<string, unknown>)?.query, keyword),
         alt: normalizeText((parsed.image as Record<string, unknown>)?.alt, `${keyword} 관련 대표 이미지`),
@@ -480,13 +688,13 @@ export async function POST(req: Request) {
         sections.length > 0
           ? sections
           : [
-              {
-                heading: `${keyword} 핵심 개념`,
-                lead: `${keyword}를 이해할 때 먼저 봐야 할 기준부터 정리합니다.`,
-                bullets: ["문제 정의", "적용 범위", "실무 리스크"],
-                body: "실무에서는 기준이 모호하면 의사결정이 늦어지고 비용이 커집니다. 기본 개념을 먼저 고정한 뒤 세부 전략을 정하는 방식이 가장 안전합니다.",
-              },
-            ],
+            {
+              heading: `${keyword} 핵심 개념`,
+              lead: `${keyword}를 이해할 때 먼저 봐야 할 기준부터 정리합니다.`,
+              bullets: ["문제 정의", "적용 범위", "실무 리스크"],
+              body: "실무에서는 기준이 모호하면 의사결정이 늦어지고 비용이 커집니다. 기본 개념을 먼저 고정한 뒤 세부 전략을 정하는 방식이 가장 안전합니다.",
+            },
+          ],
       caseStudy: {
         title: normalizeText(
           (parsed.caseStudy as Record<string, unknown>)?.title,
@@ -500,25 +708,25 @@ export async function POST(req: Request) {
         checklist.length > 0
           ? checklist
           : [
-              "현 상황을 1문장으로 정의한다",
-              "핵심 리스크 3가지를 먼저 적는다",
-              "내부 담당자와 일정/책임자를 지정한다",
-              "필요 서류/데이터를 사전에 정리한다",
-              "전문가 검토 포인트를 체크한다",
-            ],
+            "현 상황을 1문장으로 정의한다",
+            "핵심 리스크 3가지를 먼저 적는다",
+            "내부 담당자와 일정/책임자를 지정한다",
+            "필요 서류/데이터를 사전에 정리한다",
+            "전문가 검토 포인트를 체크한다",
+          ],
       faq:
         faq.length > 0
           ? faq
           : [
-              {
-                question: `${keyword}를 바로 적용해도 되나요?`,
-                answer: "현재 상황과 요건을 먼저 확인한 뒤 적용 범위를 좁혀 시작하는 것이 안전합니다.",
-              },
-              {
-                question: "어떤 자료를 먼저 준비하면 좋나요?",
-                answer: "최근 이슈 사례, 내부 기준 문서, 일정 계획표를 먼저 준비하면 상담 효율이 높아집니다.",
-              },
-            ],
+            {
+              question: `${keyword}를 바로 적용해도 되나요?`,
+              answer: "현재 상황과 요건을 먼저 확인한 뒤 적용 범위를 좁혀 시작하는 것이 안전합니다.",
+            },
+            {
+              question: "어떤 자료를 먼저 준비하면 좋나요?",
+              answer: "최근 이슈 사례, 내부 기준 문서, 일정 계획표를 먼저 준비하면 상담 효율이 높아집니다.",
+            },
+          ],
       conclusion: normalizeText(parsed.conclusion, `${keyword}는 구조를 이해하고 순서대로 실행하면 성과가 빠르게 나는 주제입니다. 오늘 체크리스트부터 적용해 보세요.`),
       cta: normalizeText(parsed.cta, "현재 상황에 맞춘 실행안을 원하시면 사례 기준으로 간단 진단해드리겠습니다. 댓글이나 문의로 핵심 상황만 남겨주시면 바로 방향을 잡아드리겠습니다."),
       hashtags: normalizeHashtags(parsed.hashtags, keyword),
@@ -526,11 +734,15 @@ export async function POST(req: Request) {
 
     const imageUrl = `https://source.unsplash.com/1600x900/?${encodeURIComponent(draft.image.query || keyword)}`;
     const markdown = buildMarkdown(draft, imageUrl);
+    const imagePromptsRaw = normalizeImagePrompts(editedParsed.imagePrompts);
+    const imagePrompts = imagePromptsRaw.length > 0 ? imagePromptsRaw : buildFallbackImagePrompts(draft, keyword);
 
     return NextResponse.json({
       draft,
       imageUrl,
       markdown,
+      imagePrompts,
+      qualityReport,
     });
   } catch (error) {
     console.error("Blog writer error:", error);

@@ -4,7 +4,7 @@ const fs = require("fs");
 const settings = JSON.parse(fs.readFileSync(".settings.json", "utf8"));
 const apiKey = settings.national_law_api_key;
 
-console.log("API Key:", apiKey);
+console.log("API Key: [HIDDEN]");
 
 async function debugAPI() {
     const lawUrl = `https://www.law.go.kr/DRF/lawSearch.do?OC=${apiKey}&target=law&type=XML&query=${encodeURIComponent("근로기준법")}&display=3`;

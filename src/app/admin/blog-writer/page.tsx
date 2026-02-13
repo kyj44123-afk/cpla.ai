@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Loader2, Copy, Sparkles, Send } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 type BlogSection = {
@@ -35,17 +36,26 @@ type BlogDraft = {
   hashtags: string[];
 };
 
+type SectionImagePrompt = {
+  section: string;
+  prompt: string;
+};
+
 type ApiResponse = {
   draft: BlogDraft;
   imageUrl: string;
   markdown: string;
+  imagePrompts?: SectionImagePrompt[];
+  qualityReport?: {
+    score: number;
+    improvements: string[];
+  };
 };
 
 type PresetKey =
   | "labor_firm_hoyeon"
   | "rep_labor_attorney"
   | "directions"
-  | "cpla_ai"
   | "labor_legal_advisory"
   | "ai_asks_labor_answers"
   | "advisory_cases"
@@ -76,11 +86,6 @@ const PRESET_OPTIONS: { value: PresetKey; label: string; defaultTone: string }[]
     value: "directions",
     label: "└ 오시는 길",
     defaultTone: "방문 안내형, 간결하고 친절한 톤",
-  },
-  {
-    value: "cpla_ai",
-    label: "CPLA + AI",
-    defaultTone: "노무+AI 융합 인사이트형, 실무 자동화 중심 톤",
   },
   {
     value: "labor_legal_advisory",
@@ -166,6 +171,7 @@ export default function AdminBlogWriterPage() {
   const [publishError, setPublishError] = useState("");
   const [publishedPostId, setPublishedPostId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedImagePrompts, setCopiedImagePrompts] = useState(false);
   const [result, setResult] = useState<ApiResponse | null>(null);
 
   const handlePresetChange = (nextPreset: PresetKey) => {
@@ -186,6 +192,7 @@ export default function AdminBlogWriterPage() {
     setPublishError("");
     setPublishedPostId(null);
     setCopied(false);
+    setCopiedImagePrompts(false);
 
     try {
       const res = await fetch("/api/admin/blog-writer", {
@@ -248,6 +255,16 @@ export default function AdminBlogWriterPage() {
     } finally {
       setPublishing(false);
     }
+  };
+
+  const handleCopyImagePrompts = async () => {
+    if (!result?.imagePrompts?.length) return;
+    const text = result.imagePrompts
+      .map((item, idx) => `${idx + 1}. ${item.section}\n${item.prompt}`)
+      .join("\n\n");
+    await navigator.clipboard.writeText(text);
+    setCopiedImagePrompts(true);
+    setTimeout(() => setCopiedImagePrompts(false), 1500);
   };
 
   return (
@@ -313,6 +330,18 @@ export default function AdminBlogWriterPage() {
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
             <h2 className="text-2xl font-bold text-slate-900">{result.draft.title}</h2>
+            {typeof result.qualityReport?.score === "number" && (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                <p className="text-sm font-semibold text-emerald-800">콘텐츠 품질 점수: {result.qualityReport.score}점</p>
+                {result.qualityReport.improvements?.length ? (
+                  <ul className="mt-1 text-xs text-emerald-700 list-disc pl-5 space-y-1">
+                    {result.qualityReport.improvements.map((item, idx) => (
+                      <li key={`${item}-${idx}`}>{item}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            )}
             <p className="text-slate-800 leading-7">{result.draft.introHook}</p>
             <p className="text-slate-700 leading-7">{result.draft.introBody}</p>
 
@@ -327,9 +356,41 @@ export default function AdminBlogWriterPage() {
 
             <div className="overflow-hidden rounded-lg border border-slate-200">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={result.imageUrl} alt={result.draft.image.alt} className="w-full h-auto object-cover" />
+              <div className="relative w-full aspect-video">
+                <Image
+                  src={result.imageUrl}
+                  alt={result.draft.image.alt}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              </div>
             </div>
             <p className="text-sm text-slate-500">{result.draft.image.caption}</p>
+
+            {result.imagePrompts && result.imagePrompts.length > 0 && (
+              <section className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-base font-semibold text-amber-900">문단별 이미지 생성 프롬프트</h3>
+                  <button
+                    type="button"
+                    onClick={handleCopyImagePrompts}
+                    className="inline-flex items-center gap-2 px-3 py-2 border border-amber-300 rounded-lg bg-white hover:bg-amber-100 text-sm"
+                  >
+                    <Copy className="w-4 h-4" />
+                    {copiedImagePrompts ? "복사됨" : "프롬프트 복사"}
+                  </button>
+                </div>
+                <ol className="space-y-2 text-sm text-amber-950">
+                  {result.imagePrompts.map((item, idx) => (
+                    <li key={`${item.section}-${idx}`} className="rounded-md border border-amber-200 bg-white p-3">
+                      <p className="font-medium">{idx + 1}. {item.section}</p>
+                      <p className="mt-1 whitespace-pre-wrap">{item.prompt}</p>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
 
             {result.draft.sections.map((section, idx) => (
               <section key={`${section.heading}-${idx}`} className="space-y-2">

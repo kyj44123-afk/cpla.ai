@@ -1,8 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import { getNationalLawApiKey } from "@/lib/settings";
+import { withSecurity, validateBody } from "@/lib/api-security";
+import { z } from "zod";
 
 export const runtime = "nodejs";
 
@@ -10,6 +12,7 @@ const LAW_API_BASE = "https://www.law.go.kr/DRF";
 const SEARCH_PAGE_SIZE = 100;
 const SEARCH_MAX_PAGES = 50;
 
+// ... (Previous Interfaces kept same) ...
 type SearchTarget = "prec" | "admrul";
 
 interface SearchItem {
@@ -32,6 +35,12 @@ interface TargetProbeResult {
   h2: string;
 }
 
+// Zod Schema
+const LawDownloadSchema = z.object({
+  lawName: z.string().min(2, "법령명은 2글자 이상이어야 합니다.").max(50, "법령명은 50글자 이하여야 합니다."),
+});
+
+// ... (Helper functions: maskSecret, stripTagContent, etc. - NO CHANGE REQUIRED) ...
 function maskSecret(value: string): string {
   if (!value) return "";
   if (value.length <= 2) return "*".repeat(value.length);
@@ -251,6 +260,7 @@ async function fetchDetailXml(target: SearchTarget, id: string, apiKey: string):
 }
 
 async function searchAllItems(target: SearchTarget, lawName: string, apiKey: string): Promise<{ items: SearchItem[]; truncated: boolean }> {
+  // ... (No change needed inside searchAllItems, it works fine) ...
   const dedup = new Map<string, SearchItem>();
   let truncated = false;
 
@@ -300,7 +310,17 @@ async function searchAllItems(target: SearchTarget, lawName: string, apiKey: str
   return { items: Array.from(dedup.values()), truncated };
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // 1. Security Check (Rate Limit + Auth)
+  const securityError = await withSecurity(req, { checkAuth: true, rateLimit: { limit: 10, windowMs: 60000 } });
+  if (securityError) return securityError;
+
+  // 2. Validation
+  const validation = await validateBody(req, LawDownloadSchema);
+  if (!validation.success) return validation.error;
+
+  const { lawName } = validation.data;
+
   const envOc = process.env.NATIONAL_LAW_API_KEY || "";
   const apiKey = getNationalLawApiKey();
   const trimmedApiKey = apiKey.trim();
@@ -329,15 +349,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "국가법령정보센터 API 키가 설정되지 않았습니다.", debug: debugInfo }, { status: 400 });
   }
 
-  const { lawName } = await req.json();
-  if (!lawName || typeof lawName !== "string") {
-    return NextResponse.json({ error: "법령명을 입력해 주세요.", debug: debugInfo }, { status: 400 });
-  }
-
   const trimmedLawName = lawName.trim();
-  if (!trimmedLawName) {
-    return NextResponse.json({ error: "법령명을 입력해 주세요.", debug: debugInfo }, { status: 400 });
-  }
+  // LawName Check is now handled by Zod, but extra trim check is fine
 
   try {
     const [precResult, admrulResult] = await Promise.all([
@@ -356,76 +369,91 @@ export async function POST(req: Request) {
 
     const savedFiles: SavedFile[] = [];
 
-    for (const item of precedentCandidates) {
-      const detailXml = await fetchDetailXml("prec", item.id, trimmedApiKey);
-      if (!hasLawCitation(detailXml, trimmedLawName)) continue;
+    // Helper for concurrency control
+    const processItems = async <T extends SearchItem>(
+      items: T[],
+      target: SearchTarget,
+      dir: string,
+      category: "precedent" | "administrative_ruling",
+      summarizeFn: (xml: string) => string
+    ) => {
+      const CONCURRENCY_LIMIT = 5;
+      const results: SavedFile[] = [];
 
-      const caseNumber = extractFirstTagValue(detailXml, ["사건번호"]);
-      const judgeDate = extractFirstTagValue(detailXml, ["선고일자"]);
-      const citation = extractFirstTagValue(detailXml, ["참조조문", "참조법령"]);
-      const summary = summarizePrecedent(detailXml);
-      const fileName = `${sanitizeForFilename(item.id)}_${sanitizeForFilename(item.title)}.txt`;
-      const filePath = path.join(precedentDir, fileName);
+      for (let i = 0; i < items.length; i += CONCURRENCY_LIMIT) {
+        const chunk = items.slice(i, i + CONCURRENCY_LIMIT);
+        const chunkResults = await Promise.all(
+          chunk.map(async (item) => {
+            try {
+              const detailXml = await fetchDetailXml(target, item.id, trimmedApiKey);
+              if (!hasLawCitation(detailXml, trimmedLawName)) return null;
 
-      const body = [
-        "자료유형: 판례",
-        `법령명: ${trimmedLawName}`,
-        `판례일련번호: ${item.id}`,
-        `사건명: ${item.title}`,
-        caseNumber ? `사건번호: ${caseNumber}` : "",
-        judgeDate ? `선고일자: ${judgeDate}` : "",
-        citation ? `참조법령/조문: ${citation}` : "",
-        "",
-        summary,
-      ]
-        .filter(Boolean)
-        .join("\n");
+              let bodyParts: string[] = [];
+              if (target === "prec") {
+                const caseNumber = extractFirstTagValue(detailXml, ["사건번호"]);
+                const judgeDate = extractFirstTagValue(detailXml, ["선고일자"]);
+                const citation = extractFirstTagValue(detailXml, ["참조조문", "참조법령"]);
+                const summary = summarizeFn(detailXml);
+                bodyParts = [
+                  "자료유형: 판례",
+                  `법령명: ${trimmedLawName}`,
+                  `판례일련번호: ${item.id}`,
+                  `사건명: ${item.title}`,
+                  caseNumber ? `사건번호: ${caseNumber}` : "",
+                  judgeDate ? `선고일자: ${judgeDate}` : "",
+                  citation ? `참조법령/조문: ${citation}` : "",
+                  "",
+                  summary,
+                ];
+              } else {
+                const issueNumber = extractFirstTagValue(detailXml, ["안건번호", "문서번호", "회시번호"]);
+                const answerDate = extractFirstTagValue(detailXml, ["회시일자", "작성일자"]);
+                const citation = extractFirstTagValue(detailXml, ["참조법령", "근거법령", "관련법령"]);
+                const summary = summarizeFn(detailXml);
+                bodyParts = [
+                  "자료유형: 행정해석",
+                  `법령명: ${trimmedLawName}`,
+                  `일련번호: ${item.id}`,
+                  `제목: ${item.title}`,
+                  issueNumber ? `안건번호/문서번호: ${issueNumber}` : "",
+                  answerDate ? `회시일자: ${answerDate}` : "",
+                  citation ? `참조법령: ${citation}` : "",
+                  "",
+                  summary,
+                ];
+              }
 
-      await fs.writeFile(filePath, body, "utf-8");
-      savedFiles.push({
-        category: "precedent",
-        id: item.id,
-        title: item.title,
-        path: path.relative(process.cwd(), filePath),
-      });
-    }
+              const fileName = `${sanitizeForFilename(item.id)}_${sanitizeForFilename(item.title)}.txt`;
+              const filePath = path.join(dir, fileName);
+              const body = bodyParts.filter(Boolean).join("\n");
 
-    for (const item of admrulCandidates) {
-      const detailXml = await fetchDetailXml("admrul", item.id, trimmedApiKey);
-      if (!hasLawCitation(detailXml, trimmedLawName)) continue;
+              await fs.writeFile(filePath, body, "utf-8");
+              return {
+                category,
+                id: item.id,
+                title: item.title,
+                path: path.relative(process.cwd(), filePath),
+              };
+            } catch (err) {
+              console.error(`Failed to process ${target} ${item.id}:`, err);
+              return null;
+            }
+          })
+        );
+        results.push(...chunkResults.filter((r): r is SavedFile => r !== null));
+      }
+      return results;
+    };
 
-      const issueNumber = extractFirstTagValue(detailXml, ["안건번호", "문서번호", "회시번호"]);
-      const answerDate = extractFirstTagValue(detailXml, ["회시일자", "작성일자"]);
-      const citation = extractFirstTagValue(detailXml, ["참조법령", "근거법령", "관련법령"]);
-      const summary = summarizeAdmrul(detailXml);
-      const fileName = `${sanitizeForFilename(item.id)}_${sanitizeForFilename(item.title)}.txt`;
-      const filePath = path.join(admrulDir, fileName);
+    const [precSaved, admrulSaved] = await Promise.all([
+      processItems(precedentCandidates, "prec", precedentDir, "precedent", summarizePrecedent),
+      processItems(admrulCandidates, "admrul", admrulDir, "administrative_ruling", summarizeAdmrul)
+    ]);
 
-      const body = [
-        "자료유형: 행정해석",
-        `법령명: ${trimmedLawName}`,
-        `일련번호: ${item.id}`,
-        `제목: ${item.title}`,
-        issueNumber ? `안건번호/문서번호: ${issueNumber}` : "",
-        answerDate ? `회시일자: ${answerDate}` : "",
-        citation ? `참조법령: ${citation}` : "",
-        "",
-        summary,
-      ]
-        .filter(Boolean)
-        .join("\n");
-
-      await fs.writeFile(filePath, body, "utf-8");
-      savedFiles.push({
-        category: "administrative_ruling",
-        id: item.id,
-        title: item.title,
-        path: path.relative(process.cwd(), filePath),
-      });
-    }
+    savedFiles.push(...precSaved, ...admrulSaved);
 
     const precedentSaved = savedFiles.filter((f) => f.category === "precedent").length;
-    const admrulSaved = savedFiles.filter((f) => f.category === "administrative_ruling").length;
+    const admrulSavedCount = savedFiles.filter((f) => f.category === "administrative_ruling").length;
 
     return NextResponse.json({
       success: true,
@@ -433,7 +461,7 @@ export async function POST(req: Request) {
       totalPrecedentCandidates: precedentCandidates.length,
       totalAdmrulCandidates: admrulCandidates.length,
       totalPrecedentsSaved: precedentSaved,
-      totalAdmrulsSaved: admrulSaved,
+      totalAdmrulsSaved: admrulSavedCount,
       totalSaved: savedFiles.length,
       truncated: precResult.truncated || admrulResult.truncated,
       savedFiles,

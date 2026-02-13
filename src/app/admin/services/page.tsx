@@ -22,6 +22,8 @@ export default function AdminServicesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editingSteps, setEditingSteps] = useState<string[]>([]);
 
   const [targetAudience, setTargetAudience] = useState<Audience>("worker");
   const [name, setName] = useState("");
@@ -98,14 +100,12 @@ export default function AdminServicesPage() {
     setSaving(true);
     setMessage("");
     try {
-      const workerCustom = workerServices.filter((s) => !defaultKeys.includes(`worker:${s.name}`));
-      const employerCustom = employerServices.filter((s) => !defaultKeys.includes(`employer:${s.name}`));
       const res = await fetch("/api/admin/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          workerServices: workerCustom,
-          employerServices: employerCustom,
+          workerServices,
+          employerServices,
         }),
       });
       if (!res.ok) throw new Error("save failed");
@@ -118,6 +118,36 @@ export default function AdminServicesPage() {
       setSaving(false);
       setTimeout(() => setMessage(""), 3000);
     }
+  };
+
+  const openFlowEditor = (audience: Audience, service: ManagedService) => {
+    setEditingKey(`${audience}:${service.name}`);
+    const current = Array.isArray(service.workflowSteps) && service.workflowSteps.length > 0
+      ? service.workflowSteps
+      : ["", "", "", ""];
+    const next = [...current];
+    while (next.length < 4) next.push("");
+    setEditingSteps(next.slice(0, 8));
+  };
+
+  const saveFlowEditor = (audience: Audience, serviceName: string) => {
+    const cleaned = editingSteps.map((s) => s.trim()).filter(Boolean);
+    if (cleaned.length < 2) {
+      setMessage("플로우 단계는 최소 2개 이상 입력해 주세요.");
+      return;
+    }
+    if (audience === "worker") {
+      setWorkerServices((prev) =>
+        prev.map((s) => (s.name === serviceName ? { ...s, workflowSteps: cleaned } : s))
+      );
+    } else {
+      setEmployerServices((prev) =>
+        prev.map((s) => (s.name === serviceName ? { ...s, workflowSteps: cleaned } : s))
+      );
+    }
+    setEditingKey(null);
+    setEditingSteps([]);
+    setMessage("플로우가 수정되었습니다. 저장 버튼을 눌러 반영하세요.");
   };
 
   const renderSection = (title: string, audience: Audience, items: ManagedService[]) => (
@@ -137,6 +167,75 @@ export default function AdminServicesPage() {
                     {isDefault && <p className="text-xs text-[#E97132] mt-1">기본 서비스</p>}
                     <p className="text-sm text-slate-600 mt-2">{service.description}</p>
                     {!!service.keywords?.length && <p className="text-xs text-slate-500 mt-2">키워드: {service.keywords.join(", ")}</p>}
+                    <div className="mt-2">
+                      <p className="text-xs text-slate-500 mb-1">업무 플로우 단계</p>
+                      <ol className="space-y-1">
+                        {(service.workflowSteps || []).map((step, idx) => (
+                          <li key={`${audience}-${service.name}-${idx}`} className="text-xs text-slate-700">
+                            {idx + 1}. {step}
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                    {editingKey === `${audience}:${service.name}` && (
+                      <div className="mt-3 border border-slate-200 rounded-lg p-3 space-y-2 bg-slate-50">
+                        <p className="text-xs font-medium text-slate-700">플로우 편집</p>
+                        {editingSteps.map((value, idx) => (
+                          <input
+                            key={`${audience}-${service.name}-edit-${idx}`}
+                            value={value}
+                            onChange={(e) => {
+                              const next = [...editingSteps];
+                              next[idx] = e.target.value;
+                              setEditingSteps(next);
+                            }}
+                            placeholder={`${idx + 1}단계`}
+                            className="w-full border border-slate-300 rounded px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500"
+                          />
+                        ))}
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (editingSteps.length >= 8) return;
+                              setEditingSteps((prev) => [...prev, ""]);
+                            }}
+                            className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 text-xs rounded hover:bg-slate-100"
+                          >
+                            +단계 추가
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (editingSteps.length <= 2) return;
+                              setEditingSteps((prev) => prev.slice(0, prev.length - 1));
+                            }}
+                            className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 text-xs rounded hover:bg-slate-100"
+                          >
+                            -단계 삭제
+                          </button>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => saveFlowEditor(audience, service.name)}
+                            className="px-3 py-1.5 bg-slate-900 text-white text-xs rounded hover:bg-slate-800"
+                          >
+                            단계 저장
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingKey(null);
+                              setEditingSteps([]);
+                            }}
+                            className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 text-xs rounded hover:bg-slate-100"
+                          >
+                            취소
+                          </button>
+                        </div>
+                      </div>
+                    )}
                     {service.workflowInfographic && (
                       <div className="mt-3">
                         <p className="text-xs text-slate-500 mb-2">자동 생성된 업무 플로우 인포그래픽</p>
@@ -161,6 +260,13 @@ export default function AdminServicesPage() {
                       삭제
                     </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => openFlowEditor(audience, service)}
+                    className="inline-flex items-center gap-1 px-3 py-2 text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
+                  >
+                    플로우 편집
+                  </button>
                 </div>
               </div>
             );

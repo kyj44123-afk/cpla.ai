@@ -8,6 +8,18 @@ create table if not exists public.discovery_step_logs (
   created_at timestamptz not null default now()
 );
 
+alter table public.discovery_step_logs enable row level security;
+
+create policy "Enable insert for authenticated users only"
+on public.discovery_step_logs for insert
+to authenticated
+with check (true);
+
+create policy "Enable read access for service role only"
+on public.discovery_step_logs for select
+to service_role
+using (true);
+
 create index if not exists discovery_step_logs_session_id_idx
   on public.discovery_step_logs (session_id);
 

@@ -1,32 +1,41 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { withSecurity, validateBody } from "@/lib/api-security";
+import { z } from "zod";
 
-type PublishBody = {
-  title?: string;
-  content?: string;
-  budget?: string | null;
-  deadline?: string | null;
-};
+const PublishSchema = z.object({
+  title: z.string().min(1, "제목을 입력해주세요."),
+  content: z.string().optional(),
+  budget: z.string().optional().nullable(),
+  deadline: z.string().optional().nullable(),
+});
+
+type PublishBody = z.infer<typeof PublishSchema>;
 
 function normalize(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // 1. Security Check
+  const securityError = await withSecurity(req, { checkAuth: true, rateLimit: { limit: 5, windowMs: 60000 } });
+  if (securityError) return securityError;
+
+  // 2. Validation
+  const validation = await validateBody(req, PublishSchema);
+  if (!validation.success) return validation.error;
+  const body = validation.data;
+
   try {
-    const body = (await req.json()) as PublishBody;
     const title = normalize(body.title);
     const content = normalize(body.content);
     const budget = normalize(body.budget);
     const deadline = normalize(body.deadline);
 
-    if (!title) {
-      return NextResponse.json({ error: "발행할 제목이 없습니다." }, { status: 400 });
-    }
-
     const supabase = getSupabaseAdmin();
 
     // posts.author_id FK를 만족시키기 위해 승인된 프로필을 우선 작성자로 사용.
+    // TODO: 추후 실제 로그인된 세션의 user_id를 사용하도록 개선 필요
     const { data: verifiedProfile, error: verifiedProfileError } = await supabase
       .from("profiles")
       .select("id")
