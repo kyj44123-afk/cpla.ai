@@ -10,6 +10,7 @@ import { ArrowRight, CheckCircle } from "lucide-react";
 type Step = "landing" | "loading-options" | "options" | "contact" | "thankyou";
 
 type OptionResponse = {
+  question: string;
   options: string[];
   isFinalRound: boolean;
 };
@@ -22,12 +23,13 @@ export default function Home() {
   const [selectedPath, setSelectedPath] = useState<string[]>([]);
   const [options, setOptions] = useState<string[]>([]);
   const [isFinalRound, setIsFinalRound] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState("");
   const [selectedService, setSelectedService] = useState("");
   const [sessionId, setSessionId] = useState("");
 
   const progressText = useMemo(() => {
     if (isFinalRound) return "최종 서비스 선택";
-    return `${round} / 3 단계`;
+    return `${round + 1} / 3 단계`;
   }, [isFinalRound, round]);
 
   const fetchOptions = async (baseSituation: string, nextPath: string[], nextRound: number) => {
@@ -47,14 +49,16 @@ export default function Home() {
       if (!res.ok) throw new Error("failed to load options");
 
       const data = (await res.json()) as OptionResponse;
+      setCurrentQuestion(data.question || "");
       setOptions(data.options || []);
       setIsFinalRound(Boolean(data.isFinalRound));
       setRound(nextRound);
       setStep("options");
     } catch (error) {
       console.error(error);
+      setCurrentQuestion("입력하신 상황을 기준으로 어떤 방향이 가장 적절한지 확인해볼까요?");
       setOptions(["다시 시도하기", "바로 전문가에게 문의하기", "처음으로 돌아가기"]);
-      setIsFinalRound(false);
+      setIsFinalRound(nextRound >= 2);
       setStep("options");
     }
   };
@@ -67,6 +71,7 @@ export default function Home() {
     setSituation(trimmed);
     setSelectedPath([]);
     setSelectedService("");
+    setCurrentQuestion("");
 
     try {
       const sessionRes = await fetch("/api/session", { method: "POST" });
@@ -122,6 +127,7 @@ export default function Home() {
     setSelectedPath([]);
     setOptions([]);
     setIsFinalRound(false);
+    setCurrentQuestion("");
     setSelectedService("");
     setSessionId("");
   };
@@ -134,8 +140,10 @@ export default function Home() {
         <AnimatePresence mode="wait">
           {step === "landing" && (
             <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pt-8">
-              <h1 className="text-3xl font-light text-slate-800 leading-tight tracking-tight mb-6">
-                지금 어떤 문제를 해결해야 하나요?
+              <h1 className="text-3xl font-light text-slate-800 leading-tight tracking-tight mb-6 text-center">
+                지금 어떤 문제를
+                <br />
+                해결해야 하나요?
               </h1>
 
               <form onSubmit={handleSubmitSituation} className="space-y-4">
@@ -162,10 +170,9 @@ export default function Home() {
           {step === "options" && (
             <motion.div key="options" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pt-6 pb-28">
               <p className="text-xs text-[#E97132] font-medium mb-2">{progressText}</p>
-              <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                {isFinalRound ? "원하시는 서비스를 선택해 주세요" : "해당되는 항목을 선택해 주세요"}
+              <h2 className="text-2xl font-bold text-slate-800 mb-5">
+                {currentQuestion || (isFinalRound ? "전문가인 공인노무사에게 어떤 도움을 받고 싶나요?" : "해당되는 항목을 선택해 주세요")}
               </h2>
-              <p className="text-sm text-slate-500 mb-5">AI는 판단 없이 선택지만 제시합니다.</p>
 
               <div className="space-y-3">
                 {options.map((choice) => (

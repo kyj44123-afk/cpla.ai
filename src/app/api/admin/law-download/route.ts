@@ -58,12 +58,51 @@ interface LawSearchItem {
   title: string;
 }
 
+async function decodeXmlResponse(response: Response): Promise<string> {
+  const contentType = response.headers.get("content-type") || "";
+  const charsetMatch = contentType.match(/charset=([^;]+)/i);
+  const charset = (charsetMatch?.[1] || "").trim().toLowerCase();
+  const bytes = new Uint8Array(await response.arrayBuffer());
+
+  const decodeWith = (label: string): string => {
+    try {
+      return new TextDecoder(label).decode(bytes);
+    } catch {
+      return "";
+    }
+  };
+
+  if (charset) {
+    const decoded = decodeWith(charset);
+    if (decoded) return decoded;
+  }
+
+  const utf8 = decodeWith("utf-8");
+  if (/^<\?xml[\s\S]*encoding=["']euc-kr["']/i.test(utf8) || /^<\?xml[\s\S]*encoding=["']ks_c_5601-1987["']/i.test(utf8)) {
+    const eucKr = decodeWith("euc-kr");
+    if (eucKr) return eucKr;
+  }
+
+  if (utf8) return utf8;
+  const eucKr = decodeWith("euc-kr");
+  if (eucKr) return eucKr;
+  return "";
+}
+
+function extractApiError(xml: string): string {
+  const candidates = [
+    extractFirstTagValue(xml, ["error", "errMsg", "message", "resultMsg"]),
+    ...extractTagValues(xml, "error"),
+  ];
+  return candidates.find(Boolean) || "";
+}
+
 function parseLawSearchResults(xml: string): LawSearchItem[] {
   const items = xml.match(/<law[\s\S]*?<\/law>/g) || [];
   return items
     .map((item) => {
-      const id = extractFirstTagValue(item, ["법령ID", "법령일련번호"]);
-      const title = extractFirstTagValue(item, ["법령명한글", "법령명_한글"]);
+      const id = extractFirstTagValue(item, ["법령ID", "법령일련번호", "법령일련번호ID"]);
+      const title = extractFirstTagValue(item, ["법령명한글", "법령명_한글", "법령명"]);
       return { id, title };
     })
     .filter((item) => Boolean(item.id && item.title));
@@ -99,14 +138,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "법령명을 입력해 주세요." }, { status: 400 });
   }
 
-  if (!articleNumbers || typeof articleNumbers !== "string") {
+  if (articleNumbers !== undefined && articleNumbers !== null && typeof articleNumbers !== "string") {
     return NextResponse.json({ error: "조문 번호를 쉼표로 구분해 입력해 주세요." }, { status: 400 });
   }
 
-  const requestedArticles = parseRequestedArticles(articleNumbers);
-  if (requestedArticles.length === 0) {
-    return NextResponse.json({ error: "유효한 조문 번호가 없습니다." }, { status: 400 });
-  }
+  const requestedArticles = parseRequestedArticles(typeof articleNumbers === "string" ? articleNumbers : "");
+  const downloadAllArticles = requestedArticles.length === 0;
 
   try {
     const searchUrl = new URL(`${LAW_API_BASE}/lawSearch.do`);
@@ -121,7 +158,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "법령 검색에 실패했습니다." }, { status: 502 });
     }
 
-    const searchXml = await searchRes.text();
+    const searchXml = await decodeXmlResponse(searchRes);
+    const searchError = extractApiError(searchXml);
+    if (searchError) {
+      return NextResponse.json({ error: `국가법령정보센터 검색 오류: ${searchError}` }, { status: 502 });
+    }
+
     const searchItems = parseLawSearchResults(searchXml);
     const normalizedLawName = lawName.replace(/\s+/g, "");
     const selectedLaw =
@@ -130,7 +172,16 @@ export async function POST(req: Request) {
       searchItems[0];
 
     if (!selectedLaw) {
-      return NextResponse.json({ error: "해당 법령을 찾을 수 없습니다." }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: "해당 법령을 찾을 수 없습니다.",
+          debug: {
+            query: lawName.trim(),
+            totalSearchItems: searchItems.length,
+          },
+        },
+        { status: 404 }
+      );
     }
 
     const detailUrl = new URL(`${LAW_API_BASE}/lawService.do`);
@@ -144,17 +195,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "법령 상세 조회에 실패했습니다." }, { status: 502 });
     }
 
-    const detailXml = await detailRes.text();
+    const detailXml = await decodeXmlResponse(detailRes);
+    const detailError = extractApiError(detailXml);
+    if (detailError) {
+      return NextResponse.json({ error: `국가법령정보센터 상세 조회 오류: ${detailError}` }, { status: 502 });
+    }
+
     const lawTitle =
       extractFirstTagValue(detailXml, ["법령명_한글", "법령명한글"]) ||
       selectedLaw.title;
 
     const articles = parseLawArticles(detailXml);
-    const matchedArticles = articles.filter((article) =>
-      requestedArticles.includes(article.articleNumberNormalized)
-    );
+    const matchedArticles = downloadAllArticles
+      ? articles
+      : articles.filter((article) => requestedArticles.includes(article.articleNumberNormalized));
 
     if (matchedArticles.length === 0) {
+      if (downloadAllArticles) {
+        return NextResponse.json({ error: "해당 법령에서 저장할 조문을 찾지 못했습니다." }, { status: 404 });
+      }
       return NextResponse.json({ error: "요청하신 조문을 찾지 못했습니다." }, { status: 404 });
     }
 
@@ -188,7 +247,8 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       lawTitle,
-      totalRequested: requestedArticles.length,
+      totalRequested: downloadAllArticles ? matchedArticles.length : requestedArticles.length,
+      downloadedAllArticles: downloadAllArticles,
       totalSaved: savedFiles.length,
       savedFiles,
     });

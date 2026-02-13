@@ -81,8 +81,8 @@ export default function DocumentsPage() {
         setLawError("");
         setLawResult(null);
 
-        if (!lawForm.lawName.trim() || !lawForm.articleNumbers.trim()) {
-            setLawError("법령명과 조문 번호를 모두 입력해 주세요.");
+        if (!lawForm.lawName.trim()) {
+            setLawError("법령명을 입력해 주세요.");
             return;
         }
 
@@ -179,7 +179,7 @@ export default function DocumentsPage() {
             <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-xl font-bold text-slate-800 mb-4">국가법령정보센터 일괄 다운로드</h2>
                 <p className="text-sm text-slate-500 mb-4">
-                    법령명과 조문 번호를 입력하면 해당 조문을 자동으로 수집해 <code>law-data/</code> 폴더에 TXT로 저장합니다.
+                    법령명과 조문 번호를 입력하면 해당 조문을 자동으로 수집해 <code>law-data/</code> 폴더에 TXT로 저장합니다. 조문 번호를 비우면 해당 법령의 전체 조문을 저장합니다.
                 </p>
 
                 <form onSubmit={handleLawDownload} className="space-y-4">
@@ -199,7 +199,7 @@ export default function DocumentsPage() {
                             type="text"
                             value={lawForm.articleNumbers}
                             onChange={(e) => setLawForm({ ...lawForm, articleNumbers: e.target.value })}
-                            placeholder="예: 23, 24, 76"
+                            placeholder="예: 23, 24, 76 (비워두면 전체)"
                             className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500"
                         />
                     </div>
