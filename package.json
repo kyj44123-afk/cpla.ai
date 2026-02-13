@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "discovery:learn": "node scripts/build_discovery_learned_examples.js"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

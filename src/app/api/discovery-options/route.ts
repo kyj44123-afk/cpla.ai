@@ -4,6 +4,7 @@ import * as path from "path";
 import { buildWorkflowInfographicDataUrl, buildWorkflowSteps } from "@/lib/workflowInfographic";
 import { BASE_LABOR_SERVICES } from "@/lib/laborServicesCatalog";
 import { getOpenAI } from "@/lib/openai";
+import { inferByExamples, type DiscoveryExampleSignals } from "@/lib/discoveryExampleMatcher";
 
 type Body = {
   situation: string;
@@ -66,7 +67,25 @@ const CATEGORY_KEYWORDS: Record<Exclude<Category, "none" | "other">, string[]> =
   ],
   harassment: ["괴롭힘", "폭언", "모욕", "따돌림", "갑질", "성희롱", "괴롭", "인격", "왕따"],
   industrial_accident: ["산재", "재해", "부상", "출근길", "업무상", "요양", "장해", "산업재해"],
-  contract: ["근로계약", "근로조건", "연장근로", "휴게", "연차", "근무표", "시프트", "근무시간", "4대보험"],
+  contract: [
+    "근로계약",
+    "근로조건",
+    "연장근로",
+    "휴게",
+    "연차",
+    "근무표",
+    "시프트",
+    "근무시간",
+    "4대보험",
+    "취업규칙",
+    "인사규정",
+    "임금체계",
+    "보상체계",
+    "파견",
+    "도급",
+    "노사협의회",
+    "단체교섭",
+  ],
 };
 
 const NO_ISSUE_PATTERNS = [
@@ -81,6 +100,62 @@ const NO_ISSUE_PATTERNS = [
   "상담만",
 ];
 
+const WAGE_SYSTEM_SIGNALS = [
+  "임금체계",
+  "임금구조",
+  "보상체계",
+  "급여체계",
+  "연봉제",
+  "직무급",
+  "성과급",
+  "인센티브",
+  "개편",
+  "개선",
+  "설계",
+  "제도",
+];
+
+const WAGE_ARREARS_SIGNALS = [
+  "임금체불",
+  "체불",
+  "미지급",
+  "지급지연",
+  "체당금",
+  "대지급금",
+  "진정",
+  "퇴직금미지급",
+];
+
+const EMPLOYER_INTENT_SIGNALS = [
+  "사업주",
+  "회사",
+  "대표",
+  "인사팀",
+  "hr",
+  "인사담당",
+  "운영",
+  "도입",
+  "정비",
+  "컴플라이언스",
+  "취업규칙",
+  "인사평가",
+  "임금체계",
+  "보상체계",
+  "직무급",
+  "성과급",
+  "연봉제",
+  "파견",
+  "도급",
+  "원하청",
+  "협력사",
+  "단체교섭",
+  "단체협약",
+  "노조",
+  "노사협의회",
+  "근로감독",
+  "고충처리",
+];
+
 function includesAny(text: string, patterns: string[]) {
   return patterns.some((p) => text.includes(p));
 }
@@ -93,11 +168,45 @@ function scoreCategory(text: string, keywords: string[]) {
   return keywords.reduce((acc, keyword) => acc + (text.includes(keyword) ? 1 : 0), 0);
 }
 
-function detectCategory(text: string): Category {
+function countMatches(text: string, terms: string[]) {
+  return terms.reduce((acc, term) => acc + (text.includes(normalize(term)) ? 1 : 0), 0);
+}
+
+function detectCategory(text: string, exampleHint?: DiscoveryExampleSignals): Category {
   const normalized = normalize(text);
 
   if (!normalized || includesAny(normalized, NO_ISSUE_PATTERNS)) {
     return "none";
+  }
+
+  const wageSystemScore = countMatches(normalized, WAGE_SYSTEM_SIGNALS);
+  const wageArrearsScore = countMatches(normalized, WAGE_ARREARS_SIGNALS);
+  const contractIntentScore = countMatches(normalized, [
+    "취업규칙",
+    "인사규정",
+    "단체교섭",
+    "단체협약",
+    "파견",
+    "도급",
+    "노사협의회",
+    "평가제도",
+    "보상체계",
+    "근로감독",
+    "노동청근로감독",
+    "컴플라이언스",
+  ]);
+
+  if (wageSystemScore > 0 && wageSystemScore >= wageArrearsScore) {
+    return "contract";
+  }
+  if (wageArrearsScore > 0 && wageArrearsScore > wageSystemScore) {
+    return "wage_arrears";
+  }
+  if (contractIntentScore > 0 && wageArrearsScore === 0) {
+    return "contract";
+  }
+  if (exampleHint?.category && exampleHint.confidence >= 0.35) {
+    return exampleHint.category as Category;
   }
 
   let maxScore = 0;
@@ -176,10 +285,28 @@ function inferKeywords(service: ManagedService) {
   return unique.slice(0, 14);
 }
 
-function scoreService(service: ManagedService, text: string) {
+function scoreService(service: ManagedService, text: string, exampleSignals?: DiscoveryExampleSignals) {
   const normalized = normalize(text);
   const keywords = (service.keywords && service.keywords.length > 0 ? service.keywords : inferKeywords(service)).map(normalize);
-  return keywords.reduce((acc, keyword) => acc + (keyword && normalized.includes(keyword) ? 1 : 0), 0);
+  const serviceText = normalize(`${service.name} ${service.description} ${(service.keywords || []).join(" ")}`);
+  const baseScore = keywords.reduce((acc, keyword) => {
+    if (!keyword || !normalized.includes(keyword)) return acc;
+    return acc + (keyword.length >= 4 ? 2 : 1);
+  }, 0);
+
+  let adjustment = 0;
+  const queryWageSystem = countMatches(normalized, WAGE_SYSTEM_SIGNALS);
+  const queryWageArrears = countMatches(normalized, WAGE_ARREARS_SIGNALS);
+  const serviceWageSystem = countMatches(serviceText, WAGE_SYSTEM_SIGNALS);
+  const serviceWageArrears = countMatches(serviceText, WAGE_ARREARS_SIGNALS);
+
+  if (queryWageSystem > 0 && serviceWageSystem > 0) adjustment += 6;
+  if (queryWageArrears > 0 && serviceWageArrears > 0) adjustment += 6;
+  if (queryWageSystem > 0 && serviceWageArrears > 0 && serviceWageSystem === 0) adjustment -= 8;
+  if (queryWageArrears > 0 && serviceWageSystem > 0 && serviceWageArrears === 0) adjustment -= 4;
+
+  const exampleBoost = (exampleSignals?.serviceScores[service.name] || 0) * 10;
+  return baseScore + adjustment + exampleBoost;
 }
 
 async function rankServicesWithAI(
@@ -296,8 +423,14 @@ function extractFacts(text: string): ExtractedFacts {
   };
 }
 
-function detectAudience(text: string): Audience {
+function detectAudience(text: string, exampleHint?: DiscoveryExampleSignals): Audience {
   const normalized = normalize(text);
+  if (countMatches(normalized, EMPLOYER_INTENT_SIGNALS) > 0) {
+    return "employer";
+  }
+  if (exampleHint?.audience && exampleHint.confidence >= 0.3) {
+    return exampleHint.audience as Audience;
+  }
   const employerSignals = [
     "사업주",
     "대표",
@@ -442,7 +575,12 @@ function buildThirdQuestion(category: Category, combinedText: string) {
   }
 }
 
-function recommendServices(category: Category, combinedText: string, audience: "worker" | "employer") {
+function recommendServices(
+  category: Category,
+  combinedText: string,
+  audience: "worker" | "employer",
+  exampleSignals?: DiscoveryExampleSignals
+) {
   const insolvency = detectInsolvency(combinedText);
 
   const defaultServices: ManagedService[] = BASE_LABOR_SERVICES.filter((s) => s.audience === audience).map((service) => {
@@ -472,7 +610,7 @@ function recommendServices(category: Category, combinedText: string, audience: "
   };
 
   const rankedByKeyword = mergedServices
-    .map((service) => ({ service, score: scoreService(service, combinedText) }))
+    .map((service) => ({ service, score: scoreService(service, combinedText, exampleSignals) }))
     .sort((a, b) => b.score - a.score)
     .map((item) => item.service);
 
@@ -502,6 +640,35 @@ function recommendServices(category: Category, combinedText: string, audience: "
     substitutePayment,
     mergedServices,
   };
+}
+
+function buildFinalPicks(
+  aiPicked: ManagedService[],
+  rec: ReturnType<typeof recommendServices>,
+  category: Category,
+  audience: Audience
+) {
+  const finalPicked: ManagedService[] = [];
+  const addUnique = (arr: ManagedService[], svc: ManagedService) => {
+    if (!arr.some((s) => s.name === svc.name)) arr.push(svc);
+  };
+
+  for (const svc of aiPicked) addUnique(finalPicked, svc);
+
+  const isWorkerWageArrears = audience === "worker" && category === "wage_arrears";
+  const primaryFallback = isWorkerWageArrears ? rec.picks : rec.rankedByKeyword;
+  const secondaryFallback = isWorkerWageArrears ? rec.rankedByKeyword : rec.picks;
+
+  for (const svc of primaryFallback) {
+    if (finalPicked.length >= 3) break;
+    addUnique(finalPicked, svc);
+  }
+  for (const svc of secondaryFallback) {
+    if (finalPicked.length >= 3) break;
+    addUnique(finalPicked, svc);
+  }
+
+  return finalPicked;
 }
 
 function toServiceCards(services: ManagedService[]) {
@@ -538,31 +705,28 @@ export async function POST(req: Request) {
     }
 
     const combinedText = [situation, ...answers].join(" ");
-    const audience = detectAudience(combinedText);
-    const category = detectCategory(combinedText);
+    const exampleSignals = inferByExamples(combinedText);
+    const audience = detectAudience(combinedText, exampleSignals);
+    let category = detectCategory(combinedText, exampleSignals);
+    const normalizedCombined = normalize(combinedText);
+    if (
+      audience === "employer" &&
+      category === "wage_arrears" &&
+      countMatches(normalizedCombined, ["근로감독", "취업규칙", "인사규정", "파견", "도급", "단체교섭", "단체협약"]) > 0
+    ) {
+      category = "contract";
+    }
 
     let payload: DiscoveryResponse;
 
     if (round === 1) {
       const second = buildSecondQuestion(category, combinedText);
-      const rec = recommendServices(category, combinedText, audience);
+      const rec = recommendServices(category, combinedText, audience, exampleSignals);
       const aiPickedNames = await rankServicesWithAI(rec.mergedServices, combinedText, audience);
       const aiPicked = aiPickedNames
         .map((name) => rec.mergedServices.find((s) => s.name === name))
         .filter((s): s is ManagedService => Boolean(s));
-      const finalPicked: ManagedService[] = [];
-      const addUnique = (arr: ManagedService[], svc: ManagedService) => {
-        if (!arr.some((s) => s.name === svc.name)) arr.push(svc);
-      };
-      for (const svc of aiPicked) addUnique(finalPicked, svc);
-      for (const svc of rec.picks) {
-        if (finalPicked.length >= 3) break;
-        addUnique(finalPicked, svc);
-      }
-      for (const svc of rec.rankedByKeyword) {
-        if (finalPicked.length >= 3) break;
-        addUnique(finalPicked, svc);
-      }
+      const finalPicked = buildFinalPicks(aiPicked, rec, category, audience);
       const quickServices = toServiceCards(finalPicked).slice(0, 2);
       payload = {
         stage: "ask",
@@ -574,24 +738,12 @@ export async function POST(req: Request) {
       };
     } else if (round === 2) {
       const third = buildThirdQuestion(category, combinedText);
-      const rec = recommendServices(category, combinedText, audience);
+      const rec = recommendServices(category, combinedText, audience, exampleSignals);
       const aiPickedNames = await rankServicesWithAI(rec.mergedServices, combinedText, audience);
       const aiPicked = aiPickedNames
         .map((name) => rec.mergedServices.find((s) => s.name === name))
         .filter((s): s is ManagedService => Boolean(s));
-      const finalPicked: ManagedService[] = [];
-      const addUnique = (arr: ManagedService[], svc: ManagedService) => {
-        if (!arr.some((s) => s.name === svc.name)) arr.push(svc);
-      };
-      for (const svc of aiPicked) addUnique(finalPicked, svc);
-      for (const svc of rec.picks) {
-        if (finalPicked.length >= 3) break;
-        addUnique(finalPicked, svc);
-      }
-      for (const svc of rec.rankedByKeyword) {
-        if (finalPicked.length >= 3) break;
-        addUnique(finalPicked, svc);
-      }
+      const finalPicked = buildFinalPicks(aiPicked, rec, category, audience);
       const quickServices = toServiceCards(finalPicked).slice(0, 2);
       payload = {
         stage: "ask",
@@ -602,24 +754,12 @@ export async function POST(req: Request) {
         round: 3,
       };
     } else {
-      const rec = recommendServices(category, combinedText, audience);
+      const rec = recommendServices(category, combinedText, audience, exampleSignals);
       const aiPickedNames = await rankServicesWithAI(rec.mergedServices, combinedText, audience);
       const aiPicked = aiPickedNames
         .map((name) => rec.mergedServices.find((s) => s.name === name))
         .filter((s): s is ManagedService => Boolean(s));
-      const finalPicked: ManagedService[] = [];
-      const addUnique = (arr: ManagedService[], svc: ManagedService) => {
-        if (!arr.some((s) => s.name === svc.name)) arr.push(svc);
-      };
-      for (const svc of aiPicked) addUnique(finalPicked, svc);
-      for (const svc of rec.picks) {
-        if (finalPicked.length >= 3) break;
-        addUnique(finalPicked, svc);
-      }
-      for (const svc of rec.rankedByKeyword) {
-        if (finalPicked.length >= 3) break;
-        addUnique(finalPicked, svc);
-      }
+      const finalPicked = buildFinalPicks(aiPicked, rec, category, audience);
 
       payload = {
         stage: "finalize",
