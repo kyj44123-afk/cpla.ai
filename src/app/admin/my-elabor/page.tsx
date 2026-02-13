@@ -63,6 +63,18 @@ export default function MyElaborPage() {
   );
 
   const activeItems = result?.groups[activeTab] || [];
+  const hasDrfPermissionError = error.includes("DRF 권한") || error.includes("목록·본문");
+
+  const fallbackLinks = useMemo(() => {
+    const q = encodeURIComponent(keyword.trim());
+    return [
+      { key: "supreme", label: "대법원(판례)", url: `https://www.law.go.kr/LSW/precSc.do?menuId=7&subMenuId=47&tabMenuId=213&query=${q}` },
+      { key: "high", label: "고등법원(판례)", url: `https://www.law.go.kr/LSW/precSc.do?menuId=7&subMenuId=47&tabMenuId=213&query=${q}+고등법원` },
+      { key: "district", label: "지방법원(판례)", url: `https://www.law.go.kr/LSW/precSc.do?menuId=7&subMenuId=47&tabMenuId=213&query=${q}+지방법원` },
+      { key: "interpretation", label: "행정해석", url: `https://www.law.go.kr/LSW/expcSc.do?menuId=7&subMenuId=51&tabMenuId=237&query=${q}` },
+      { key: "guidance", label: "지침/행정규칙", url: `https://www.law.go.kr/LSW/admRulSc.do?menuId=5&subMenuId=41&tabMenuId=183&query=${q}+지침` },
+    ];
+  }, [keyword]);
 
   const persistHistory = (next: string[]) => {
     setHistory(next);
@@ -180,6 +192,26 @@ export default function MyElaborPage() {
         )}
 
         {error && <p className="text-sm text-red-600">{error}</p>}
+        {hasDrfPermissionError && keyword.trim() && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <p className="text-sm text-amber-800 mb-3">
+              DRF 권한 반영 전 임시 우회: 아래 링크로 국가법령정보센터 공개 검색 화면을 바로 여실 수 있습니다.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {fallbackLinks.map((item) => (
+                <a
+                  key={item.key}
+                  href={item.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs px-3 py-2 rounded-md bg-white border border-amber-300 text-amber-900 hover:bg-amber-100"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {result && (

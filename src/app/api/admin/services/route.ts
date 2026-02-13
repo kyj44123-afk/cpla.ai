@@ -6,9 +6,12 @@ import { BASE_LABOR_SERVICES } from "@/lib/laborServicesCatalog";
 
 const SETTINGS_PATH = path.join(process.cwd(), ".settings.json");
 
+type Audience = "worker" | "employer";
+
 type ManagedService = {
   name: string;
   description: string;
+  audience?: Audience;
   keywords?: string[];
   workflowSteps?: string[];
   workflowInfographic?: string;
@@ -16,6 +19,8 @@ type ManagedService = {
 
 type SettingsShape = {
   labor_services?: ManagedService[];
+  labor_services_worker?: ManagedService[];
+  labor_services_employer?: ManagedService[];
   [key: string]: unknown;
 };
 
@@ -43,12 +48,13 @@ function writeSettings(next: SettingsShape) {
   fs.writeFileSync(SETTINGS_PATH, JSON.stringify(next, null, 2));
 }
 
-function normalizeServices(services: unknown): ManagedService[] {
+function normalizeServices(services: unknown, audience: Audience): ManagedService[] {
   if (!Array.isArray(services)) return [];
   return services
     .map((s) => ({
       name: String((s as ManagedService)?.name || "").trim(),
       description: String((s as ManagedService)?.description || "").trim(),
+      audience,
       keywords: Array.isArray((s as ManagedService)?.keywords)
         ? (s as ManagedService).keywords!.map((k) => String(k || "").trim()).filter(Boolean)
         : [],
@@ -65,17 +71,28 @@ function normalizeServices(services: unknown): ManagedService[] {
 
 function mergeWithDefaults(custom: ManagedService[]) {
   const map = new Map<string, ManagedService>();
-  for (const svc of DEFAULT_SERVICES) map.set(svc.name, svc);
-  for (const svc of custom) map.set(svc.name, svc);
+  for (const svc of DEFAULT_SERVICES) map.set(`${svc.audience}:${svc.name}`, svc);
+  for (const svc of custom) map.set(`${svc.audience}:${svc.name}`, svc);
   return Array.from(map.values());
 }
 
 export async function GET() {
   try {
     const settings = readSettings();
-    const custom = normalizeServices(settings.labor_services);
-    const merged = mergeWithDefaults(custom);
-    return NextResponse.json({ services: merged, defaults: DEFAULT_SERVICES.map((s) => s.name) });
+
+    const legacy = Array.isArray(settings.labor_services)
+      ? settings.labor_services.map((s) => ({ ...s, audience: "worker" as const }))
+      : [];
+    const workerCustom = normalizeServices(settings.labor_services_worker, "worker");
+    const employerCustom = normalizeServices(settings.labor_services_employer, "employer");
+
+    const merged = mergeWithDefaults([...legacy, ...workerCustom, ...employerCustom]);
+
+    return NextResponse.json({
+      workerServices: merged.filter((s) => s.audience === "worker"),
+      employerServices: merged.filter((s) => s.audience === "employer"),
+      defaultKeys: DEFAULT_SERVICES.map((s) => `${s.audience}:${s.name}`),
+    });
   } catch (error) {
     console.error("Failed to fetch services:", error);
     return NextResponse.json({ error: "Failed to fetch services" }, { status: 500 });
@@ -84,19 +101,35 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as { services?: ManagedService[] };
-    const normalized = normalizeServices(body.services).map((service) => {
+    const body = (await req.json()) as {
+      workerServices?: ManagedService[];
+      employerServices?: ManagedService[];
+    };
+
+    const workerNormalized = normalizeServices(body.workerServices, "worker").map((service) => {
       const steps = buildWorkflowSteps(service.name);
-      const image = buildWorkflowInfographicDataUrl(service.name, steps);
       return {
         ...service,
         workflowSteps: steps,
-        workflowInfographic: image,
+        workflowInfographic: buildWorkflowInfographicDataUrl(service.name, steps),
       };
     });
+
+    const employerNormalized = normalizeServices(body.employerServices, "employer").map((service) => {
+      const steps = buildWorkflowSteps(service.name);
+      return {
+        ...service,
+        workflowSteps: steps,
+        workflowInfographic: buildWorkflowInfographicDataUrl(service.name, steps),
+      };
+    });
+
     const settings = readSettings();
-    settings.labor_services = normalized;
+    settings.labor_services_worker = workerNormalized;
+    settings.labor_services_employer = employerNormalized;
+    if ("labor_services" in settings) delete settings.labor_services;
     writeSettings(settings);
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to save services:", error);

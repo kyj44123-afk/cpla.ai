@@ -1,0 +1,1172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko">
+ <head> 
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" /> 
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />    
+  <!-- 레이아웃 관련 CSS -->      
+  <!-- 레이아웃 관련 CSS //--> 
+  <script type="text/javascript" src="/LSW/js/jquery/jquery.js?Time=1770981600"></script> 
+  <script type="text/javascript" src="/LSW/js/common/common.js?Time=1770981600"></script> 
+  <script type="text/javascript" src="/LSW/js/common/drag_search.js?Time=1770981600"></script> 
+  <script type="text/javascript" src="/LSW/js/common/CookieUtil.js"></script> 
+  <script type="text/javascript" src="/LSW/js/jquery/jquery.loadmask.js?Time=1770981600"></script> 
+  <script type="text/javascript" src="/LSW/js/common/jquery-custom.js?Time=1770981600"></script> 
+  <!-- 레이아웃 관련 JS --> 
+  <script type="text/javascript" src="/LSW/js/jquery/jquery-ui.js?Time=1770981600"></script> 
+  <script type="text/javascript" src="/LSW/js/jquery/jquery-ui_2017.js?Time=1770981600"></script> 
+  <script type="text/javascript" src="/LSW/js/jquery/jquery.layout-latest.js?Time=1770981600"></script> 
+  <script type="text/javascript" src="/LSW/js/common/layout.js?Time=1770981600"></script> 
+  <!-- 레이아웃 관련 JS //-->  
+  <script type="text/javascript">
+        var webRoot = '/LSW';
+    </script> 
+  <link rel="shortcut icon" type="text/css" href="/LSW/images/ico_favorites.ico" />
+  <link rel="stylesheet" type="text/css" href="/LSW/css/lsw/common.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/js/jquery/jquery.loadmask.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/js/jquery/layout-default-latest.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/css/lsw/layout.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/css/lsw/board.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/css/ui_2017.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/css/fonts.css?Time=1770981600" />
+  <link rel="shortcut icon" type="text/css" href="/LSW/images/ico_favorites.ico" />
+  <link rel="stylesheet" type="text/css" href="/LSW/js/jquery/jquery.fancybox-2.1.5.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/js/jquery/jquery.loadmask.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/js/jquery/layout-default-latest.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/css/ext/ext-all.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/css/common-ex.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/css/ui_2017.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/css/mobileView.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/css/main_2019.css?v=1.0?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/css/bootstrap.css?Time=1770981600" />
+  <link rel="stylesheet" type="text/css" href="/LSW/css/fonts.css?Time=1770981600" />
+  <style type="text/css">
+        .ui-layout-pane {
+            padding: 0;
+            background:	#EEE;
+        }
+        .ui-layout-west {
+            background:	#CFC;
+        }
+        .ui-layout-center {
+            background:	#FFC;
+            padding:	0; /* IMPORTANT - remove padding so pane can 'collapse' to 0-width */
+        }
+
+        .ui-layout-west > .ui-layout-center {
+            background:	#CFC;
+        }
+
+        .ui-layout-west > .ui-layout-south {
+            background:	#AFE;
+        }
+        .ui-layout-pane { border-width: 0; }
+        .ui-layout-north { border-bottom-width:	1px; }
+        .ui-layout-south { border-top-width: 1px; }
+        .ui-layout-resizer-west {
+            border-width: 0;
+            border-left: 2px solid #b4b4b4;
+            background-color:white;
+        }
+        .ui-layout-toggler {
+            border: 0;
+            background-color:#fff
+        }
+        .ui-layout-toggler-west-closed {
+            background-image: url("./images/button/leslidev7_2.gif");
+            background-color:white;
+            background-repeat: no-repeat;
+        }
+        .ui-layout-toggler-west-open {
+            background-image: url("./images/button/leslidev7_1.gif");
+            background-color:white;
+            background-repeat: no-repeat;
+        }
+    </style> 
+  <style type="text/css">
+	        .area_skip a:focus{top:0}
+			.area_skip a{position:fixed;top:-100px;left:0;right:0;z-index:10000;background:#054689;padding:10px;color:#fff!important;font-size:16px;font-weight:bold;text-align:center}
+			.video-player {width: 335px; height: auto; float: right;}
+	</style>
+  <title>국가법령정보센터</title>
+ </head> 
+ <body>    
+  <script type="text/javascript">
+	  var isAsGubun = "IS";
+
+	  if(location.href.indexOf("law.go.kr") > -1){
+		  if(location.href.indexOf("https") == -1){
+				 location.href = location.href.replace("http","https");
+		  }
+	  }
+	  
+		 var adCnameList = new Array();
+		
+		
+		
+  </script> 
+  <script type="text/javascript" src="/LSW/js/common/autocom.js"></script> 
+  <script type="text/javascript" src="/LSW/js/ls/ls.js"></script> 
+  <script type="text/javascript" src="/LSW/js/common/tree.js"></script> 
+  <script type="text/javascript" src="/LSW/js/common/img-common.js"></script> 
+  <script type="text/javascript" src="/LSW/js/json/json2.js"></script> 
+  <script type="text/javascript" src="/LSW/js/advertise.js"></script> 
+  <script type="text/javascript" src="/LSW/js/main/main.js?Time=1770981600"></script> 
+  <script type="text/javascript" src="/LSW/js/common/calendar.js"></script> 
+  <script type="text/javascript" src="/LSW/js/jquery/jquery.fancybox-2.1.5.pack.js"></script> 
+  <script type="text/javascript" src="/LSW/js/common/mobileUtil.js"></script> 
+  <!-- 레이아웃 관련 JS   --> 
+  <script type="text/javascript" src="/LSW/js/jquery/jquery-ui_2017.js"></script> 
+  <script type="text/javascript" src="/LSW/js/common/layout.js"></script> 
+  <script type="text/javascript" src="/LSW/js/jquery-1.7.2.min.js"></script> 
+  <script type="text/javascript" src="/LSW/js/topMenu.js"></script> 
+  <script type="text/javascript" src="/LSW/js/bootstrap.min.js"></script> 
+  <script type="text/javascript" src="/LSW/js/jquery.bxslider.min.js"></script>  
+  <!-- 레이아웃 관련 JS //-->            
+  <script type="text/javascript">
+  	   //건너뛰기
+       function skipNavi() {
+        var skip = $("#skipCts");
+      	var skipFlag = $("#skipFlag").val();
+       	skip.attr('href', '#mainSrch');
+       	document.getElementById('mainSrch').scrollIntoView();
+       	skipFlag = 0;
+     	$("#lb_area").focus();
+     	$("#searchName").focus();
+     	showSearchSelect('0');
+
+       	$("#skipFlag").val(skipFlag);
+       }
+
+	   /*function monitorClose(){
+		   $(".main_pop_type1").hide();
+	   }
+
+	   function monitorOpen(){
+		   $(".main_pop_type1").show();
+	   }*/
+
+ 	</script>    
+  <!-- 스킵 네비게이션 --> 
+  <div class="area_skip" id="area_skip"> 
+   <a id="skipCts" href="javascript:;" onclick="javascript:skipNavi();return false;">본문 바로가기</a> 
+   <input type="hidden" id="skipFlag" value="1" /> 
+  </div> 
+  <div id="lsSeHstDivWrite"> 
+   <div id="lsSeHstLayer" style="display:none; width: 300px; height: 310px;"></div> 
+  </div> 
+  <!--// 2019.0306 앱으로보기 레이어--> 
+  <div id="appBannerLayer" style="display: none;"> 
+   <a href="javascript:;" class="close_btn" onclick="AppbannerClose();" title="닫기" style="font-size:0">닫기</a> 
+   <div class="banner_wrap"> 
+    <p class="app_img"><img src="/LSW/images/img_fullbnr.png" alt="국가법령정보 앱으로 더 편리하게 이용해보세요" /></p> 
+    <a href="javascript:;" class="btn_download_app" onclick="klawAppOpen();"><img src="/LSW/images/btn_viewapp.png" alt="앱으로 보기" /></a> 
+   </div> 
+   <div class="close_Btn"> 
+    <p class="close_today"> <label for="close_today" id="close_today">오늘하루 보지 않기</label> <input type="checkbox" onclick="AppbannerClose('toDay')" id="chk_close_today" /> <label for="chk_close_today" class="blind">오늘하루 보지 않기 체크박스</label> </p> 
+    <p class="close_allday"> <label for="close_allday" id="close_allday">다시 보지 않기</label> <input type="checkbox" onclick="AppbannerClose('allDay')" id="chk_close_allday" /> <label for="chk_close_allday" class="blind">다시 보지 않기 체크박스</label> </p> 
+   </div> 
+  </div> 
+  <!-- 2019.0306 앱으로보기 레이어//--> 
+  <div id="new_wrap"> 
+   <!-- header 시작 --> 
+   <div id="header_wrap"> 
+    <div id="header"> 
+     <div id="gov_top"> 
+      <div id="gov_top_inner"> 
+       <img src="/LSW/images/common/ico_kor.png" alt="태극기" /> 
+       <span style="color:#444;">이 누리집은 대한민국 공식 전자정부 누리집입니다.</span> 
+      </div> 
+     </div> 
+     <div class="lnb"> 
+      <div class="lnb_inner"> 
+       <div class="r_list"> 
+        <ul> 
+         <li id="userName"></li> 
+         <li id="loginLogout"><a id="logIn" href="/LSW/login.do">로그인</a></li> 
+         <li id="memberJoin"> <a id="memberEnter" href="/LSW/identifySelect.do" title="회원가입">회원가입</a> </li> 
+         <li><a href="/LSW/eng/engMain.do?eventGubun=060124" target="_blank" title="새창열림">English</a></li> 
+        </ul> 
+        <div class="fs_box"> 
+         <button class="minus_txt" onclick="javascript:zoomInOut('out');" title="화면축소"><span class="blind">화면축소</span></button> 
+         <span id="txt_size">100%</span> 
+         <button class="plus_txt" onclick="javascript:zoomInOut('in');" title="화면확대"><span class="blind">화면확대</span></button> 
+        </div> 
+       </div> 
+      </div> 
+     </div>
+     <!-- lnb --> 
+     <div class="h_box"> 
+      <p class="logo"> <a href="https://www.law.go.kr" title="국가법령정보센터 메인페이지로 이동"> <img src="/LSW/images/common/h_logo1.png" alt="법제처 국가법령정보센터 로고" /> </a> <a href="http://www.kdaa.or.kr" title="새창열림" target="_blank"> <img src="/LSW/images/common/wa_logo.png" alt="국가공인 정보통신접근성 품질인증마크" style="width:70px" /> </a> </p> 
+     </div>
+     <!-- h_box --> 
+    </div>
+    <!-- header --> 
+    <div class="nav_wrap"> 
+     <div id="nav">
+      <!-- .menuicon 클릭시 on 클래스 추가 --> 
+      <!--메인메뉴--> 
+      <ul class="nav"> 
+       <li> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/lsSc.do?menuId=1&amp;subMenuId=15&amp;tabMenuId=81&amp;eventGubun=060114');saveSearchHistory();return false;">법령<span>(법률·대통령령·부령)</span></a> 
+        <div class="dep2_area "> 
+         <ul> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/lsSc.do?menuId=1&amp;subMenuId=15&amp;tabMenuId=81'); return false;"> 현행법령 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/lsSc.do?menuId=1&amp;subMenuId=17&amp;tabMenuId=93'); return false;"> 연혁법령 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/lsSc.do?menuId=1&amp;subMenuId=19&amp;tabMenuId=105'); return false;"> 근대법령 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/engLsSc.do?menuId=1&amp;subMenuId=21&amp;tabMenuId=117'); return false;"> 외국어번역 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/lsSc.do?menuId=1&amp;subMenuId=23&amp;tabMenuId=121'); return false;"> 최신법령 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/trtySc.do?menuId=1&amp;subMenuId=25&amp;tabMenuId=135'); return false;"> 조약 </a> </li> 
+         </ul> 
+        </div> </li> 
+       <li> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/admRulSc.do?menuId=5&amp;subMenuId=41&amp;tabMenuId=183&amp;eventGubun=060115');saveSearchHistory();return false;">행정규칙<span>(훈령·예규·고시)</span></a> 
+        <div class="dep2_area "> 
+         <ul> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/admRulSc.do?menuId=5&amp;subMenuId=41&amp;tabMenuId=183'); return false;"> 현행행정규칙 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/admRulSc.do?menuId=5&amp;subMenuId=43&amp;tabMenuId=193'); return false;"> 연혁행정규칙 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/admRulSc.do?menuId=5&amp;subMenuId=45&amp;tabMenuId=203'); return false;"> 최신행정규칙 </a> </li> 
+         </ul> 
+        </div> </li> 
+       <li> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/lsBylSc.do?menuId=9&amp;subMenuId=55&amp;tabMenuId=261&amp;eventGubun=060118');saveSearchHistory();return false;">별표·서식<span> </span></a> 
+        <div class="dep2_area "> 
+         <ul> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/lsBylSc.do?menuId=9&amp;subMenuId=55&amp;tabMenuId=261'); return false;"> 법령 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/admRulBylSc.do?menuId=9&amp;subMenuId=57&amp;tabMenuId=267'); return false;"> 행정규칙 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/ordinBylSc.do?menuId=9&amp;subMenuId=59&amp;tabMenuId=273'); return false;"> 자치법규 </a> </li> 
+         </ul> 
+        </div> </li> 
+       <li> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/ordinSc.do?menuId=3&amp;subMenuId=27&amp;tabMenuId=139&amp;eventGubun=060116');saveSearchHistory();return false;">자치법규<span>(조례·규칙)</span></a> 
+        <div class="dep2_area "> 
+         <ul> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/ordinSc.do?menuId=3&amp;subMenuId=27&amp;tabMenuId=139'); return false;"> 현행 자치법규 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/ordinSc.do?menuId=3&amp;subMenuId=31&amp;tabMenuId=151'); return false;"> 연혁(전체) </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/ordcSc.do?menuId=3&amp;subMenuId=37&amp;tabMenuId=169'); return false;"> 의견제시사례 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/ordinScNw.do?menuId=3&amp;subMenuId=35&amp;tabMenuId=161'); return false;"> 최신자치법규 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/ordinDelegationSc.do?menuId=3&amp;subMenuId=29&amp;tabMenuId=149'); return false;"> 필수 자치법규 마련현황 </a> </li> 
+         </ul> 
+        </div> </li> 
+       <li class="wide"> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/precSc.do?menuId=7&amp;subMenuId=47&amp;tabMenuId=213&amp;eventGubun=');saveSearchHistory();return false;">판례·해석례등<span>(헌재결정례·행정심판재결례)</span></a> 
+        <div class="dep2_area "> 
+         <ul> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/precSc.do?menuId=7&amp;subMenuId=47&amp;tabMenuId=213'); return false;"> 판례 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/detcSc.do?menuId=7&amp;subMenuId=49&amp;tabMenuId=225'); return false;"> 헌재결정례 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/expcSc.do?menuId=7&amp;subMenuId=51&amp;tabMenuId=237'); return false;"> 법제처 해석례 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/allDeccSc.do?menuId=7&amp;subMenuId=53&amp;tabMenuId=249'); return false;"> 행정심판재결례 </a> </li> 
+         </ul> 
+        </div> </li> 
+       <li class="wide"> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/cgmExpcSc.do?menuId=11&amp;subMenuId=729&amp;tabMenuId=733&amp;eventGubun=060119');saveSearchHistory();return false;">중앙행정기관 결정선례</a> 
+        <div class="dep2_area "> 
+         <ul> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/cgmExpcSc.do?menuId=11&amp;subMenuId=729&amp;tabMenuId=733'); return false;"> 중앙부처 1차 해석 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/decsnDocSc.do?menuId=11&amp;subMenuId=713&amp;tabMenuId=715'); return false;"> 위원회결정문 </a> </li> 
+          <li> <a href="javascript:;" onclick="goLinkUrl('/baiPvcsSc.do?menuId=11&amp;subMenuId=765&amp;tabMenuId=767'); return false;"> 감사원 사전컨설팅 의견서 </a> </li> 
+         </ul> 
+        </div> </li> 
+       <li> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/schlPubRulSc.do?menuId=13&amp;subMenuId=63&amp;tabMenuId=285&amp;eventGubun=060120');saveSearchHistory();return false;">그밖의 정보</a> 
+        <div class="dep2_area expand"> 
+         <div style="display: flex"> 
+          <ul style="width: 100%"> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/schlPubRulSc.do?menuId=13&amp;subMenuId=63&amp;tabMenuId=285'); return false;"> 공공기관 정관/규정 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/schlPubRulSc.do?menuId=13&amp;subMenuId=61&amp;tabMenuId=279'); return false;"> 대학 규칙/규정 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/schlPubRulSc.do?menuId=13&amp;subMenuId=467&amp;tabMenuId=509'); return false;"> 지방공사·공단 등 규정 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/lsTrmSc.do?menuId=13&amp;subMenuId=65'); return false;"> 법령용어 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/lbook/lbListR.do?menuId=13&amp;subMenuId=67&amp;tabMenuId=293'); return false;"> 전자법령집 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/calendarSc.do?menuId=13&amp;subMenuId=69'); return false;"> 법령캘린더 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/abrvSc.do?menuId=13&amp;subMenuId=71&amp;tabMenuId=295'); return false;"> 법률명약칭 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/faqList.do?menuId=13&amp;subMenuId=73'); return false;"> 자주 하는 질문(사용방법) </a> </li> 
+          </ul> 
+          <ul style="width: 100%"> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/lawStatistics.do?menuId=13&amp;subMenuId=557'); return false;"> 법령통계 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/lawPetitionLoginChk.do?menuId=13&amp;subMenuId=77'); return false;"> 개선의견 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/lawPetitionForm.do?menuId=13&amp;subMenuId=79'); return false;"> 법적효력/저작권 </a> </li> 
+          </ul> 
+         </div> 
+        </div> </li> 
+      </ul> 
+      <!--//메인메뉴--> 
+      <div class="allMenu"> 
+       <a href="javascript:;" type="button" onclick="allMenuModal();">전체메뉴</a> 
+      </div> 
+     </div> 
+    </div> 
+   </div> 
+   <!-- 전체메뉴 팝업 시작 --> 
+   <div id="allMenu" class="modal hide fade"> 
+    <h2>전체메뉴</h2> 
+    <div class="pop_article"> 
+     <div id="allmenu_list"> 
+      <ul> 
+       <li> <em style=""> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/lsSc.do?menuId=1&amp;subMenuId=15&amp;tabMenuId=81');saveSearchHistory();return false;">법령<span>(법률·대통령령·부령)</span> </a> </em> 
+        <ul> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/lsSc.do?menuId=1&amp;subMenuId=15&amp;tabMenuId=81'); return false;"> 현행법령 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/lsSc.do?menuId=1&amp;subMenuId=17&amp;tabMenuId=93'); return false;"> 연혁법령 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/lsSc.do?menuId=1&amp;subMenuId=19&amp;tabMenuId=105'); return false;"> 근대법령 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/engLsSc.do?menuId=1&amp;subMenuId=21&amp;tabMenuId=117'); return false;"> 외국어번역 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/lsSc.do?menuId=1&amp;subMenuId=23&amp;tabMenuId=121'); return false;"> 최신법령 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/trtySc.do?menuId=1&amp;subMenuId=25&amp;tabMenuId=135'); return false;"> 조약 </a> </li> 
+        </ul> </li> 
+       <li> <em style=""> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/admRulSc.do?menuId=5&amp;subMenuId=41&amp;tabMenuId=183');saveSearchHistory();return false;">행정규칙<span>(훈령·예규·고시)</span> </a> </em> 
+        <ul> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/admRulSc.do?menuId=5&amp;subMenuId=41&amp;tabMenuId=183'); return false;"> 현행행정규칙 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/admRulSc.do?menuId=5&amp;subMenuId=43&amp;tabMenuId=193'); return false;"> 연혁행정규칙 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/admRulSc.do?menuId=5&amp;subMenuId=45&amp;tabMenuId=203'); return false;"> 최신행정규칙 </a> </li> 
+        </ul> </li> 
+       <li> <em style=""> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/lsBylSc.do?menuId=9&amp;subMenuId=55&amp;tabMenuId=261');saveSearchHistory();return false;">별표·서식<span> </span> </a> </em> 
+        <ul> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/lsBylSc.do?menuId=9&amp;subMenuId=55&amp;tabMenuId=261'); return false;"> 법령 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/admRulBylSc.do?menuId=9&amp;subMenuId=57&amp;tabMenuId=267'); return false;"> 행정규칙 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/ordinBylSc.do?menuId=9&amp;subMenuId=59&amp;tabMenuId=273'); return false;"> 자치법규 </a> </li> 
+        </ul> </li> 
+       <li> <em style=""> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/ordinSc.do?menuId=3&amp;subMenuId=27&amp;tabMenuId=139');saveSearchHistory();return false;">자치법규<span>(조례·규칙)</span> </a> </em> 
+        <ul> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/ordinSc.do?menuId=3&amp;subMenuId=27&amp;tabMenuId=139'); return false;"> 현행 자치법규 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/ordinSc.do?menuId=3&amp;subMenuId=31&amp;tabMenuId=151'); return false;"> 연혁(전체) </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/ordcSc.do?menuId=3&amp;subMenuId=37&amp;tabMenuId=169'); return false;"> 의견제시사례 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/ordinScNw.do?menuId=3&amp;subMenuId=35&amp;tabMenuId=161'); return false;"> 최신자치법규 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/ordinDelegationSc.do?menuId=3&amp;subMenuId=29&amp;tabMenuId=149'); return false;"> 필수 자치법규 마련현황 </a> </li> 
+        </ul> </li> 
+       <li> <em style=""> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/precSc.do?menuId=7&amp;subMenuId=47&amp;tabMenuId=213');saveSearchHistory();return false;">판례·해석례등<span>(헌재결정례·행정심판재결례)</span> </a> </em> 
+        <ul> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/precSc.do?menuId=7&amp;subMenuId=47&amp;tabMenuId=213'); return false;"> 판례 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/detcSc.do?menuId=7&amp;subMenuId=49&amp;tabMenuId=225'); return false;"> 헌재결정례 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/expcSc.do?menuId=7&amp;subMenuId=51&amp;tabMenuId=237'); return false;"> 법제처 해석례 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/allDeccSc.do?menuId=7&amp;subMenuId=53&amp;tabMenuId=249'); return false;"> 행정심판재결례 </a> </li> 
+        </ul> </li> 
+       <li> <em style=""> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/cgmExpcSc.do?menuId=11&amp;subMenuId=729&amp;tabMenuId=733');saveSearchHistory();return false;">중앙행정기관 결정선례 </a> </em> 
+        <ul> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/cgmExpcSc.do?menuId=11&amp;subMenuId=729&amp;tabMenuId=733'); return false;"> 중앙부처 1차 해석 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/decsnDocSc.do?menuId=11&amp;subMenuId=713&amp;tabMenuId=715'); return false;"> 위원회결정문 </a> </li> 
+         <li> <a href="javascript:;" onclick="goLinkUrl('/baiPvcsSc.do?menuId=11&amp;subMenuId=765&amp;tabMenuId=767'); return false;"> 감사원 사전컨설팅 의견서 </a> </li> 
+        </ul> </li> 
+       <li> <em style=" display: block; width: 200%;"> <a href="javascript:;" class="menu_dep1" onclick="javascript:goLinkUrl('/schlPubRulSc.do?menuId=13&amp;subMenuId=63&amp;tabMenuId=285');saveSearchHistory();return false;">그밖의 정보 </a> </em> 
+        <div style="display: block; width: 200%;"> 
+         <div style="display: flex"> 
+          <ul style="width:100%;"> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/schlPubRulSc.do?menuId=13&amp;subMenuId=63&amp;tabMenuId=285'); return false;"> 공공기관 정관/규정 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/schlPubRulSc.do?menuId=13&amp;subMenuId=61&amp;tabMenuId=279'); return false;"> 대학 규칙/규정 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/schlPubRulSc.do?menuId=13&amp;subMenuId=467&amp;tabMenuId=509'); return false;"> 지방공사·공단 등 규정 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/lsTrmSc.do?menuId=13&amp;subMenuId=65'); return false;"> 법령용어 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/lbook/lbListR.do?menuId=13&amp;subMenuId=67&amp;tabMenuId=293'); return false;"> 전자법령집 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/calendarSc.do?menuId=13&amp;subMenuId=69'); return false;"> 법령캘린더 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/abrvSc.do?menuId=13&amp;subMenuId=71&amp;tabMenuId=295'); return false;"> 법률명약칭 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/faqList.do?menuId=13&amp;subMenuId=73'); return false;"> 자주 하는 질문 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/lawStatistics.do?menuId=13&amp;subMenuId=557'); return false;"> 법령통계 </a> </li> 
+          </ul> 
+          <ul style="width:100%;"> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/lawPetitionLoginChk.do?menuId=13&amp;subMenuId=77'); return false;"> 개선의견 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/lawPetitionList.do?menuId=13&amp;subMenuId=75'); return false;"> 사용방법 </a> </li> 
+           <li> <a href="javascript:;" onclick="goLinkUrl('/lawPetitionForm.do?menuId=13&amp;subMenuId=79'); return false;"> 법적효력/저작권 </a> </li> 
+          </ul> 
+         </div> 
+        </div> </li> 
+      </ul> 
+     </div> 
+    </div> 
+    <a href="javascript:;" class="btn" onclick="allMenuModal();">전체메뉴 닫기</a> 
+   </div> 
+   <!-- 전체메뉴 팝업 끝--> 
+   <div id="visualSpot"> 
+    <div class="inner"> 
+     <p><b>법제처</b>는 우리나라의 모든 <b>법령정보</b>를 제공합니다.</p> 
+     <div id="mainSrch"> 
+      <form id="search" name="search" action="lsSc.do?menuId=1&amp;subMenuId=15&amp;tabMenuId=81" onsubmit="javascript:saveSearchHistory();" onkeypress="if(event.keyCode==13) return false;"> 
+       <input type="hidden" id="section" name="section" value="" /> 
+       <input type="hidden" id="menuId" name="menuId" value="1" /> 
+       <input type="hidden" id="subMenuId" name="subMenuId" value="15" /> 
+       <input type="hidden" id="tabMenuId" name="tabMenuId" value="81" /> 
+       <input type="hidden" id="eventGubun" name="eventGubun" value="060101" /> 
+       <div class="inner" id="inner"> 
+        <div class="select_pix srchTitle" id="lb_area"> 
+         <div class="hv_pop" id="lbAreaInfo" style="display:none; z-index: 100; position: absolute; top: 58px; height: 80px; width: 260px; padding-top: 10px;"> 
+          <b class="tit">검색방식설정</b> 
+          <span class="tx_cont">로그인 후 마이페이지에서 검색방식을 설정할 수 있습니다.</span> 
+         </div> 
+         <a href="javascript:;" id="searchName" name="searchName" tabindex="0" onclick="javascript:showSearchSelect('0');return false;" onkeypress="javascript:showSearchSelect('0');return false;" onmouseover="imgMouseover('lbAreaInfo');" onmouseout="imgMouseout('lbAreaInfo')"> 현행법령 <span class="blind" id="searchNameOpen">검색구분 목록 펼치기</span> </a> 
+         <div class="select_list srchTitle_list"> 
+          <div id="searchSelect"> 
+           <ul> 
+            <li id="searchType10"><a href="javascript:;" onclick="javascript:selectSearchType('10', '통합검색', 'unSc.do?menuId=391&amp;subMenuId=395&amp;tabMenuId=409', '검색어를 입력하세요.');">통합검색</a> </li> 
+            <li id="searchType17"><a href="javascript:;" onclick="javascript:selectSearchType('17', '법령/자치법규', 'lsOrdinAstSc.do?menuId=391&amp;subMenuId=399&amp;tabMenuId=455', '검색어를 입력하세요.');">법령/자치법규</a> </li> 
+            <li id="searchType18"><a href="javascript:;" onclick="javascript:selectSearchType('18', '법령/행정규칙/자치법규', 'lsAdmRulAstSc.do?menuId=391&amp;subMenuId=399&amp;tabMenuId=453', '검색어를 입력하세요.');">법령/행정규칙/자치법규</a> </li> 
+            <li id="searchType16"><a href="javascript:;" onclick="javascript:selectSearchType('16', '생활법령', 'unSc.do?menuId=391&amp;subMenuId=395&amp;tabMenuId=429&amp;section=cnpcls', '주제어, 생활분류명을 입력하세요.');return false;" onkeypress="">생활법령</a></li> 
+           </ul> 
+           <ul> 
+            <li id="searchType0"><a href="javascript:;" onclick="javascript:selectSearchType('0', '현행법령', 'lsSc.do?menuId=1&amp;subMenuId=15&amp;tabMenuId=81', '주제어, 법령명, 공포번호, 공포일자를 입력하세요.');">현행법령</a> </li> 
+            <li id="searchType1"><a href="javascript:;" onclick="javascript:selectSearchType('1', '연혁법령', 'lsSc.do?menuId=1&amp;subMenuId=17&amp;tabMenuId=93', '주제어, 법령명, 공포번호, 공포일자를 입력하세요.');">연혁법령</a> </li> 
+            <li id="searchType2"><a href="javascript:;" onclick="javascript:selectSearchType('2', '근대법령', 'lsSc.do?menuId=1&amp;subMenuId=19&amp;tabMenuId=105', '주제어, 법령명, 공포번호, 공포일자를 입력하세요.');">근대법령</a> </li> 
+            <li id="searchType12"><a href="javascript:;" onclick="javascript:selectSearchType('12', '외국어번역', 'engLsSc.do?menuId=1&amp;subMenuId=21&amp;tabMenuId=117', '주제어, 법령명, 공포번호, 공포일자를 입력하세요.');">외국어번역</a> </li> 
+            <li id="searchType9"><a href="javascript:;" onclick="javascript:selectSearchType('9', '조약', 'trtySc.do?menuId=1&amp;subMenuId=25&amp;tabMenuId=135', '제목, 주제어를 입력하세요.');">조약</a> </li> 
+           </ul> 
+           <ul> 
+            <li id="searchType3"><a href="javascript:;" onclick="javascript:selectSearchType('3', '행정규칙', 'admRulSc.do?menuId=5&amp;subMenuId=41&amp;tabMenuId=183', '주제어, 행정규칙명, 발령번호, 발령일자를 입력하세요.');">행정규칙</a> </li> 
+            <li id="searchType8"><a href="javascript:;" onclick="javascript:selectSearchType('8', '자치법규', 'ordinSc.do?menuId=3&amp;subMenuId=27&amp;tabMenuId=139', '주제어, 자치법규명, 공포번호, 공포일자를 입력하세요.');">자치법규</a> </li> 
+            <li id="searchType19"><a href="javascript:;" onclick="javascript:selectSearchType('19', '공공기관 정관/규정', 'schlPubRulSc.do?menuId=13&amp;subMenuId=63&amp;tabMenuId=285', '공단규정명, 기관명 등을 입력하세요.');">공공기관 정관/규정</a> </li> 
+            <li id="searchType11"><a href="javascript:;" onclick="javascript:selectSearchType('11', '별표서식(법령)', 'lsBylSc.do?menuId=9&amp;subMenuId=55&amp;tabMenuId=261', '주제어, 별표서식명, 공포번호, 공포일자를 입력하세요.');">별표서식(법령)</a> </li> 
+           </ul> 
+           <ul> 
+            <li id="searchType4"><a href="javascript:;" onclick="javascript:selectSearchType('4', '판례', 'precSc.do?menuId=7&amp;subMenuId=47&amp;tabMenuId=213', '주제어, 사건명, 사건번호, 판결일자를 입력하세요.');">판례</a> </li> 
+            <li id="searchType5"><a href="javascript:;" onclick="javascript:selectSearchType('5', '헌재결정례', 'detcSc.do?menuId=7&amp;subMenuId=49&amp;tabMenuId=225', '주제어, 사건명, 사건번호, 판결일자를 입력하세요.');">헌재결정례</a> </li> 
+            <li id="searchType6"><a href="javascript:;" onclick="javascript:selectSearchType('6', '법제처해석례', 'expcSc.do?menuId=7&amp;subMenuId=51&amp;tabMenuId=237', '주제어, 안건명, 해석일자를 입력하세요.');">법제처해석례</a> </li> 
+            <li id="searchType7"><a href="javascript:;" onclick="javascript:selectSearchType('7', '행정심판재결례', 'allDeccSc.do?menuId=7&amp;subMenuId=53&amp;tabMenuId=249', '주제어, 사건명, 의결일자를 입력하세요.');">행정심판재결례</a> </li> 
+           </ul> 
+           <ul> 
+            <li id="searchType21"><a href="javascript:;" onclick="javascript:selectSearchType('21', '중앙부처 1차 해석', 'cgmExpcSc.do?menuId=11&amp;subMenuId=729&amp;tabMenuId=733', '주제어, 안건명, 해석일자를 입력하세요.');">중앙부처 1차 해석</a> </li> 
+           </ul> 
+           <ul> 
+            <li id="searchType20"><a href="javascript:;" onclick="javascript:selectSearchType('20', '한눈보기', 'oneviewSc.do?tabMenuId=701', '콘텐츠명, 법령명, 키워드를 입력하세요.');">한눈보기</a> </li> 
+           </ul> 
+          </div> 
+         </div> 
+        </div>
+        <!-- srchTitle --> 
+        <div class="srchInput"> 
+         <label class="blind" for="query">검색어 입력</label> 
+         <input type="text" id="query" name="query" onfocus="autoCompleteOff();" onclick="javascript:autoComOpenClose();return false;" onkeyup="javascript:keyPressQuery(); if(event.keyCode==13) goSearch(); return false;" style="-ms-ime-mode: active;" /> 
+         <button class="btn-textRemove" onclick="javascript:queryTextRemove();return false;" id="btn-textRemove" style="display:none;"> <img src="/LSW/images/button/btn_del2.gif" alt="검색내용 삭제" /> </button> 
+         <a href="javascript:;" class="btn-keyboardOpen" onclick="return false;" id="btn_keyboard"> <img src="/LSW/images/common/btn_keyboardOpen.png" onmouseover="imgMouseover('mouseInputInfo');" onmouseout="imgMouseout('mouseInputInfo')" alt="마우스 입력 사용하기" /> </a> 
+         <div id="keyboard-layout"> 
+          <h4>마우스 입력기</h4> 
+          <div class="language-tab"> 
+           <ul> 
+            <li class="active key_kor"> <a href="javascript:;" class="active"> 한글</a> 
+             <div style="display:block;" class="language_cont" id="lanTest"> 
+              <div class="group_keyboard kor_basic active" style="display: block;"> 
+               <div class="keyboard_line"> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="1">1</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="2">2</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="3">3</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="4">4</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="5">5</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="6">6</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="7">7</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="8">8</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="9">9</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="0">0</button> 
+                <button class="spe bksp" onclick="javascript:keyboardOpen(this); return false;" value="Bksp">Bksp</button> 
+               </div> 
+               <div class="keyboard_line"> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅂ">ㅂ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅈ">ㅈ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㄷ">ㄷ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㄱ">ㄱ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅅ">ㅅ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅛ">ㅛ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅕ">ㅕ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅑ">ㅑ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅐ">ㅐ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅔ">ㅔ</button> 
+               </div> 
+               <div class="keyboard_line"> 
+                <button class="spe shift" onclick="return false;">Shift</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅁ">ㅁ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㄴ">ㄴ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅇ">ㅇ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㄹ">ㄹ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅎ">ㅎ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅗ">ㅗ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅓ">ㅓ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅏ">ㅏ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅣ">ㅣ</button> 
+               </div> 
+               <div class="keyboard_line"> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅋ">ㅋ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅌ">ㅌ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅊ">ㅊ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅍ">ㅍ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅠ">ㅠ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅜ">ㅜ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅡ">ㅡ</button> 
+                <button class="spe space" onclick="javascript:keyboardOpen(this); return false;" value="space">띄어쓰기</button> 
+                <button class="spe enter" onclick="javascript:goSearch();">검색</button> 
+               </div> 
+              </div> 
+              <div class="group_keyboard kor_shift" style="display: none;"> 
+               <div class="keyboard_line"> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="!">!</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="@">@</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="#">#</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="$">$</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="%">%</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="^">^</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="&amp;">&amp;</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="*">*</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="(">(</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value=")">)</button> 
+                <button class="spe bksp" onclick="javascript:keyboardOpen(this); return false;" value="Bksp">Bksp</button> 
+               </div> 
+               <div class="keyboard_line"> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅃ">ㅃ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅉ">ㅉ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㄸ">ㄸ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㄲ">ㄲ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅆ">ㅆ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅛ">ㅛ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅕ">ㅕ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅑ">ㅑ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅒ">ㅒ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅖ">ㅖ</button> 
+               </div> 
+               <div class="keyboard_line"> 
+                <button class="spe shift" onclick="return false;">Shift</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅁ">ㅁ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㄴ">ㄴ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅇ">ㅇ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㄹ">ㄹ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅎ">ㅎ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅗ">ㅗ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅓ">ㅓ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅏ">ㅏ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅣ">ㅣ</button> 
+               </div> 
+               <div class="keyboard_line"> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅋ">ㅋ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅌ">ㅌ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅊ">ㅊ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅍ">ㅍ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅠ">ㅠ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅜ">ㅜ</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="ㅡ">ㅡ</button> 
+                <button class="spe space" onclick="javascript:keyboardOpen(this); return false;" value="space">띄어쓰기</button> 
+                <button class="spe enter" onclick="javascript:goSearch();">검색</button> 
+               </div> 
+              </div> 
+             </div> </li> 
+            <li class="key_eng"> <a href="javascript:;">영문</a> 
+             <div style="display:none;" class="language_cont"> 
+              <div class="group_keyboard eng_basic active" style="display: block;"> 
+               <div class="keyboard_line"> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="1">1</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="2">2</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="3">3</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="4">4</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="5">5</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="6">6</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="7">7</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="8">8</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="9">9</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="0">0</button> 
+                <button class="spe bksp" onclick="javascript:keyboardOpen(this); return false;" value="Bksp">Bksp</button> 
+               </div> 
+               <div class="keyboard_line"> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="q">q</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="w">w</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="e">e</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="r">r</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="t">t</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="y">y</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="u">u</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="i">i</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="o">o</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="p">p</button> 
+               </div> 
+               <div class="keyboard_line"> 
+                <button class="spe shift" onclick="return false;" value="0">Shift</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="a">a</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="s">s</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="d">d</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="f">f</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="g">g</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="h">h</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="j">j</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="k">k</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="l">l</button> 
+               </div> 
+               <div class="keyboard_line "> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="z">z</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="x">x</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="c">c</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="v">v</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="b">b</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="n">n</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="m">m</button> 
+                <button class="spe space" onclick="javascript:keyboardOpen(this); return false;" value="space">띄어쓰기</button> 
+                <button class="spe enter" onclick="javascript:goSearch();">검색</button> 
+               </div> 
+              </div> 
+              <div class="group_keyboard eng_shift" style="display: none;"> 
+               <div class="keyboard_line"> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="!">!</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="@">@</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="#">#</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="$">$</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="%">%</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="^">^</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="&amp;">&amp;</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="*">*</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="(">(</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value=")">)</button> 
+                <button class="spe bksp" onclick="javascript:keyboardOpen(this); return false;" value="Bksp">Bksp</button> 
+               </div> 
+               <div class="keyboard_line"> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="Q">Q</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="W">W</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="E">E</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="R">R</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="T">T</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="Y">Y</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="U">U</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="I">I</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="O">O</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="P">P</button> 
+               </div> 
+               <div class="keyboard_line"> 
+                <button class="spe shift" onclick="return false;" value="m">Shift</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="A">A</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="S">S</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="D">D</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="F">F</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="G">G</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="H">H</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="J">J</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="K">K</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="L">L</button> 
+               </div> 
+               <div class="keyboard_line"> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="Z">Z</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="X">X</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="C">C</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="V">V</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="B">B</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="N">N</button> 
+                <button class="keyboardBtn" onclick="javascript:keyboardOpen(this); return false;" value="M">M</button> 
+                <button class="spe space" onclick="javascript:keyboardOpen(this); return false;" value="space">띄어쓰기</button> 
+                <button class="spe enter" onclick="javascript:goSearch();">검색</button> 
+               </div> 
+              </div> 
+             </div> </li> 
+           </ul> 
+          </div> 
+          <!-- language-tab --> 
+          <button class="btn-keyboardClose" onclick="return false;" title="마우스 입력기"> <img src="/LSW/images/common/btn_keyboard_close.png" alt="닫기" /> </button>
+          <!-- btn-keyboardClose --> 
+         </div>
+         <!-- keyboard-layout --> 
+         <div class="hv_pop" id="mouseInputInfo" style="display:none;z-index: 100; position: absolute; width: 300px; right: -100px;"> 
+          <b class="tit">마우스 입력기</b> 
+          <span class="tx_cont">마우스를 이용하여 검색어를 입력하실 수 있습니다.</span> 
+          <br /> 
+         </div> 
+         <div class="select_pix srch_history" id="srch_history_btn"> 
+          <a id="srch_history_stts" href="javascript:;" onclick="javascript:autoComOpenCloseBtn();return false;"> 검색기록 열기 <span class="blind">목록 펼치기</span> </a> 
+          <div class="select_list history_list" id="autoComLayer"> 
+           <em>내가 찾은 검색어 <button id="autoAllDel" class="autoAllDelBtn" onclick="javascript:removeAutoAllQuery(); return false;">전체삭제</button> </em> 
+           <ul class="list_bx" id="autoComList" onclick="javascript:return false;">
+            <li></li>
+           </ul> 
+          </div> 
+         </div> 
+         <!-- 검색어 자동완성 레이어 --> 
+         <div id="autoComLsNmList" class="autoComLsNmList"> 
+          <ul id="lsNmKoAutoList" class="list_bx2"> 
+           <li id="lsNmKo1"></li> 
+          </ul> 
+         </div> 
+        </div>
+        <!-- srchInput --> 
+        <a href="javascript:;" class="srchBtn" onclick="javascript:goSearch();">검색</a> 
+        <a href="javascript:;" class="aiLinkArea" title="새창열림" onclick="javascript:goAiSearch();"> <img src="/LSW/images/main/aiLinkMain.png" alt="click here! AI법령검색 서비스로 이동" /> </a> 
+       </div>
+       <!-- inner --> 
+      </form> 
+      <div style="margin-top: 10px; text-align: right;"> 
+       <span class="searchDetail"> <img src="/LSW/images/main/searchDetailMain.png" alt="정확한 검색결과를 원하시면 검색어를 쌍따옴표(“”)로 감싸보세요." /> </span> 
+       <em style="font-size: 15px; vertical-align: middle; margin-right: 3px; font-family: NotoSans, sans-serif;">자동완성</em> 
+       <a href="javascript:;" id="autoOn" title="검색어자동완성On" onclick="javascript:autoComOnOff();" style="position: relative;"> <img src="/LSW/images/main/autoOn.png" alt="검색어자동완성On" /> </a> 
+       <a href="javascript:;" id="autoOff" title="검색어자동완성Off" onclick="javascript:autoComOnOff();" style="position: relative;"> <img src="/LSW/images/main/autoOff.png" alt="검색어자동완성Off" /> </a> 
+      </div> 
+     </div>
+     <!-- mainSrch --> 
+    </div> 
+   </div>
+   <!-- visual-spot --> 
+   <div id="main_cont"> 
+    <div class="contLeft"> 
+     <div class="communityBox"> 
+      <div class="inner cmnt1"> 
+       <a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;query=#cptOfiAll&amp;eventGubun=060102" class="cmty_title"> <em>기관별 찾기</em> <span>중앙부처 및 자치단체</span> </a> 
+       <a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;query=#cptOfiAll&amp;eventGubun=060102" class="cmty_ico"> <img src="/LSW/images/main/bg_commu1.gif" alt="기관별 찾기" /> </a> 
+       <div class="select_pix commu_srch"> 
+        <a href="javascript:;" onclick="return false;" class="communityBox2"> 중앙부처기관 <span class="blind">목록 펼치기</span> </a> 
+        <div class="select_list commu_list"> 
+         <ul> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;query=#cptOfiAll&amp;eventGubun=060102">전 체</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1492000&amp;eventGubun=060102">고용노동부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1721000&amp;eventGubun=060102">과학기술정보통신부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1342000&amp;eventGubun=060102">교육부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1830000&amp;eventGubun=060102">국가보훈부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1290000&amp;eventGubun=060102">국방부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1613000&amp;eventGubun=060102">국토교통부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1051000&amp;eventGubun=060102">기획재정부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1482000&amp;eventGubun=060102">기후에너지환경부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1543000&amp;eventGubun=060102">농림축산식품부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1371000&amp;eventGubun=060102">문화체육관광부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1270000&amp;eventGubun=060102">법무부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1352000&amp;eventGubun=060102">보건복지부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1451000&amp;eventGubun=060102">산업통상부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1384000&amp;eventGubun=060102">성평등가족부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1262000&amp;eventGubun=060102">외교부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1760000&amp;eventGubun=060102">인사혁신처</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1053000&amp;eventGubun=060102">재정경제부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1421000&amp;eventGubun=060102">중소벤처기업부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1250000&amp;eventGubun=060102">통일부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1192000&amp;eventGubun=060102">해양수산부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1741000&amp;eventGubun=060102">행정안전부</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1790364&amp;eventGubun=060102">고위공직자범죄수사처</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1241000&amp;eventGubun=060102">국가데이터처</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1052000&amp;eventGubun=060102">기획예산처</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1170000&amp;eventGubun=060102">법제처</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1471000&amp;eventGubun=060102">식품의약품안전처</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1431000&amp;eventGubun=060102">지식재산처</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1280000&amp;eventGubun=060102">검찰청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1320000&amp;eventGubun=060102">경찰청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1220000&amp;eventGubun=060102">관세청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1833100&amp;eventGubun=060102">국가유산청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1210000&amp;eventGubun=060102">국세청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1360000&amp;eventGubun=060102">기상청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1390000&amp;eventGubun=060102">농촌진흥청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1690000&amp;eventGubun=060102">방위사업청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1300000&amp;eventGubun=060102">병무청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1400000&amp;eventGubun=060102">산림청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1730000&amp;eventGubun=060102">새만금개발청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1661000&amp;eventGubun=060102">소방청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1834100&amp;eventGubun=060102">우주항공청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1832000&amp;eventGubun=060102">재외동포청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1230000&amp;eventGubun=060102">조달청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1790387&amp;eventGubun=060102">질병관리청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1532000&amp;eventGubun=060102">해양경찰청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1670000&amp;eventGubun=060102">행정중심복합도시건설청</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1790365&amp;eventGubun=060102">개인정보보호위원회</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1130000&amp;eventGubun=060102">공정거래위원회</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1620000&amp;eventGubun=060102">국가인권위원회</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1140100&amp;eventGubun=060102">국민권익위원회</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1160100&amp;eventGubun=060102">금융위원회</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1571000&amp;eventGubun=060102">방송미디어통신위원회</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1079960&amp;eventGubun=060102">원자력안전위원회</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1030000&amp;eventGubun=060102">국가정보원</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1092000&amp;eventGubun=060102">국무조정실</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=0000000&amp;eventGubun=060102">기타</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1021100&amp;eventGubun=060102">대통령경호처</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1040000&amp;eventGubun=060102">감사원</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=9700000&amp;eventGubun=060102">국회</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=9740000&amp;eventGubun=060102">대법원</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=1081000&amp;eventGubun=060102">민주평화통일자문회의</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=9760000&amp;eventGubun=060102">중앙선거관리위원회</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;cptOfiCd=9750000&amp;eventGubun=060102">헌법재판소</a></li> 
+         </ul> 
+        </div> 
+       </div> 
+       <div class="select_pix commu_srch"> 
+        <a href="javascript:;" onclick="return false;" class="communityBox2"> 자치단체 <span class="blind">목록 펼치기</span> </a> 
+        <div class="select_list commu_list"> 
+         <ul> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;query=#cptOfiAll&amp;eventGubun=060102">전 체</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6110000&amp;strongId=cptOfi6110000&amp;eventGubun=060102">서울특별시</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6260000&amp;strongId=cptOfi6260000&amp;eventGubun=060102">부산광역시</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6270000&amp;strongId=cptOfi6270000&amp;eventGubun=060102">대구광역시</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6280000&amp;strongId=cptOfi6280000&amp;eventGubun=060102">인천광역시</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6290000&amp;strongId=cptOfi6290000&amp;eventGubun=060102">광주광역시</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6300000&amp;strongId=cptOfi6300000&amp;eventGubun=060102">대전광역시</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=5690000&amp;strongId=cptOfi5690000&amp;eventGubun=060102">세종특별자치시</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6310000&amp;strongId=cptOfi6310000&amp;eventGubun=060102">울산광역시</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6410000&amp;strongId=cptOfi6410000&amp;eventGubun=060102">경기도</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6530000&amp;strongId=cptOfi6530000&amp;eventGubun=060102">강원특별자치도</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6430000&amp;strongId=cptOfi6430000&amp;eventGubun=060102">충청북도</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6440000&amp;strongId=cptOfi6440000&amp;eventGubun=060102">충청남도</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6540000&amp;strongId=cptOfi6540000&amp;eventGubun=060102">전북특별자치도</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6460000&amp;strongId=cptOfi6460000&amp;eventGubun=060102">전라남도</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6470000&amp;strongId=cptOfi6470000&amp;eventGubun=060102">경상북도</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6480000&amp;strongId=cptOfi6480000&amp;eventGubun=060102">경상남도</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6500000&amp;strongId=cptOfi6500000&amp;eventGubun=060102">제주특별자치도</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=6550000&amp;strongId=cptOfi6550000&amp;eventGubun=060102">충청광역연합</a></li> 
+          <li><a href="/LSW/ordinAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=439&amp;cptOfiCd=7010000,7150000,7240000,7310000,7380000,7430000,7480000,7530000,7801000,8000000,8140000,8321000,8490000,8750000,9010000,9290000,9300000&amp;strongId=cptOfi7010000&amp;eventGubun=060102">교육청</a></li> 
+         </ul> 
+        </div> 
+       </div> 
+      </div> 
+      <div class="inner cmnt2"> 
+       <a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=00000000&amp;eventGubun=060102" class="cmty_title"> <em>법분야별 찾기</em> <span>총 44개 법령 분야</span> </a> 
+       <a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=00000000&amp;eventGubun=060102" class="cmty_ico"> <img src="/LSW/images/main/bg_commu2.gif" alt="분야별 찾기" /> </a> 
+       <div class="select_pix commu_srch"> 
+        <a href="javascript:;" onclick="return false;" class="communityBox2"> 분야별 <span class="blind">목록 펼치기</span> </a> 
+        <div class="select_list commu_list"> 
+         <ul> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=00000000&amp;eventGubun=060102">전 체</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=01,01010000,01020000,01020100,01020200,01020300,01020400,01030000&amp;eventGubun=060102"> 헌 법</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=02,02010000,02020000,02020100,02020200,02020300,02030000,02040000,02050000&amp;eventGubun=060102"> 국 회</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=03,03010000,03020000,03030000&amp;eventGubun=060102"> 선거·정당</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=04,04010000,04010100,04010200,04010300,04010400,04010500,04020000,04030000,04030100,04030200,04030300&amp;eventGubun=060102"> 행정일반</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=05,05010000,05020000,05030000,05040000,05050000,05060000&amp;eventGubun=060102"> 국가공무원</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=06,06010000,06020000,06020100,06020200,06020300,06030000,06040000&amp;eventGubun=060102"> 법 원</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=07,07010000,07010100,07010200,07010300,07020000,07020100,07020200,07020300,07030000,07040000,07050000&amp;eventGubun=060102"> 법 무</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=08,08010000,08020000,08030000,08030100,08030200,08030300,08030400,08040000,08050000,08060000&amp;eventGubun=060102"> 민사법</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=09,09010000,09020000,09030000,09040000,09040100,09040200,09040300,09040400,09050000,09060000&amp;eventGubun=060102"> 형사법</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=10,10010000,10020000,10020100,10020200,10030000,10040000,10040100,10040200,10040300,10050000,10060000&amp;eventGubun=060102"> 지방제도</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=11,11010000,11020000,11030000,11030100,11030200,11030300,11030400,11040000,11050000,11060000&amp;eventGubun=060102"> 경 찰</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=12,12010000,12020000,12020100,12020200,12020300,12030000&amp;eventGubun=060102"> 민방위·소방</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=13,13010000,13020000,13020100,13020200,13030000,13040000,13050000,13060000,13070000,13080000,13090000&amp;eventGubun=060102"> 군 사</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=14,14010000,14020000,14030000&amp;eventGubun=060102"> 병 무</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=15,15010000,15020000&amp;eventGubun=060102"> 국가보훈</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=16,16010000,16020000,16020100,16020200,16020300,16020400,16020500,16020600,16020700,16020800,16030000,16040000,16050000,16060000,16070000&amp;eventGubun=060102"> 교육·학술</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=17,17010000,17020000,17030000,17040000,17040100,17040200,17050000,17060000&amp;eventGubun=060102"> 문화·공보</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=18,18010000,18020000,18030000,18040000&amp;eventGubun=060102"> 과학·기술</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=19,19010000,19010100,19010200,19010300,19020000,19020100,19020200,19020300,19020400,19030000,19040000,19050000,19060000,19070000,19080000,19090000,19090100,19090200,19090300,19100000&amp;eventGubun=060102"> 재정·경제일반</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=20,20010000,20020000,20030000,20040000,20050000&amp;eventGubun=060102"> 내국세</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=21,21010000,21020000&amp;eventGubun=060102"> 관 세</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=22,22010000,22020000,22030000&amp;eventGubun=060102"> 담배·인삼</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=23,23010000,23020000,23030000,23040000,23050000,23060000,23070000,23080000,23090000,23100000&amp;eventGubun=060102"> 통화·국채·금융</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=24,24010000,24010100,24010200,24020000,24030000,24040000,24050000,24050100,24050200,24050300,24050400,24050500,24050600,24050700&amp;eventGubun=060102"> 농 업</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=25,25010000,25020000,25030000,25040000,25050000&amp;eventGubun=060102"> 축 산</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=26,26010000,26020000,26030000&amp;eventGubun=060102"> 산 림</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=27,27010000,27020000,27030000,27040000,27050000,27060000&amp;eventGubun=060102"> 수 산</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=28,28010000,28020000,28030000,28040000,28050000&amp;eventGubun=060102"> 상업·무역·공업</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=29,29010000,29020000,29030000,29040000&amp;eventGubun=060102"> 공업규격·계량</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=30,30010000,30020000,30030000&amp;eventGubun=060102"> 공업소유권</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=31,31010000,31020000,31030000,31030100,31030200,31030300,31030400&amp;eventGubun=060102"> 에너지이용·광업</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=32,32010000,32020000,32030000&amp;eventGubun=060102"> 전기·가스</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=33,33010000,33020000,33020100,33020200,33020300,33030000,33030100,33030200,33030300&amp;eventGubun=060102"> 국토개발·도시</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=34,34010000,34020000,34030000,34040000,34040100,34040200,34040300&amp;eventGubun=060102"> 주택·건축·도로</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=35,35010000,35020000,35020100,35020200,35020300,35030000,35040000,35040100,35040200&amp;eventGubun=060102"> 수자원·토지·건설업</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=36,36010000,36020000,36020100,36020200,36020300,36020400,36030000&amp;eventGubun=060102"> 보건·의사</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=37,37010000,37020000,37030000,37040000&amp;eventGubun=060102"> 약 사</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=38,38010000,38020000,38030000,38040000,38050000,38060000,38070000&amp;eventGubun=060102"> 사회복지</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=39,39010000,39020000,39030000&amp;eventGubun=060102"> 환 경</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=40,40010000,40020000,40030000,40040000,40050000,40060000,40070000&amp;eventGubun=060102"> 노 동</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=41,41010000,41020000,41030000,41030100,41030200,41030300,41040000,41050000,41060000,41060100,41060200,41060300,41070000,41080000&amp;eventGubun=060102"> 육운·항공·관광</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=42,42010000,42020000,42030000,42040000,42050000,42060000,42070000,42080000&amp;eventGubun=060102"> 해 운</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=43,43010000,43020000,43030000,43040000,43050000&amp;eventGubun=060102"> 정보통신</a></li> 
+          <li><a href="/LSW/lsAstSc.do?menuId=391&amp;subMenuId=397&amp;tabMenuId=437&amp;lsFdCd=44,44010000,44020000,44030000,44040000,44050000,44060000&amp;eventGubun=060102"> 외 무</a></li> 
+         </ul> 
+        </div> 
+       </div> 
+      </div> 
+     </div>
+     <!-- communityBox --> 
+     <div class="weekBox"> 
+      <h3>이번주 시행법령 <em>2026.2.13</em></h3> 
+      <div class="dayTab"> 
+       <ul>
+        <li><a href="#" class="sunDay">8<br /><span>일</span></a>
+         <ul class="dayCont">
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','8','100')">법률 <span>0</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','8','200')">대통령령 <span>0</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','8','300')">부령 <span>0</span></a></li>
+         </ul></li>
+        <li><a href="#">9<br /><span>월</span></a>
+         <ul class="dayCont">
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','9','100')">법률 <span>0</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','9','200')">대통령령 <span>0</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','9','300')">부령 <span>1</span></a></li>
+         </ul></li>
+        <li><a href="#">10<br /><span>화</span></a>
+         <ul class="dayCont">
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','10','100')">법률 <span>4</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','10','200')">대통령령 <span>6</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','10','300')">부령 <span>1</span></a></li>
+         </ul></li>
+        <li><a href="#">11<br /><span>수</span></a>
+         <ul class="dayCont">
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','11','100')">법률 <span>0</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','11','200')">대통령령 <span>0</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','11','300')">부령 <span>1</span></a></li>
+         </ul></li>
+        <li><a href="#">12<br /><span>목</span></a>
+         <ul class="dayCont">
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','12','100')">법률 <span>12</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','12','200')">대통령령 <span>6</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','12','300')">부령 <span>1</span></a></li>
+         </ul></li>
+        <li class="active"><a href="#">13<br /><span>금</span></a>
+         <ul class="dayCont">
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','13','100')">법률 <span>0</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','13','200')">대통령령 <span>0</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','13','300')">부령 <span>3</span></a></li>
+         </ul></li>
+        <li><a href="#" class="saturDay">14<br /><span>토</span></a>
+         <ul class="dayCont">
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','14','100')">법률 <span>0</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','14','200')">대통령령 <span>0</span></a></li>
+          <li><a href="#" onclick="eventLsCalInfo('2026','2','14','300')">부령 <span>0</span></a></li>
+         </ul></li>
+       </ul> 
+      </div>
+      <!-- dayList --> 
+      <div class="dayBtn"> 
+       <a href="javascript:;" onclick="return false;" class="week-prev">이전 시행법령 보기</a> 
+       <a href="javascript:;" onclick="return false;" class="week-next">다음 시행법령 보기</a> 
+      </div>
+      <!-- dayBtn --> 
+      <a title="이번주 시행법령 더보기" href="javascript:;" class="more" onclick="javascript:lsCalInfoMain('2026', '2', '13', '060104')">더보기</a> 
+     </div>
+     <!-- weekBox --> 
+    </div>
+    <!-- contLeft --> 
+    <div class="contCnt"> 
+     <div class="mainTab line-4"> 
+      <ul> 
+       <li id="newLawLayer" class="active on"> <a href="" onclick="javascript:lsSubTabChg('newLawLayer');">최신법령</a> 
+        <div class="mainTab_cont" id="newLawList"> 
+         <ul> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./lsSc.do?menuId=1&amp;subMenuId=23&amp;tabMenuId=123&amp;eventGubun=060103&amp;query=%EA%B5%AD%EB%AF%BC%EC%97%B0%EA%B8%88%EB%B2%95+%EC%8B%9C%ED%96%89%EA%B7%9C%EC%B9%99')">국민연금법 시행규칙</a> <em>보건복지부령</em> <span>2026. 2. 13.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./lsSc.do?menuId=1&amp;subMenuId=23&amp;tabMenuId=123&amp;eventGubun=060103&amp;query=%EA%B5%B0%EB%AC%B4%EC%9B%90%EC%9D%B8%EC%82%AC%EB%B2%95+%EC%8B%9C%ED%96%89%EA%B7%9C%EC%B9%99')">군무원인사법 시행규칙</a> <em>국방부령</em> <span>2026. 2. 13.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./lsSc.do?menuId=1&amp;subMenuId=23&amp;tabMenuId=123&amp;eventGubun=060103&amp;query=%EB%8F%84%EB%A1%9C%ED%91%9C%EC%A7%80%EA%B7%9C%EC%B9%99')">도로표지규칙</a> <em>국토교통부령</em> <span>2026. 2. 13.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./lsSc.do?menuId=1&amp;subMenuId=23&amp;tabMenuId=123&amp;eventGubun=060103&amp;query=%EA%B1%B4%EA%B0%95%EA%B2%80%EC%A7%84%EA%B8%B0%EB%B3%B8%EB%B2%95')">건강검진기본법</a> <em>법률</em> <span>2026. 2. 12.</span></li> 
+         </ul> 
+         <a title="최신법령" class="bot_more" href="javascript:;" onclick="javascript:goNwMenu('law')">더보기</a> 
+        </div> </li> 
+       <li id="newOrdinLayer"> <a href="" onclick="javascript:lsSubTabChg('newOrdinLayer');">자치법규</a> 
+        <div class="mainTab_cont" id="newOrdinList"> 
+         <ul> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./ordinScNw.do?menuId=3&amp;subMenuId=35&amp;tabMenuId=163&amp;eventGubun=060103&amp;query=%EA%B2%BD%EA%B8%B0%EB%8F%84%EA%B5%90%EC%9C%A1%EA%B0%90+%EC%86%8C%EC%86%8D+%EC%A7%80%EB%B0%A9%EA%B3%B5%EB%AC%B4%EC%9B%90+%EC%A0%95%EC%9B%90+%EA%B7%9C%EC%B9%99')">경기도교육감 소속 지방공무원 정원 규칙</a> <em>규칙</em> <span>2026. 2. 13.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./ordinScNw.do?menuId=3&amp;subMenuId=35&amp;tabMenuId=163&amp;eventGubun=060103&amp;query=%EA%B2%BD%EA%B8%B0%EB%8F%84%EA%B5%90%EC%9C%A1%EC%B2%AD+%EA%B5%90%EC%9C%A1%EA%B3%B5%EB%AC%B4%EC%A7%81%EC%9B%90+%EC%9A%B4%EC%98%81+%EA%B7%9C%EC%A0%95')">경기도교육청 교육공무직원 운영 규정</a> <em>훈령</em> <span>2026. 2. 13.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./ordinScNw.do?menuId=3&amp;subMenuId=35&amp;tabMenuId=163&amp;eventGubun=060103&amp;query=%EA%B2%BD%EA%B8%B0%EB%8F%84%EA%B5%90%EC%9C%A1%EC%B2%AD+%EA%B5%90%EC%9C%A1%EA%B3%B5%EB%AC%B4%EC%A7%81%EC%9B%90+%EC%A0%95%EC%9B%90%EA%B4%80%EB%A6%AC+%EA%B7%9C%EC%A0%95')">경기도교육청 교육공무직원 정원관리 규정</a> <em>훈령</em> <span>2026. 2. 13.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./ordinScNw.do?menuId=3&amp;subMenuId=35&amp;tabMenuId=163&amp;eventGubun=060103&amp;query=%EA%B2%BD%EA%B8%B0%EB%8F%84%EA%B5%90%EC%9C%A1%EC%B2%AD+%EC%A0%84%EA%B2%B0%EA%B7%9C%EC%A0%95')">경기도교육청 전결규정</a> <em>훈령</em> <span>2026. 2. 13.</span></li> 
+         </ul> 
+         <a title="자치법규" class="bot_more" href="javascript:;" onclick="javascript:goNwMenu('ordin')">더보기</a> 
+        </div> </li> 
+       <li id="newAdmrulLayer"> <a href="" onclick="javascript:lsSubTabChg('newAdmrulLayer');">행정규칙</a> 
+        <div class="mainTab_cont" id="newAdmrulList"> 
+         <ul> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./admRulSc.do?menuId=5&amp;subMenuId=45&amp;tabMenuId=183&amp;eventGubun=060103&amp;query=%ED%95%AD%EA%B3%B5%EA%B5%90%ED%86%B5%EB%B3%B8%EB%B6%80+%EC%A3%BC%EC%9A%94%EC%A0%95%EB%B3%B4%ED%86%B5%EC%8B%A0%EA%B8%B0%EB%B0%98%EC%8B%9C%EC%84%A4+%EB%B3%B4%ED%98%B8%EC%A7%80%EC%B9%A8')">항공교통본부 주요정보통신기반시설 보호지침</a> <em>지침</em> <span>2026. 2. 13.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./admRulSc.do?menuId=5&amp;subMenuId=45&amp;tabMenuId=183&amp;eventGubun=060103&amp;query=%EC%9D%8C%EC%A3%BC%EC%9A%B4%EC%A0%84+%EB%B0%A9%EC%A7%80%EC%9E%A5%EC%B9%98+%EA%B2%BD%EC%B0%B0%EC%B2%AD+%EA%B7%9C%EA%B2%A9+%EA%B3%A0%EC%8B%9C')">음주운전 방지장치 경찰청 규격 고시</a> <em>고시</em> <span>2026. 2. 13.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./admRulSc.do?menuId=5&amp;subMenuId=45&amp;tabMenuId=183&amp;eventGubun=060103&amp;query=%EB%AF%BC%EA%B0%84%ED%88%AC%EC%9E%90%EC%82%AC%EC%97%85%EA%B8%B0%EB%B3%B8%EA%B3%84%ED%9A%8D')">민간투자사업기본계획</a> <em>공고</em> <span>2026. 2. 13.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./admRulSc.do?menuId=5&amp;subMenuId=45&amp;tabMenuId=183&amp;eventGubun=060103&amp;query=%ED%86%B5%EA%B3%84%EC%9E%91%EC%84%B1%EC%9D%98+%EB%B3%80%EA%B2%BD%EC%8A%B9%EC%9D%B8%28%ED%98%91%EC%9D%98%29+%EA%B3%A0%EC%8B%9C%28%EC%99%B8%EB%9E%98%EA%B4%80%EA%B4%91%EA%B0%9D%EC%A1%B0%EC%82%AC%29')">통계작성의 변경승인(협의) 고시(외래관광객조사)</a> <em>고시</em> <span>2026. 2. 12.</span></li> 
+         </ul> 
+         <a title="행정규칙" class="bot_more" href="javascript:;" onclick="javascript:goNwMenu('admRul')">더보기</a> 
+        </div> </li> 
+       <li id="newEmpLayer"> <a href="" onclick="javascript:lsSubTabChg('newEmpLayer');">판례</a> 
+        <div class="mainTab_cont" id="newEmpList"> 
+         <ul> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./precSc.do?menuId=7&amp;subMenuId=47&amp;eventGubun=060103&amp;precSeq=613735&amp;query=%EB%B3%B4%EC%9C%A0%EC%A3%BC%EC%8B%9D%EC%9D%84+%EB%B0%B0%EC%9A%B0%EC%9E%90%EA%B2%8C+%EC%A6%9D%EC%97%AC%ED%95%98%EA%B3%A0+%EB%8B%A4%EC%8B%9C+%ED%9A%8C%EC%82%AC%EA%B0%80+%EC%A6%9D%EC%97%AC%EA%B0%80%EC%95%A1%EC%9C%BC%EB%A1%9C+%EB%A7%A4%EC%88%98%ED%95%98%EC%97%AC+%EC%86%8C%EA%B0%81%ED%95%9C+%EC%9D%B4+%EA%B1%B0%EB%9E%98%EB%A5%BC+%EC%9D%98%EC%A0%9C%EB%B0%B0%EB%8B%B9%EC%97%90+%EB%8C%80%ED%95%9C+%ED%9A%8C%ED%94%BC%EB%A1%9C+%EB%B3%B8+%EB%8B%B9%EC%B4%88+%EC%B2%98%EB%B6%84%EC%9D%80+%EC%A0%81%EB%B2%95%ED%95%A8')">보유주식을 배우자게 증여하고 다시 회사가 증여가액으로 매수하여 소각한 이 거래를 의제배당에 대한 회피로 본 당초 처분은 적법함</a> <em>대법원</em> <span>2026. 12. 11.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./precSc.do?menuId=7&amp;subMenuId=47&amp;eventGubun=060103&amp;precSeq=613615&amp;query=%ED%95%AD%EA%B3%A0%EC%86%8C%EC%86%A1+%EB%8C%80%EC%83%81%EC%9D%B4+%EC%95%84%EB%8B%8C+%ED%96%89%EC%A0%95%EC%B2%98%EB%B6%84%EC%9D%98+%EC%B7%A8%EC%86%8C%EB%A5%BC+%EA%B5%AC%ED%95%98%EB%8A%94+%EA%B2%83%EC%9D%80+%EB%B6%80%EC%A0%81%EB%B2%95%ED%95%9C+%EC%B2%AD%EA%B5%AC%EC%9D%B4%EB%AF%80%EB%A1%9C%2C+%EC%86%8C+%EA%B0%81%ED%95%98+%EB%8C%80%EC%83%81%EC%9E%84')">항고소송 대상이 아닌 행정처분의 취소를 구하는 것은 부적법한 청구이므로, 소 각하 대상임</a> <em>수원고등법원</em> <span>2025. 12. 26.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./precSc.do?menuId=7&amp;subMenuId=47&amp;eventGubun=060103&amp;precSeq=613951&amp;query=%EB%82%A9%EC%84%B8%EC%9D%98%EB%AC%B4%EC%9E%90%EC%9D%98+%EA%B8%88%EC%9C%B5%EA%B3%84%EC%A2%8C%EC%97%90+%EC%9E%85%EA%B8%88%EB%90%9C+%EA%B8%88%EC%95%A1%EC%9D%84+%EC%A1%B0%EC%82%AC%ED%95%98%EB%8A%94+%EB%B0%A9%EB%B2%95%EC%9D%80+%EA%B0%9D%EA%B4%80%EC%84%B1%EC%9D%B4+%EC%9E%88%EB%8A%94+%EC%A0%81%EB%B2%95%ED%95%9C+%EC%8B%A4%EC%A7%80%EC%A1%B0%EC%82%AC+%EB%B0%A9%EB%B2%95%EC%97%90+%ED%95%B4%EB%8B%B9%ED%95%A8')">납세의무자의 금융계좌에 입금된 금액을 조사하는 방법은 객관성이 있는 적법한 실지조사 방법에 해당함</a> <em>대법원</em> <span>2025. 12. 24.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./precSc.do?menuId=7&amp;subMenuId=47&amp;eventGubun=060103&amp;precSeq=613597&amp;query=%EB%B6%80%EB%8B%B9%EC%9D%B4%EB%93%9D%EA%B8%88')">부당이득금</a> <em>대구지방법원</em> <span>2025. 12. 24.</span></li> 
+         </ul> 
+         <a title="판례" class="bot_more" href="javascript:;" onclick="javascript:goNwMenu('prec')">더보기</a> 
+        </div> </li> 
+       <!-- 개발팀(윤현모) 한눈에 보는 법령 --> 
+       <li id="newOneviewLayer"> <a href="" onclick="javascript:lsSubTabChg('newOneviewLayer');">한눈보기</a> 
+        <div class="mainTab_cont" id="newOneviewList"> 
+         <ul> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./lsSc.do?menuId=1&amp;subMenuId=23&amp;tabMenuId=123&amp;eventGubun=060103&amp;query=%EA%B5%AD%EB%AF%BC%EC%97%B0%EA%B8%88%EB%B2%95+%EC%8B%9C%ED%96%89%EA%B7%9C%EC%B9%99&amp;oneviewChk=on')">국민연금법 시행규칙</a><em>보건복지부령</em><span>2026. 2. 13.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./lsSc.do?menuId=1&amp;subMenuId=23&amp;tabMenuId=123&amp;eventGubun=060103&amp;query=%EB%8F%84%EC%8B%9C+%EB%B0%8F+%EC%A3%BC%EA%B1%B0%ED%99%98%EA%B2%BD%EC%A0%95%EB%B9%84%EB%B2%95+%EC%8B%9C%ED%96%89%EA%B7%9C%EC%B9%99&amp;oneviewChk=on')">도시 및 주거환경정비법 시행규칙</a><em>국토교통부령</em><span>2026. 2. 11.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./lsSc.do?menuId=1&amp;subMenuId=23&amp;tabMenuId=123&amp;eventGubun=060103&amp;query=%EC%9D%98%EB%A3%8C%EB%B2%95+%EC%8B%9C%ED%96%89%EB%A0%B9&amp;oneviewChk=on')">의료법 시행령</a><em>대통령령</em><span>2026. 2. 10.</span></li> 
+          <li><a href="javascript:;" onclick="goLinkUrl('./lsSc.do?menuId=1&amp;subMenuId=23&amp;tabMenuId=123&amp;eventGubun=060103&amp;query=%EC%A7%80%EB%B0%A9%EC%84%B8%EB%B2%95&amp;oneviewChk=on')">지방세법</a><em>법률</em><span>2026. 2. 6.</span></li> 
+         </ul> 
+         <a title="한눈에 보는법령" class="bot_more" href="javascript:;" onclick="javascript:goNwMenu('oneview')">더보기</a> 
+        </div> </li> 
+       <!--// 개발팀(윤현모) 한눈에 보는 법령 --> 
+      </ul> 
+     </div>
+     <!-- mainTab --> 
+     <div class="banner_service"> 
+      <a href="javascript:;" onclick="goLinkUrl('/LSW/lawPetitionLoginChk.do?menuId=13&amp;subMenuId=77'); return false;" target="_blank" title="국가법령정보 불편신고 - 페이지로 이동"> <img src="/LSW/images/bg_err_banner3.png" alt="국가법령정보 불편신고" /> </a> 
+      <a href="javascript:;" onclick="openScrollPop('https://www.law.go.kr/LSW/getPollRschInfo.do?pollRschSeq=83', '607' ,'659');return false;" target="_blank" title="국가법령정보센터 만족도 조사 참여하기 - 새창으로 이동"> <img src="/LSW/images/bg_poll_rp3.png" alt="국가법령정보 만족도 조사" /> </a> 
+      <a href="javascript:;" onclick="goLinkUrl('/LSW/newsLetterReq.do'); return false;" title="국가법령정보센터 메일링 서비스 신청하기 페이지로 이동"> <img src="/LSW/images/bg_service_mail3.png" alt="국가법령정보센터 메일링 서비스 신청하기" /> </a> 
+      <a href="javascript:;" onclick="telInfoPop(); return false;" title="국가법령정보센터 검색방법 안내 1551-3060 1번 (발신자 부담) - 새창으로 이동"> <img src="/LSW/images/bg_service_number3.png" alt="국가법령정보센터 검색방법 안내 1551-3060 1번 (발신자 부담)" /> </a> 
+     </div> 
+    </div>
+    <!-- contCnt --> 
+    <div class="contRight"> 
+     <a onclick="showGuidePdf()" href="javascript:;" class="banner_quick" title="새령이가 쉽게 알려주는 국법 Quick Guide 새창으로 이동"><span class="blind">새령이가 쉽게 알려주는 국법 Quick Guide</span></a> 
+     <div class="rankBox"> 
+      <div class="rankArea"> 
+       <ul> 
+        <li class="active"> <a id="realTimeSearch" class="rankContBtn" href="javascript:;">실시간검색순위</a> 
+         <div class="rankCont" id="lsVwRnkView"> 
+          <ul class="ticker" style="letter-spacing: 0.6px;"> 
+           <li> <a href="#" title="새창열림" onclick="showLsMain('276853', '060126');return false;"> <b>1</b> <em>산업안전보건법</em> <span><img src="./images/main/ico_stay.png" alt="STAY" />  0 </span> </a> </li> 
+           <li> <a href="#" title="새창열림" onclick="showLsMain('276925', '060126');return false;"> <b>2</b> <em>건축법</em> <span><img src="./images/main/ico_stay.png" alt="STAY" />  0 </span> </a> </li> 
+           <li> <a href="#" title="새창열림" onclick="showLsMain('265959', '060126');return false;"> <b>3</b> <em>근로기준법</em> <span><img src="./images/main/ico_stay.png" alt="STAY" />  0 </span> </a> </li> 
+           <li> <a href="#" title="새창열림" onclick="showLsMain('265307', '060126');return false;"> <b>4</b> <em>민법</em> <span><img src="./images/main/ico_stay.png" alt="STAY" />  0 </span> </a> </li> 
+           <li> <a href="#" title="새창열림" onclick="showLsMain('272919', '060126');return false;"> <b>5</b> <em>상법</em> <span><img src="./images/main/ico_stay.png" alt="STAY" />  0 </span> </a> </li> 
+           <li> <a href="#" title="새창열림" onclick="showLsMain('270351', '060126');return false;"> <b>6</b> <em>개인정보 보호법</em> <span><img src="./images/main/ico_stay.png" alt="STAY" />  0 </span> </a> </li> 
+           <li> <a href="#" title="새창열림" onclick="showLsMain('280187', '060126');return false;"> <b>7</b> <em>산업안전보건기준에 관한 규칙</em> <span><img src="./images/main/ico_stay.png" alt="STAY" />  0 </span> </a> </li> 
+           <li> <a href="#" title="새창열림" onclick="showLsMain('267115', '060126');return false;"> <b>8</b> <em>건축법 시행령</em> <span><img src="./images/main/ico_stay.png" alt="STAY" />  0 </span> </a> </li> 
+           <li> <a href="#" title="새창열림" onclick="showLsMain('271485', '060126');return false;"> <b>9</b> <em>산업안전보건법 시행규칙</em> <span><img src="./images/main/ico_stay.png" alt="STAY" />  0 </span> </a> </li> 
+           <li> <a href="#" title="새창열림" onclick="showLsMain('276757', '060126');return false;"> <b>10</b> <em>수도법</em> <span><img src="./images/main/ico_stay.png" alt="STAY" />  0 </span> </a> </li> 
+          </ul> 
+          <div class="all_rankList"> 
+           <ul style="letter-spacing: 1px;"> 
+            <li class="active"> 
+             <div> 
+              <ul> 
+               <li> <a href="#" onclick="showLsMain('276853', '060126');return false;" title="새창열림"> <b>1</b> <em>산업안전보건법</em> </a> </li> 
+               <li> <a href="#" onclick="showLsMain('276925', '060126');return false;" title="새창열림"> <b>2</b> <em>건축법</em> </a> </li> 
+               <li> <a href="#" onclick="showLsMain('265959', '060126');return false;" title="새창열림"> <b>3</b> <em>근로기준법</em> </a> </li> 
+               <li> <a href="#" onclick="showLsMain('265307', '060126');return false;" title="새창열림"> <b>4</b> <em>민법</em> </a> </li> 
+               <li> <a href="#" onclick="showLsMain('272919', '060126');return false;" title="새창열림"> <b>5</b> <em>상법</em> </a> </li> 
+               <li> <a href="#" onclick="showLsMain('270351', '060126');return false;" title="새창열림"> <b>6</b> <em>개인정보 보호법</em> </a> </li> 
+               <li> <a href="#" onclick="showLsMain('280187', '060126');return false;" title="새창열림"> <b>7</b> <em>산업안전보건기준에 관한 규칙</em> </a> </li> 
+               <li> <a href="#" onclick="showLsMain('267115', '060126');return false;" title="새창열림"> <b>8</b> <em>건축법 시행령</em> </a> </li> 
+               <li> <a href="#" onclick="showLsMain('271485', '060126');return false;" title="새창열림"> <b>9</b> <em>산업안전보건법 시행규칙</em> </a> </li> 
+               <li> <a href="#" onclick="showLsMain('276757', '060126');return false;" title="새창열림"> <b>10</b> <em>수도법</em> </a> </li> 
+              </ul> 
+             </div> </li> 
+           </ul> 
+          </div> 
+         </div> </li> 
+        <li class="hidden off"> <a id="findLaw" class="rankContBtn" href="javascript:;">내가찾은법령</a> 
+         <div class="rankCont" id="lsSeHstView"></div> </li> 
+       </ul> 
+       <div id="rcRemote"> 
+        <a id="rcRemoteStop" href="javascript:;" title="일시정지 버튼" style="height: 20px;"> <img src="/LSW/images/main/btn_info_stop.png" alt="일시정지 이미지" style="position: relative; top: -37px; right: 5px;" /> </a> 
+        <a id="rcRemoteStart" href="javascript:;" class="on" style="display: none; height: 20px;" title="시작 버튼"> <img src="/LSW/images/main/btn_info_play.png" alt="시작 이미지" style="position: relative; top: -37px; right: 5px;" /> </a> 
+       </div> 
+      </div> 
+     </div>
+     <!-- rankBox --> 
+     <div class="noticeBox"> 
+      <ul class="infoList"> 
+       <li> 
+        <!--새창 --> <a href="#AJAX" onclick="window.open('https://blog.naver.com/PostView.naver?blogId=molegin&amp;logNo=224159935655&amp;redirect=Dlog','_blank');" title="누구나 자유롭게 이용할 수 있는 헌법 강의, 강의안 제공 - 새창"> <img style="width: 260px; height: 107px;" src="/banner/ntf622925189444642024620260126151058.png" alt="누구나 자유롭게 이용할 수 있는 헌법 강의, 강의안 제공" /> </a> </li> 
+       <li> 
+        <!--새창 --> <a href="#AJAX" onclick="window.open('https://youtube.com/@moleg1234','_blank');" title="새령이 더 보러 오세요! - 새창"> <img style="width: 260px; height: 107px;" src="/banner/ntf619525716919346961620250220110254.png" alt="새령이 더 보러 오세요!" /> </a> </li> 
+       <li> 
+        <!--링크없는 단순배너 --> <a href="#AJAX" onclick=";" title="'만 나이로 셉니다, 만 나이로 삽니다' 6.28. 만 나이 통일법 시행 1주년 - 단순배너"> <img style="width: 260px; height: 107px;" src="/banner/ntf815768552199151626120240618173222.gif" alt="'만 나이로 셉니다, 만 나이로 삽니다' 6.28. 만 나이 통일법 시행 1주년" /> </a> </li> 
+       <li> 
+        <!--현재창 --> <a href="#AJAX" onclick="location.href='https://www.law.go.kr/lawPetitionView.do?ctsClsCd=0&amp;searchKeyword=&amp;query=&amp;brdSeq=1968939&amp;menuId=13&amp;subMenuId=75&amp;pageIndex=2';" title="한눈보기 서비스 어려운 법령을 그림으로 보세요! - 현재창"> <img style="width: 260px; height: 107px;" src="/banner/ntf24851147035302231020250110143539.jpg" alt="한눈보기 서비스 어려운 법령을 그림으로 보세요!" /> </a> </li> 
+       <li> 
+        <!--새창 --> <a href="#AJAX" onclick="window.open('https://edu.moleg.go.kr','_blank');" title="선진법제의 튼튼한 디딤돌 법제교육이 함께합니다. 법제교육시스템바로가기 - 새창"> <img style="width: 260px; height: 107px;" src="/banner/ntf212911919748761783520250813110753.png" alt="선진법제의 튼튼한 디딤돌 법제교육이 함께합니다. 법제교육시스템바로가기" /> </a> </li> 
+       <li> 
+        <!--링크없는 단순배너 --> <a href="#AJAX" onclick=";" title="WA 인증마크 획득 국가법령정보센터 홈페이지가 웹 접근성 품질인증마크를 획득했습니다. - 단순배너"> <img style="width: 260px; height: 107px;" src="/banner/ntf611190037492073243920240820095117.png" alt="WA 인증마크 획득 국가법령정보센터 홈페이지가 웹 접근성 품질인증마크를 획득했습니다." /> </a> </li> 
+      </ul> 
+     </div>
+     <!-- noticeBox --> 
+    </div>
+    <!-- contRight --> 
+    <!--  메인 레이어 팝업  --> 
+    <!-- 서비스 점검 --> 
+    <!-- 서비스 점검 --> 
+    <!-- 챗봇 서비스--> 
+    <a href="javascript:chatBotPop()" class="aiChatBotArea" title="챗봇 서비스로 이동 - 팝업"> <img src="images/main/btn_chatbot.png" alt="챗봇 팝업으로 이동" /> </a> 
+    <!-- 챗봇 레이어 팝업 --> 
+    <div id="chatPopWrap"> 
+     <div class="chatPop" id="chatPop"> 
+      <div class="chatPopHead" id="chatPopHead">
+       국가법령정보센터 챗봇
+      </div> 
+      <div class="chatAreaWrap"> 
+       <div class="chatArea"> 
+        <div class="chatHead"> 
+         <div class="chatHeadTit">
+          자주 하는 질문
+         </div> 
+         <ul class="chatHeadCont"> 
+          <li> <a href="javascript:;" onclick="javascript:getChatBotQuestions('700112',this)">검색 문의</a> </li> 
+          <li> <a href="javascript:;" onclick="javascript:getChatBotQuestions('700111',this)">기능 문의</a> </li> 
+          <li> <a href="javascript:;" onclick="javascript:getChatBotQuestions('700113',this)">로그인 문의</a> </li> 
+          <li> <a href="javascript:;" onclick="javascript:getChatBotQuestions('700115',this)">기타 문의</a> </li> 
+         </ul> 
+        </div> 
+        <div class="chatInnerWrap"> 
+         <div class="chatInner" id="chatInner"> 
+          <ul id="chatUl"> 
+           <li class="chatMsg" id="firstChat"> 
+            <div class="chatThumb"> 
+             <img src="images/main/img_chatbot_thumb.png" alt="AI 챗봇" /> 
+            </div> 
+            <div class="chatCont"> 
+             <span class="info">안녕하세요.<br /> 국가법령정보센터 FAQ 챗봇이예요.</span>
+             <br /> 무엇을 도와드릴까요?
+             <br /> 질문이 고민되신다면 상단의 메뉴를 활용해 보세요.
+             <br /> 국가법령정보센터를 이용하시면서, 자주 문의하시는 질문들을 모았습니다.
+             <br /> 유사 질문에 대한 답을 확인할 수 있습니다. 
+            </div> <span class="chatDate" id="frstChatTime"></span> </li> 
+          </ul> 
+         </div> 
+        </div> 
+       </div> 
+      </div> 
+      <a href="javascript:chatBotPop();" class="chatPopClose">닫기</a> 
+     </div> 
+     <script type="text/javascript">
+var chatPop = $("#chatPop");
+var chatHead = $("#chatPopHead");
+
+chatHead.on('mousedown', function(e) {
+	e.preventDefault();
+
+	var rect = chatPop[0].getBoundingClientRect();
+
+	chatPop.css({
+		left : rect.left + 'px',
+		top : rect.top + 'px'
+	});
+
+	var startX = e.clientX;
+	var startY = e.clientY;
+	
+	var startLeft = rect.left;
+	var startTop = rect.top;
+
+	$(document).on('mousemove.dragPopup',function(e){
+		
+		var newLeft = startLeft + (e.clientX - startX);
+		var newTop = startTop +  (e.clientY - startY);
+
+		var maxLeft = window.innerWidth - chatPop.outerWidth();
+		var maxTop = window.innerHeight - chatPop.outerHeight();
+
+		newLeft = Math.min(Math.max(0, newLeft), maxLeft );
+		newTop = Math.min(Math.max(0, newTop), maxTop );
+		
+		chatPop.css({
+			left : newLeft + 'px' ,
+			top : newTop + 'px' 
+		});
+	});
+
+	$(document).on('mouseup.dragPopup',function(){
+		$(document).off('.dragPopup');
+		});
+});
+
+</script> 
+    </div> 
+   </div>
+   <!-- main_cont --> 
+   <div id="footerNew"> 
+    <div class="copy_bot"> 
+     <p class="logo"> <a href="http://www.moleg.go.kr/" title="새창열림" target="_blank"><img src="/LSW/images/common/f_logo.gif" alt="법제처" /></a> </p> 
+     <div class="ft_cont"> 
+      <ul class="site_helper"> 
+       <li><a href="/LSW/lawPetitionForm.do?menuId=13&amp;subMenuId=79&amp;query=">법적효력/저작권</a></li> 
+       <li><a href="https://open.law.go.kr/LSO/main.do" target="_blank" title="새창열림">공동활용 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="바로가기" /></a></li> 
+       <li><a href="https://lod.law.go.kr/DRF/lod/index.do" target="_blank" title="새창열림">LOD <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="바로가기" /></a></li> 
+       <li><a href="https://system.law.go.kr/DRF/login.do" target="_blank" title="새창열림">학칙ㆍ규정, 자치법규 등록관리 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="바로가기" /></a></li> 
+       <li><a href="/LSW/privacyPolicy.do" class="t_blue"><b>개인정보처리방침</b></a></li> 
+       <li><a href="http://www.lawinfo.or.kr/pc/busi/busi02.php" target="_blank" title="새창열림">대한민국현행법령집 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="바로가기" /></a></li> 
+       <li><a href="/LSW/information.do">국가법령정보센터 소개</a></li> 
+      </ul> 
+      <p class="copyright"> (30102) 세종특별자치시 도움5로 20, 정부세종청사 법제처 <a href="mailto:lawmanager@korea.kr" title="법제처 관리자에게 이메일 보내기">lawmanager@korea.kr</a> <a href="javascript:;" onclick="telInfoPop();" title="새 창 열림">[전화번호 안내]</a> <br /> Copyright(c) 법제처 All rights reserved. </p> 
+     </div> 
+     <div class="select_pix quick"> 
+      <a href="javascript:;" onclick="return false;" class="quick_link"> 국가법령 관련 사이트 <span class="blind">목록 펼치기</span> </a> 
+      <ul class="select_list"> 
+       <li><a href="http://www.assembly.go.kr" target="_blank" title="국회 새창으로 열림">국회 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="국회바로가기" /></a></li> 
+       <li><a href="http://www.scourt.go.kr" target="_blank" title="대법원 새창으로 열림">대법원 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="대법원바로가기" /></a></li> 
+       <li><a href="http://www.ccourt.go.kr" target="_blank" title="헌법재판소 새창으로 열림">헌법재판소 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="헌법재판소바로가기" /></a></li> 
+       <li><a href="http://www.gwanbo.go.kr" target="_blank" title="전자관보 새창으로 열림">전자관보 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="전자관보바로가기" /></a></li> 
+       <li><a href="http://www.elis.go.kr" target="_blank" title="자치법규정보시스템 새창으로 열림">자치법규정보시스템 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="자치법규정보시스템 바로가기" /></a></li> 
+       <li><a href="https://www.laiis.go.kr/lips/nya/lrn/localRegulationList.do" target="_blank" title="중앙부처 법령 유권해석 새창으로 열림">중앙부처 법령 유권해석 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="중앙부처 법령 유권해석바로가기" /></a></li> 
+       <li><a href="http://world.moleg.go.kr" target="_blank" title="세계법제정보센터 새창으로 열림">세계법제정보센터 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="세계법제정보센터바로가기" /></a></li> 
+       <li><a href="http://www.better.go.kr" target="_blank" title="규제정보포털 새창으로 열림">규제정보포털 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="바로가기" /></a></li> 
+       <li><a href="http://likms.assembly.go.kr/law/jsp/law/Main.jsp" target="_blank" title="국회법률정보시스템 새창으로 열림">국회 법률정보시스템 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="규제정보포털바로가기" /></a></li> 
+       <li><a href="http://glaw.scourt.go.kr" target="_blank" title="대법원 종합법률정보시스템">대법원 종합법률정보시스템 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="대법원 종합법률정보시스템바로가기" /></a></li> 
+       <li><a href="http://www.acrc.go.kr/acrc/index.do" target="_blank" title="국민권익위원회 새창으로 열림">국민권익위원회 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="국민권익위원회 바로가기" /></a></li> 
+       <li><a href="http://www.lawmaking.go.kr/" target="_blank" title="정부입법 지원센터 새창으로 열림">정부입법 지원센터 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="정부입법 지원센터바로가기" /></a></li> 
+       <li><a href="http://www.easylaw.go.kr/" target="_blank" title="생활법령정보 새창으로 열림">생활법령정보 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="생활법령정보바로가기" /></a></li> 
+       <li><a href="http://www.moleg.go.kr/" target="_blank" title="법제처 새창으로 열림">법제처 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="법제처바로가기" /></a></li> 
+       <li><a href="http://txsi.hometax.go.kr/" target="_blank" title="국세법령정보시스템 새창으로 열림">국세법령정보시스템 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="국세법령정보시스템바로가기" /></a></li> 
+       <li><a href="http://www.olta.re.kr/" target="_blank" title="지방세법령정보시스템 새창으로 열림">지방세법령정보시스템 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="지방세법령정보시스템바로가기" /></a></li> 
+       <li><a href="http://www.unilaw.go.kr/" target="_blank" title="통일법제 데이터베이스 새창으로 열림">통일법제데이터베이스 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="통일법제데이터베이스바로가기" /> </a></li> 
+       <li><a href="http://edu.moleg.go.kr/" target="_blank" title="법제교육시스템 새창으로 열림">법제교육시스템 <img src="/LSW/images/common/ico_newpage.png" style="margin-bottom: 5px;" alt="법제교육시스템바로가기" /> </a></li> 
+      </ul> 
+     </div> 
+    </div>
+    <!-- copy_bot --> 
+   </div> 
+  </div>
+  <!-- new_wrap --> 
+  <div id="guidePdf" class="fancybox-wrap fancybox-desktop fancybox-type-iframe fancybox-opened" tabindex="-1" style="display:none; width: 80%; height: 80%; position: fixed; top: 62px; left: 10%; opacity: 1; overflow: visible;"></div>   
+  <script type="text/javascript" src="/LSW/js/common/hrefRemove.js"></script>  
+ </body>
+</html>

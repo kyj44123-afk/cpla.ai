@@ -30,6 +30,7 @@ type DiscoveryResponse =
 type ManagedService = {
   name: string;
   description: string;
+  audience?: "worker" | "employer";
   keywords?: string[];
   workflowSteps?: string[];
   workflowInfographic?: string;
@@ -121,12 +122,25 @@ function readManagedServices(): ManagedService[] {
   try {
     if (!fs.existsSync(SETTINGS_PATH)) return [];
     const raw = fs.readFileSync(SETTINGS_PATH, "utf-8");
-    const parsed = JSON.parse(raw) as { labor_services?: ManagedService[] };
-    if (!Array.isArray(parsed.labor_services)) return [];
-    return parsed.labor_services
+    const parsed = JSON.parse(raw) as {
+      labor_services?: ManagedService[];
+      labor_services_worker?: ManagedService[];
+      labor_services_employer?: ManagedService[];
+    };
+    const legacy = Array.isArray(parsed.labor_services)
+      ? parsed.labor_services.map((s) => ({ ...s, audience: "worker" as const }))
+      : [];
+    const workers = Array.isArray(parsed.labor_services_worker)
+      ? parsed.labor_services_worker.map((s) => ({ ...s, audience: "worker" as const }))
+      : [];
+    const employers = Array.isArray(parsed.labor_services_employer)
+      ? parsed.labor_services_employer.map((s) => ({ ...s, audience: "employer" as const }))
+      : [];
+    return [...legacy, ...workers, ...employers]
       .map((s) => ({
         name: String(s?.name || "").trim(),
         description: String(s?.description || "").trim(),
+        audience: (s?.audience === "employer" ? "employer" : "worker") as "worker" | "employer",
         keywords: Array.isArray(s?.keywords)
           ? s.keywords.map((k) => String(k || "").trim()).filter(Boolean)
           : [],
@@ -367,10 +381,10 @@ function buildThirdQuestion(category: Category, combinedText: string) {
   }
 }
 
-function recommendServices(category: Category, combinedText: string) {
+function recommendServices(category: Category, combinedText: string, audience: "worker" | "employer") {
   const insolvency = detectInsolvency(combinedText);
 
-  const defaultServices: ManagedService[] = BASE_LABOR_SERVICES.map((service) => {
+  const defaultServices: ManagedService[] = BASE_LABOR_SERVICES.filter((s) => s.audience === audience).map((service) => {
     const steps = buildWorkflowSteps(service.name);
     return {
       ...service,
@@ -380,21 +394,20 @@ function recommendServices(category: Category, combinedText: string) {
   });
 
   const mergedMap = new Map<string, ManagedService>();
-  for (const svc of defaultServices) mergedMap.set(svc.name, svc);
-  for (const svc of readManagedServices()) mergedMap.set(svc.name, svc);
+  for (const svc of defaultServices) mergedMap.set(`${svc.audience}:${svc.name}`, svc);
+  for (const svc of readManagedServices().filter((s) => s.audience === audience)) mergedMap.set(`${svc.audience}:${svc.name}`, svc);
   const mergedServices = Array.from(mergedMap.values());
 
-  const counseling = mergedServices.find((s) => s.name === "전문 공인노무사 상담") || {
-    name: "전문 공인노무사 상담",
-    description: "핵심 이슈의 사실관계와 절차 선택을 빠르게 정리해 초기 대응 전략을 설계합니다.",
-  };
+  const counseling = mergedServices.find((s) => s.name.includes("상담") || s.name.includes("자문")) || mergedServices[0];
   const wageClaim = mergedServices.find((s) => s.name === "임금체불 진정사건 대리") || {
     name: "임금체불 진정사건 대리",
     description: "미지급 임금·수당·퇴직금 증빙을 정리하고 노동청 진정 절차를 대리합니다.",
+    audience: "worker",
   };
   const substitutePayment = mergedServices.find((s) => s.name === "대지급금 신청 대리") || {
     name: "대지급금 신청 대리",
     description: "도산·폐업 또는 지급불능 정황을 검토해 대지급금 신청 요건 검토와 신청 절차를 대리합니다.",
+    audience: "worker",
   };
 
   const ranked = mergedServices
@@ -408,25 +421,25 @@ function recommendServices(category: Category, combinedText: string) {
 
   const picks: ManagedService[] = [];
 
-  if (category === "wage_arrears" && insolvency) {
+  if (audience === "worker" && category === "wage_arrears" && insolvency) {
     addUnique(picks, substitutePayment);
     addUnique(picks, wageClaim);
-    addUnique(picks, counseling);
-  } else if (category === "wage_arrears") {
+    if (counseling) addUnique(picks, counseling);
+  } else if (audience === "worker" && category === "wage_arrears") {
     addUnique(picks, wageClaim);
-    addUnique(picks, counseling);
+    if (counseling) addUnique(picks, counseling);
     addUnique(picks, substitutePayment);
   } else {
-    addUnique(picks, counseling);
+    if (counseling) addUnique(picks, counseling);
   }
 
   for (const candidate of ranked) {
     if (picks.length >= 3) break;
     addUnique(picks, candidate);
   }
-  for (const fallback of [counseling, wageClaim, substitutePayment, ...mergedServices]) {
+  for (const fallback of [counseling, ...(audience === "worker" ? [wageClaim, substitutePayment] : []), ...mergedServices]) {
     if (picks.length >= 3) break;
-    addUnique(picks, fallback);
+    if (fallback) addUnique(picks, fallback);
   }
 
   return picks.slice(0, 3).map((service) => ({
@@ -462,13 +475,14 @@ export async function POST(req: Request) {
     }
 
     const combinedText = [situation, ...answers].join(" ");
+    const audience = detectAudience(combinedText);
     const category = detectCategory(combinedText);
 
     let payload: DiscoveryResponse;
 
     if (round === 1) {
       const second = buildSecondQuestion(category, combinedText);
-      const quickServices = recommendServices(category, combinedText).slice(0, 2);
+      const quickServices = recommendServices(category, combinedText, audience).slice(0, 2);
       payload = {
         stage: "ask",
         keyword: getKeywordLabel(category),
@@ -479,7 +493,7 @@ export async function POST(req: Request) {
       };
     } else if (round === 2) {
       const third = buildThirdQuestion(category, combinedText);
-      const quickServices = recommendServices(category, combinedText).slice(0, 2);
+      const quickServices = recommendServices(category, combinedText, audience).slice(0, 2);
       payload = {
         stage: "ask",
         keyword: getKeywordLabel(category),
@@ -489,7 +503,7 @@ export async function POST(req: Request) {
         round: 3,
       };
     } else {
-      const services = recommendServices(category, combinedText);
+      const services = recommendServices(category, combinedText, audience);
       payload = {
         stage: "finalize",
         recommendedServices: services,
