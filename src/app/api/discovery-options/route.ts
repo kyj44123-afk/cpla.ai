@@ -401,6 +401,7 @@ type ExtractedFacts = {
 };
 
 type Audience = "worker" | "employer";
+type ContractSubtype = "wage_system" | "rules" | "labor_relations" | "outsourcing" | "compliance" | "general";
 
 function extractFacts(text: string): ExtractedFacts {
   const raw = String(text || "");
@@ -453,66 +454,97 @@ function detectAudience(text: string, exampleHint?: DiscoveryExampleSignals): Au
   return includesAny(normalized, employerSignals) ? "employer" : "worker";
 }
 
+function detectContractSubtype(text: string): ContractSubtype {
+  const normalized = normalize(text);
+  if (countMatches(normalized, ["임금체계", "직무급", "성과급", "연봉제", "통상임금", "평균임금", "보상체계"]) > 0) {
+    return "wage_system";
+  }
+  if (countMatches(normalized, ["취업규칙", "인사규정", "근로계약", "평가제도", "규정정비"]) > 0) {
+    return "rules";
+  }
+  if (countMatches(normalized, ["단체교섭", "단체협약", "노조", "쟁의", "직장폐쇄", "노사협의회"]) > 0) {
+    return "labor_relations";
+  }
+  if (countMatches(normalized, ["파견", "도급", "불법파견", "원하청", "협력사"]) > 0) {
+    return "outsourcing";
+  }
+  if (countMatches(normalized, ["근로감독", "컴플라이언스", "법정의무", "4대보험", "노동청"]) > 0) {
+    return "compliance";
+  }
+  return "general";
+}
+
 function buildSecondQuestion(category: Category, combinedText: string) {
   const audience = detectAudience(combinedText);
+  const contractSubtype = category === "contract" ? detectContractSubtype(combinedText) : "general";
 
   switch (category) {
     case "wage_arrears":
       return {
         question:
           audience === "employer"
-            ? "임금 미지급 항목(기본급/수당/퇴직금), 발생 기간, 내부 시정 조치 여부를 알려주세요."
-            : "미지급 항목(기본급/수당/퇴직금)별 금액과 지급일, 회사에 지급 요청한 방식(구두/문자/메일)을 알려주세요.",
-        focusInfo: "AI가 확인하려는 정보: 미지급 항목·금액·기간, 회사에 지급 요청한 기록(문자/메일/녹취 등)",
+            ? "현재 가장 먼저 풀고 싶은 과제는 무엇인가요? (예: 체불 해소, 진정 리스크 축소, 재발 방지) 그리고 미지급이 발생한 핵심 원인 1~2가지를 알려주세요."
+            : "가장 회수하고 싶은 금액 항목은 무엇인가요? (기본급/수당/퇴직금) 그리고 언제부터 밀렸는지, 회사와 마지막으로 합의 시도한 내용도 알려주세요.",
+        focusInfo: "핵심 파악 포인트: 금액 우선순위, 발생 기간, 현재 협의 단계",
       };
     case "dismissal":
       return {
         question:
           audience === "employer"
-            ? "예정된 조치(해고/징계/권고사직), 조치 사유, 사전통지·소명절차 진행 여부를 알려주세요."
-            : "회사 조치가 해고·징계·권고사직 중 무엇인지, 통보 시점/방식(구두·서면), 현재 근무상태를 알려주세요.",
-        focusInfo: "AI가 확인하려는 정보: 회사 조치 내용, 통보 시점, 서면 통지 수령 여부",
+            ? "이번 인사조치의 목적이 무엇인가요? (조직질서 회복, 리스크 차단, 퇴출 등) 그리고 회사가 반드시 지키고 싶은 원칙 1~2가지를 알려주세요."
+            : "원하는 결과가 복직인지, 조건 협의인지, 조용한 정리인지 먼저 알려주세요. 그리고 회사 통보 방식(구두/문서)과 시점도 함께 알려주세요.",
+        focusInfo: "핵심 파악 포인트: 최종 목표, 통보/절차 상태, 협상 여지",
       };
     case "harassment":
       return {
         question:
           audience === "employer"
-            ? "신고된 행위의 유형, 발생 시점, 조사 진행 단계, 증빙 확보 현황을 알려주세요."
-            : "가장 심각했던 사건 1건 기준으로, 행위 내용, 반복 횟수, 증빙 보유 여부를 알려주세요.",
-        focusInfo: "AI가 확인하려는 정보: 반복된 행동 유형, 발생 시점, 사내 신고 여부",
+            ? "이번 사안을 통해 회사가 달성하려는 목표가 무엇인가요? (신속 종결, 공정 조사, 재발 방지) 그리고 현재 조직 내 갈등 강도도 알려주세요."
+            : "가장 힘들었던 장면 1건을 기준으로, 어떤 행동이 반복됐는지와 내가 원하는 결과(중단/사과/분리/보상)를 알려주세요.",
+        focusInfo: "핵심 파악 포인트: 원하는 해결 상태, 반복 패턴, 관계 악화 정도",
       };
     case "industrial_accident":
       return {
         question:
           audience === "employer"
-            ? "사고 발생 시점, 재해 유형, 초동조치 및 보고 체계 이행 여부를 알려주세요."
-            : "사고(또는 증상) 발생 시점, 진단명, 회사 보고 여부, 현재 치료 상태를 알려주세요.",
-        focusInfo: "AI가 확인하려는 정보: 사고·증상 발생 시점, 진단명, 회사 보고 여부, 치료 상태",
+            ? "이번 재해 대응에서 회사가 가장 우선하는 목표는 무엇인가요? (근로자 보호, 법적 리스크 최소화, 현장 정상화) 그리고 현재 조치 단계도 알려주세요."
+            : "지금 가장 필요한 지원이 무엇인가요? (산재 승인, 치료비/휴업급여, 장해급여 준비) 그리고 치료 일정과 업무복귀 계획을 알려주세요.",
+        focusInfo: "핵심 파악 포인트: 현재 치료/조치 단계, 급여 목표, 복귀 계획",
       };
     case "contract":
       return {
         question:
           audience === "employer"
-            ? "계약서·취업규칙과 실제 운영이 다른 항목 1~2개와 개선 계획 여부를 알려주세요."
-            : "계약서 기준 조건과 실제 운영이 다른 핵심 항목 1~2개를 적어주세요.",
-        focusInfo: "AI가 확인하려는 정보: 가장 문제인 조건 1개, 계약 내용과 실제 운영(임금·시간·휴게·연차) 비교",
+            ? contractSubtype === "wage_system"
+              ? "개편이 필요한 가장 큰 이유는 무엇인가요? 그리고 직원 수(또는 대상 조직 규모)와 인건비 예산 범위를 알려주세요."
+              : contractSubtype === "rules"
+                ? "정비하려는 규정은 무엇인가요? (취업규칙/근로계약/인사평가/징계 등) 그리고 현재 가장 리스크가 큰 조항 1가지를 알려주세요."
+                : contractSubtype === "labor_relations"
+                  ? "이번 노사 이슈에서 회사가 우선 달성하려는 목표는 무엇인가요? (교섭 타결, 분쟁 최소화, 운영 안정) 그리고 현재 긴급 의제 1~2가지를 알려주세요."
+                  : contractSubtype === "outsourcing"
+                    ? "파견·도급 구조에서 가장 걱정되는 리스크가 무엇인가요? (불법파견/사용자책임/협력사 관리) 그리고 대상 조직 규모를 알려주세요."
+                    : contractSubtype === "compliance"
+                      ? "점검이 필요한 영역을 골라주세요. (근로감독 대응/법정의무/4대보험/근로시간) 그리고 최근 지적받은 항목이 있으면 알려주세요."
+                      : "개선이 필요한 제도 영역 1~2가지를 알려주세요. 그리고 이번 분기 내 우선순위도 함께 알려주세요."
+            : "현재 조건에서 가장 바꾸고 싶은 포인트가 무엇인가요? (임금/근무시간/휴게/연차/평가) 그리고 왜 그 항목이 가장 불편한지도 알려주세요.",
+        focusInfo: "핵심 파악 포인트: 개편 이유, 조직/예산 규모, 우선 개선 항목",
       };
     case "none":
       return {
         question:
           audience === "employer"
-            ? "최근 2주 내 리스크가 컸던 인사노무 상황 1건을 시간순으로 적어주세요."
-            : "최근 2주 내 가장 불편했던 상황 1건을 시간순으로 적어주세요.",
-        focusInfo: "AI가 확인하려는 정보: 최근 2주 내 불편/불안 장면 1건(누가, 언제, 무엇을 했는지)",
+            ? "당장 개선이 필요하다고 느끼는 인사노무 주제 1가지를 골라주세요. (채용·평가·보상·징계·규정·노사관계)"
+            : "최근 가장 불편했던 장면 1가지만 골라서 알려주세요. 그 상황에서 내가 가장 원했던 해결은 무엇이었나요?",
+        focusInfo: "핵심 파악 포인트: 문제 1건, 기대했던 해결 방식",
       };
     case "other":
     default:
       return {
         question:
           audience === "employer"
-            ? "최근 사건을 시간순 2~3문장으로 정리해 주세요."
-            : "최근 사건을 시간순 2~3문장으로 정리해 주세요.",
-        focusInfo: "AI가 확인하려는 정보: 최근 사건을 시점 순서대로 2~3문장",
+            ? "이번 이슈에서 반드시 지키고 싶은 기준이 무엇인지 먼저 알려주세요. (비용, 속도, 조직 안정, 법적 안전성)"
+            : "이번 이슈에서 가장 원하는 결과를 한 줄로 알려주세요. (빠른 해결, 금전 회수, 관계 정리, 재발 방지)",
+        focusInfo: "핵심 파악 포인트: 최우선 기준 1개와 원하는 결과",
       };
   }
 }
@@ -520,6 +552,8 @@ function buildSecondQuestion(category: Category, combinedText: string) {
 function buildThirdQuestion(category: Category, combinedText: string) {
   const insolvency = detectInsolvency(combinedText);
   const facts = extractFacts(combinedText);
+  const audience = detectAudience(combinedText);
+  const contractSubtype = category === "contract" ? detectContractSubtype(combinedText) : "general";
   const mainGoal = facts.wantsReinstatement
     ? "복직"
     : facts.wantsCompensation
@@ -533,44 +567,57 @@ function buildThirdQuestion(category: Category, combinedText: string) {
     case "wage_arrears":
       if (insolvency) {
         return {
-          question: `현재 목표(${mainGoal}), 상태(${reported}) 기준으로 대지급금 중심 진행과 임금체불 진정 중심 진행 중 우선순위를 선택해 주세요.`,
-          focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 보유 증빙 수준",
+          question: `현재 목표(${mainGoal}) 기준으로, 대지급금 신청을 먼저 진행할지 임금체불 진정을 먼저 진행할지 선택해 주세요. 선택 이유도 한 줄로 알려주세요.`,
+          focusInfo: "최종 결정 포인트: 절차 우선순위, 착수 이유, 일정",
         };
       }
       return {
-        question: `현재 목표(${mainGoal}), 상태(${reported}) 기준으로 공인노무사에게 먼저 맡길 단계(증빙정리/진정대리/협의대응)를 선택해 주세요.`,
-        focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 보유 증빙 수준",
+        question: `현재 상태(${reported})에서 가장 먼저 맡기고 싶은 업무를 골라주세요. (증빙정리 / 진정대리 / 회사협의) 그리고 희망 착수 시점도 알려주세요.`,
+        focusInfo: "최종 결정 포인트: 즉시 필요한 실행 항목, 착수 일정",
       };
     case "dismissal":
       return {
-        question: `목표(복직/합의·금전보상)와 상태(${reported})를 기준으로 우선 요청할 도움을 선택해 주세요.`,
-        focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
+        question: `목표(복직 / 금전보상 / 분쟁 최소화) 중 우선순위를 정해 주세요. 1순위 목표를 위해 지금 당장 필요한 도움도 함께 알려주세요.`,
+        focusInfo: "최종 결정 포인트: 목표 우선순위, 즉시 실행 액션",
       };
     case "harassment":
       return {
-        question: `사내 절차 우선과 외부 절차 병행 중 우선전략을 선택하고, 공인노무사에게 맡길 대응을 알려주세요.`,
-        focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
+        question: `전략을 선택해 주세요. (사내 절차 우선 / 외부 절차 병행) 그리고 공인노무사에게 가장 먼저 맡기고 싶은 역할(증거정리/신고대응/협의대응)을 알려주세요.`,
+        focusInfo: "최종 결정 포인트: 절차 전략, 외부 전문가 개입 범위",
       };
     case "industrial_accident":
       return {
-        question: `산재 인정 가능성을 높이기 위해 필요한 지원(자료정리/신청대리/의견서)을 우선순위로 알려주세요.`,
-        focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
+        question: `산재 건에서 1순위 목표를 선택해 주세요. (승인 가능성 강화 / 급여 수급 속도 / 장해등급 준비) 그리고 바로 시작할 항목을 골라주세요.`,
+        focusInfo: "최종 결정 포인트: 1순위 목표, 즉시 착수 항목",
       };
     case "contract":
       return {
-        question: `회사 협의 우선과 법적 절차 우선 중 방향을 선택하고, 공인노무사 개입 범위를 알려주세요.`,
-        focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
+        question:
+          audience === "employer"
+            ? contractSubtype === "wage_system"
+              ? "개편 목적이 무엇인지 선택해 주세요. (통상임금 이슈 정비 / 평균임금 리스크 개선 / 성과보상 체계 재설계) 그리고 이번 분기 내 예산·적용 범위도 알려주세요."
+              : contractSubtype === "rules"
+                ? "이번 정비를 어디까지 진행할지 선택해 주세요. (문서 개정만 / 운영 프로세스 포함 / 신고·교육까지 일괄) 그리고 목표 완료 시점을 알려주세요."
+                : contractSubtype === "labor_relations"
+                  ? "전략 방향을 선택해 주세요. (조기 타결 중심 / 리스크 방어 중심 / 장기 협상 대비) 그리고 노무사에게 맡길 범위를 알려주세요."
+                  : contractSubtype === "outsourcing"
+                    ? "진단 목표를 선택해 주세요. (불법파견 판단 / 책임구조 정비 / 계약구조 재설계) 그리고 우선 점검할 사업장부터 알려주세요."
+                    : contractSubtype === "compliance"
+                      ? "이번 점검의 목표를 선택해 주세요. (근로감독 대비 / 법 위반 해소 / 재발 방지 체계화) 그리고 착수 희망 일정을 알려주세요."
+                      : "이번 제도 정비의 목표를 선택해 주세요. (리스크 축소 / 운영 효율 / 분쟁 예방) 그리고 우선 적용 범위를 알려주세요."
+            : "해결 방향을 선택해 주세요. (회사와 협의 우선 / 법적 대응 우선) 그리고 공인노무사에게 기대하는 역할을 알려주세요.",
+        focusInfo: "최종 결정 포인트: 개편 목적, 예산/범위 또는 대응 경로",
       };
     case "none":
       return {
-        question: `분쟁 예방 점검(리스크 진단/규정 점검/사건 대응 설계) 중 원하는 방식을 선택해 주세요.`,
-        focusInfo: "AI가 확인하려는 정보: 선제 점검 상담 여부, 제안서 요청 여부, 진행 희망 일정",
+        question: `선제 점검 방식을 골라주세요. (리스크 진단 / 규정 정비 / 사건 대응 체계 설계) 그리고 언제부터 시작하면 좋은지도 알려주세요.`,
+        focusInfo: "최종 결정 포인트: 점검 방식, 시작 시점",
       };
     case "other":
     default:
       return {
-        question: `핵심 사실 정리와 절차 선택 중 우선 지원이 필요한 항목을 알려주세요.`,
-        focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
+        question: `마지막으로, 이번 건에서 절대 놓치면 안 되는 조건 1가지를 알려주세요. (비용 / 속도 / 대외리스크 / 내부수용성 중 선택 가능)`,
+        focusInfo: "최종 결정 포인트: 절대 조건 1개, 실행 우선순위",
       };
   }
 }

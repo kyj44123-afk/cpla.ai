@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Loader2, RefreshCw, CheckCircle2, FileText, ChevronRight, PenTool } from "lucide-react";
+import { Loader2, RefreshCw, CheckCircle2, FileText, ChevronRight, PenTool, Copy } from "lucide-react";
 import Image from "next/image";
 import { ToneOptions, ToneType } from "@/lib/blog-prompts";
 
@@ -17,16 +17,23 @@ type IdeationResult = {
   outline: { heading: string; description: string }[];
 };
 
+type ImagePrompt = {
+  section: string;
+  prompt: string;
+};
+
 type DraftResult = {
   title: string;
   content: string;
   hashtags: string[];
+  imagePrompts: ImagePrompt[]; // Added imagePrompts
 };
 
 export default function BlogWriterPage() {
   const [step, setStep] = useState<Step>("input");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [imagePromptCopied, setImagePromptCopied] = useState(false);
 
   // Step 1 State
   const [keyword, setKeyword] = useState("");
@@ -89,6 +96,7 @@ export default function BlogWriterPage() {
       setDraft(data);
       setStep("result");
     } catch (e) {
+      console.error(e);
       setError("글 작성 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
@@ -122,13 +130,21 @@ export default function BlogWriterPage() {
     }
   };
 
+  const handleCopyImagePrompts = () => {
+    if (!draft?.imagePrompts) return;
+    const text = draft.imagePrompts.map(p => `[${p.section}]\n${p.prompt}`).join("\n\n");
+    navigator.clipboard.writeText(text);
+    setImagePromptCopied(true);
+    setTimeout(() => setImagePromptCopied(false), 2000);
+  };
+
   // --- Render Steps ---
 
   const renderInputStep = () => (
     <div className="max-w-xl mx-auto space-y-8 py-10">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Blog Writer 2.0</h1>
-        <p className="text-muted-foreground">키워드만 입력하세요. 상단 노출을 위한 설계는 AI가 도와드립니다.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Blog Writer 2.1</h1>
+        <p className="text-muted-foreground">키워드를 입력하면, 상위 노출 기획과 고퀄리티 원고를 설계합니다.</p>
       </div>
 
       <Card>
@@ -173,7 +189,7 @@ export default function BlogWriterPage() {
             ) : (
               <PenTool className="w-5 h-5 mr-2" />
             )}
-            기획안 만들기
+            기획안 만들기 (D.I.A)
           </Button>
         </CardContent>
       </Card>
@@ -281,45 +297,74 @@ export default function BlogWriterPage() {
 
       <div className="grid md:grid-cols-3 gap-8">
         {/* Preview */}
-        <div className="md:col-span-2 bg-white border shadow-sm rounded-xl overflow-hidden">
-          <div className="bg-slate-50 border-b p-6">
-            <h1 className="text-2xl font-bold text-slate-900 leading-tight mb-4">{draft?.title}</h1>
-            <div className="flex flex-wrap gap-2">
-              {draft?.hashtags.map((tag) => (
-                <span key={tag} className="text-blue-500 text-sm font-medium">{tag}</span>
-              ))}
+        <div className="md:col-span-2 space-y-6">
+          <div className="bg-white border shadow-sm rounded-xl overflow-hidden">
+            <div className="bg-slate-50 border-b p-6">
+              <h1 className="text-2xl font-bold text-slate-900 leading-tight mb-4">{draft?.title}</h1>
+              <div className="flex flex-wrap gap-2">
+                {draft?.hashtags.map((tag) => (
+                  <span key={tag} className="text-blue-500 text-sm font-medium">{tag}</span>
+                ))}
+              </div>
             </div>
-          </div>
-          <div className="p-8 prose prose-slate max-w-none prose-headings:font-bold prose-h2:text-xl prose-p:text-slate-600 prose-p:leading-relaxed">
-            {/* Simple Markdown Rendering */}
-            {draft?.content.split("\n").map((line, i) => {
-              if (line.startsWith("## ")) return <h2 key={i} className="mt-8 mb-4">{line.replace("## ", "")}</h2>;
-              if (line.startsWith("### ")) return <h3 key={i} className="mt-6 mb-3">{line.replace("### ", "")}</h3>;
-              if (line.startsWith("- ")) return <li key={i} className="ml-4">{line.replace("- ", "")}</li>;
-              if (line.trim() === "") return <br key={i} />;
-              return <p key={i}>{line}</p>;
-            })}
+            <div className="p-8 prose prose-slate max-w-none prose-headings:font-bold prose-h2:text-xl prose-p:text-slate-600 prose-p:leading-relaxed">
+              {draft?.content.split("\n").map((line, i) => {
+                if (line.startsWith("## ")) return <h2 key={i} className="mt-8 mb-4">{line.replace("## ", "")}</h2>;
+                if (line.startsWith("### ")) return <h3 key={i} className="mt-6 mb-3">{line.replace("### ", "")}</h3>;
+                if (line.startsWith("- ")) return <li key={i} className="ml-4">{line.replace("- ", "")}</li>;
+                if (line.trim() === "") return <br key={i} />;
+                return <p key={i}>{line}</p>;
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Action Sidebar */}
+        {/* Action Sidebar & Image Prompts */}
         <div className="md:col-span-1 space-y-6">
           <Card>
             <CardContent className="pt-6">
               <Label className="mb-2 block">HTML 복사</Label>
-              <p className="text-sm text-muted-foreground mb-4">
-                네이버 블로그 에디터에 붙여넣기 하려면 'HTML 복사'를 사용하세요.
-              </p>
               <Button
                 variant="secondary"
                 className="w-full"
                 onClick={() => {
                   navigator.clipboard.writeText(draft?.content || "");
-                  alert("마크다운이 복사되었습니다. (네이버 블로그용 HTML 변환 기능은 추후 추가 예정)");
+                  alert("마크다운이 복사되었습니다.");
                 }}
               >
                 본문 복사하기
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* Image Prompts Section */}
+          <Card className="border-amber-200 bg-amber-50">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <Label className="text-amber-900 font-bold flex items-center gap-2">
+                  <PenTool className="w-4 h-4" /> AI 이미지 프롬프트
+                </Label>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 bg-white border-amber-300 text-amber-900 hover:bg-amber-100"
+                  onClick={handleCopyImagePrompts}
+                >
+                  {imagePromptCopied ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
+                  {imagePromptCopied ? "복사됨" : "전체 복사"}
+                </Button>
+              </div>
+              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                {draft?.imagePrompts?.map((item, idx) => (
+                  <div key={idx} className="bg-white p-3 rounded-md border border-amber-100 text-xs shadow-sm">
+                    <div className="font-bold text-amber-800 mb-1">{item.section}</div>
+                    <p className="text-slate-600 leading-relaxed font-mono">{item.prompt}</p>
+                  </div>
+                ))}
+                {!draft?.imagePrompts?.length && (
+                  <p className="text-sm text-amber-800">이미지 프롬프트가 생성되지 않았습니다.</p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
