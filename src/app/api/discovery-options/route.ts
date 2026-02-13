@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import * as fs from "fs";
+import * as path from "path";
+import { buildWorkflowInfographicDataUrl, buildWorkflowSteps } from "@/lib/workflowInfographic";
 
 type Body = {
   situation: string;
@@ -11,15 +14,26 @@ type Category = "none" | "wage_arrears" | "dismissal" | "harassment" | "industri
 type DiscoveryResponse =
   | {
       stage: "ask";
+      keyword: string;
       question: string;
+      focusInfo: string;
       round: number;
     }
   | {
       stage: "finalize";
-      recommendedService: string;
-      recommendationReason: string;
+      recommendedServices: { name: string; description: string; workflowSteps: string[]; workflowInfographic: string }[];
       intakeSummary: string;
     };
+
+type ManagedService = {
+  name: string;
+  description: string;
+  keywords?: string[];
+  workflowSteps?: string[];
+  workflowInfographic?: string;
+};
+
+const SETTINGS_PATH = path.join(process.cwd(), ".settings.json");
 
 const CATEGORY_KEYWORDS: Record<Exclude<Category, "none" | "other">, string[]> = {
   wage_arrears: [
@@ -67,12 +81,16 @@ function includesAny(text: string, patterns: string[]) {
   return patterns.some((p) => text.includes(p));
 }
 
+function normalize(text: string) {
+  return String(text || "").toLowerCase().replace(/\s+/g, "");
+}
+
 function scoreCategory(text: string, keywords: string[]) {
   return keywords.reduce((acc, keyword) => acc + (text.includes(keyword) ? 1 : 0), 0);
 }
 
 function detectCategory(text: string): Category {
-  const normalized = text.replace(/\s+/g, "").toLowerCase();
+  const normalized = normalize(text);
 
   if (!normalized || includesAny(normalized, NO_ISSUE_PATTERNS)) {
     return "none";
@@ -93,27 +111,118 @@ function detectCategory(text: string): Category {
 }
 
 function detectInsolvency(text: string) {
-  const normalized = text.replace(/\s+/g, "");
+  const normalized = normalize(text);
   return includesAny(normalized, ["폐업", "도산", "파산", "회생", "청산", "연락두절"]);
+}
+
+function readManagedServices(): ManagedService[] {
+  try {
+    if (!fs.existsSync(SETTINGS_PATH)) return [];
+    const raw = fs.readFileSync(SETTINGS_PATH, "utf-8");
+    const parsed = JSON.parse(raw) as { labor_services?: ManagedService[] };
+    if (!Array.isArray(parsed.labor_services)) return [];
+    return parsed.labor_services
+      .map((s) => ({
+        name: String(s?.name || "").trim(),
+        description: String(s?.description || "").trim(),
+        keywords: Array.isArray(s?.keywords)
+          ? s.keywords.map((k) => String(k || "").trim()).filter(Boolean)
+          : [],
+        workflowSteps: Array.isArray(s?.workflowSteps)
+          ? s.workflowSteps.map((w) => String(w || "").trim()).filter(Boolean)
+          : undefined,
+        workflowInfographic: typeof s?.workflowInfographic === "string" ? String(s.workflowInfographic) : undefined,
+      }))
+      .filter((s) => s.name && s.description);
+  } catch (error) {
+    console.error("Failed to read managed services:", error);
+    return [];
+  }
+}
+
+function buildAutoWorkflow(serviceName: string) {
+  return [
+    `${serviceName} 관련 초기 사실관계 진단`,
+    "핵심 증빙자료 정리 및 쟁점 구조화",
+    "대응 절차 수립 및 실행 일정 확정",
+    "진행 결과 안내 및 후속 조치 제안",
+  ];
+}
+
+function inferKeywords(service: ManagedService) {
+  const base = `${service.name} ${service.description}`;
+  const parts = base
+    .split(/[\s,./()·\-:;]+/)
+    .map((p) => p.trim())
+    .filter((p) => p.length >= 2);
+  const unique = Array.from(new Set(parts));
+  return unique.slice(0, 14);
+}
+
+function scoreService(service: ManagedService, text: string) {
+  const normalized = normalize(text);
+  const keywords = (service.keywords && service.keywords.length > 0 ? service.keywords : inferKeywords(service)).map(normalize);
+  return keywords.reduce((acc, keyword) => acc + (keyword && normalized.includes(keyword) ? 1 : 0), 0);
+}
+
+function getKeywordLabel(category: Category) {
+  switch (category) {
+    case "wage_arrears":
+      return "임금체불";
+    case "dismissal":
+      return "부당해고·징계";
+    case "harassment":
+      return "직장 내 괴롭힘";
+    case "industrial_accident":
+      return "산업재해";
+    case "contract":
+      return "근로조건·근무체계";
+    case "none":
+      return "잠재 노무리스크";
+    case "other":
+    default:
+      return "근로관계 분쟁 가능성";
+  }
 }
 
 function buildSecondQuestion(category: Category) {
   switch (category) {
     case "wage_arrears":
-      return "핵심 키워드는 임금체불입니다. 임금체불은 시간이 지날수록 증빙 정리와 회수 전략이 더 중요해지는 이슈입니다. 미지급 항목·금액·기간, 그리고 회사에 지급 요청한 기록이 있는지 구체적으로 적어주실 수 있나요?";
+      return {
+        question: "임금체불은 시간이 지날수록 증빙 정리와 회수 전략이 더 중요해지는 이슈입니다. 현재 상황을 더 정확히 확인하겠습니다.",
+        focusInfo: "AI가 확인하려는 정보: 미지급 항목·금액·기간, 회사에 지급 요청한 기록(문자/메일/녹취 등)",
+      };
     case "dismissal":
-      return "핵심 키워드는 부당해고·징계입니다. 부당해고·징계 이슈는 초기 대응 방향에 따라 결과가 크게 달라질 수 있습니다. 회사가 통보한 조치 내용·통보 시점·서면 통지 수령 여부를 정확히 적어주실 수 있나요?";
+      return {
+        question: "부당해고·징계 이슈는 초기 대응 방향에 따라 결과가 크게 달라질 수 있습니다. 현재 상황을 더 정확히 확인하겠습니다.",
+        focusInfo: "AI가 확인하려는 정보: 회사 조치 내용, 통보 시점, 서면 통지 수령 여부",
+      };
     case "harassment":
-      return "핵심 키워드는 직장 내 괴롭힘입니다. 직장 내 괴롭힘은 반복 정황과 증거 확보가 핵심이라 초기에 구조화가 필요합니다. 반복된 행동 유형·발생 시점·사내 신고 여부를 가능한 사실 중심으로 적어주실 수 있나요?";
+      return {
+        question: "직장 내 괴롭힘 이슈는 반복 정황과 증거 확보가 핵심입니다. 현재 상황을 더 정확히 확인하겠습니다.",
+        focusInfo: "AI가 확인하려는 정보: 반복된 행동 유형, 발생 시점, 사내 신고 여부",
+      };
     case "industrial_accident":
-      return "핵심 키워드는 산업재해입니다. 산업재해는 업무관련성 입증 포인트를 조기에 잡는 것이 매우 중요합니다. 사고·증상 발생 시점, 진단명, 회사 보고 여부와 현재 치료 상태를 적어주실 수 있나요?";
+      return {
+        question: "산업재해 이슈는 업무관련성 입증 포인트를 초기에 잡는 것이 매우 중요합니다. 현재 상황을 더 정확히 확인하겠습니다.",
+        focusInfo: "AI가 확인하려는 정보: 사고·증상 발생 시점, 진단명, 회사 보고 여부, 치료 상태",
+      };
     case "contract":
-      return "핵심 키워드는 근로조건·근무체계입니다. 근로조건 이슈는 계약과 실제 운영의 차이를 특정하면 해결 경로가 빨라집니다. 현재 가장 문제인 조건 1개와 실제 운영 방식(임금·시간·휴게·연차)을 비교해서 적어주실 수 있나요?";
+      return {
+        question: "근로조건 이슈는 계약과 실제 운영의 차이를 특정하면 해결 경로가 빨라집니다. 현재 상황을 더 정확히 확인하겠습니다.",
+        focusInfo: "AI가 확인하려는 정보: 가장 문제인 조건 1개, 계약 내용과 실제 운영(임금·시간·휴게·연차) 비교",
+      };
     case "none":
-      return "지금은 문제를 명확히 이름 붙이기 전 단계로 보이지만, 이 시점에 정확히 짚으면 분쟁을 미리 막을 수 있습니다. 최근 2주 안에 불편하거나 불안했던 장면 1가지를 시간순으로 적어주실 수 있나요?";
+      return {
+        question: "지금은 문제를 명확히 이름 붙이기 전 단계로 보이지만, 이 시점에 정확히 짚으면 분쟁을 미리 막을 수 있습니다.",
+        focusInfo: "AI가 확인하려는 정보: 최근 2주 내 불편/불안 장면 1건(누가, 언제, 무엇을 했는지)",
+      };
     case "other":
     default:
-      return "핵심 키워드는 근로관계 분쟁 가능성입니다. 사실관계를 먼저 구조화하면 대응 속도와 정확도가 크게 올라갑니다. 최근 사건을 시점 순서대로 2~3문장으로 적어주실 수 있나요?";
+      return {
+        question: "사실관계를 먼저 구조화하면 대응 속도와 정확도가 크게 올라갑니다. 현재 상황을 더 정확히 확인하겠습니다.",
+        focusInfo: "AI가 확인하려는 정보: 최근 사건을 시점 순서대로 2~3문장",
+      };
   }
 }
 
@@ -123,46 +232,137 @@ function buildThirdQuestion(category: Category, combinedText: string) {
   switch (category) {
     case "wage_arrears":
       if (insolvency) {
-        return "현재 목적을 충족하려면 임금채권 증빙을 먼저 정리하고, 도산·폐업 여부에 따른 대지급금 요건 검토 후 신청 전략을 확정하는 절차가 효과적입니다. 전문가인 공인노무사에게 어떤 도움을 받고 싶나요? 상담으로 시작하시겠어요, 아니면 바로 제안서 작성을 원하시나요?";
+        return {
+          question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+          focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 보유 증빙 수준",
+        };
       }
-      return "현재 목적을 충족하려면 미지급 내역·증빙을 확정하고, 사업주 지급요청과 노동청 진정 절차를 병행 설계하는 방식이 효과적입니다. 전문가인 공인노무사에게 어떤 도움을 받고 싶나요? 상담으로 시작하시겠어요, 아니면 바로 제안서 작성을 원하시나요?";
+      return {
+        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 보유 증빙 수준",
+      };
     case "dismissal":
-      return "현재 목적을 충족하려면 회사 통보 내용과 절차 위반 여부를 신속히 확인하고, 증빙 기반으로 대응서면·구제신청 전략을 설계하는 절차가 효과적입니다. 전문가인 공인노무사에게 어떤 도움을 받고 싶나요? 상담으로 시작하시겠어요, 아니면 바로 제안서 작성을 원하시나요?";
+      return {
+        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
+      };
     case "harassment":
-      return "현재 목적을 충족하려면 발생 사실을 시점별로 정리하고 증거를 확보한 뒤, 사내 신고와 외부 절차의 우선순위를 정해 실행하는 절차가 효과적입니다. 전문가인 공인노무사에게 어떤 도움을 받고 싶나요? 상담으로 시작하시겠어요, 아니면 바로 제안서 작성을 원하시나요?";
+      return {
+        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
+      };
     case "industrial_accident":
-      return "현재 목적을 충족하려면 업무관련성 입증자료를 먼저 확보하고, 치료 경과·소득손실 자료를 바탕으로 산재 절차를 설계하는 방식이 효과적입니다. 전문가인 공인노무사에게 어떤 도움을 받고 싶나요? 상담으로 시작하시겠어요, 아니면 바로 제안서 작성을 원하시나요?";
+      return {
+        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
+      };
     case "contract":
-      return "현재 목적을 충족하려면 계약서와 실제 운영내역의 차이를 수치와 사실로 정리하고, 회사 협의 또는 법적 절차 중 실행 경로를 확정하는 방식이 효과적입니다. 전문가인 공인노무사에게 어떤 도움을 받고 싶나요? 상담으로 시작하시겠어요, 아니면 바로 제안서 작성을 원하시나요?";
+      return {
+        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
+      };
     case "none":
-      return "현재 목적을 충족하려면 먼저 사실관계 진단으로 잠재 리스크를 확인하고, 문제가 드러나면 즉시 대응 절차를 설계하는 방식이 효과적입니다. 전문가인 공인노무사에게 어떤 도움을 받고 싶나요? 선제 점검 상담을 원하시나요, 아니면 제안서부터 받아보시겠어요?";
+      return {
+        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        focusInfo: "AI가 확인하려는 정보: 선제 점검 상담 여부, 제안서 요청 여부, 진행 희망 일정",
+      };
     case "other":
     default:
-      return "현재 목적을 충족하려면 핵심 사실과 증빙 가능 자료를 먼저 구조화하고, 행정절차와 협의절차 중 최적 경로를 빠르게 확정하는 방식이 효과적입니다. 전문가인 공인노무사에게 어떤 도움을 받고 싶나요? 상담으로 시작하시겠어요, 아니면 바로 제안서 작성을 원하시나요?";
+      return {
+        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
+      };
   }
 }
 
-function recommendService(category: Category, combinedText: string) {
+function recommendServices(category: Category, combinedText: string) {
   const insolvency = detectInsolvency(combinedText);
 
-  if (category === "wage_arrears" && insolvency) {
-    return {
-      service: "대지급금 신청 대리",
-      reason: "도산·폐업 정황과 임금 미지급 이슈가 함께 보여 대지급금 요건 검토와 신청 대리가 우선입니다.",
-    };
-  }
+  const defaultServices: ManagedService[] = [
+    {
+      name: "전문 공인노무사 상담",
+      description: "핵심 이슈의 사실관계와 절차 선택을 빠르게 정리해 초기 대응 전략을 설계합니다.",
+      keywords: ["상담", "전략", "진단", "노무사"],
+      workflowSteps: buildWorkflowSteps("전문 공인노무사 상담"),
+      workflowInfographic: buildWorkflowInfographicDataUrl("전문 공인노무사 상담", buildWorkflowSteps("전문 공인노무사 상담")),
+    },
+    {
+      name: "임금체불 진정사건 대리",
+      description: "미지급 임금·수당·퇴직금 증빙을 정리하고 노동청 진정 절차를 대리합니다.",
+      keywords: ["임금", "체불", "미지급", "퇴직금", "노동청", "진정"],
+      workflowSteps: buildWorkflowSteps("임금체불 진정사건 대리"),
+      workflowInfographic: buildWorkflowInfographicDataUrl("임금체불 진정사건 대리", buildWorkflowSteps("임금체불 진정사건 대리")),
+    },
+    {
+      name: "대지급금 신청 대리",
+      description: "도산·폐업 또는 지급불능 정황을 검토해 대지급금 신청 요건 검토와 신청 절차를 대리합니다.",
+      keywords: ["대지급금", "체당금", "폐업", "도산", "파산", "지급불능"],
+      workflowSteps: buildWorkflowSteps("대지급금 신청 대리"),
+      workflowInfographic: buildWorkflowInfographicDataUrl("대지급금 신청 대리", buildWorkflowSteps("대지급금 신청 대리")),
+    },
+  ];
 
-  if (category === "wage_arrears") {
-    return {
-      service: "임금체불 진정사건 대리",
-      reason: "미지급 임금 정황이 중심이어서 진정 절차 설계와 증빙 정리가 직접적인 해결 경로입니다.",
-    };
-  }
+  const mergedMap = new Map<string, ManagedService>();
+  for (const svc of defaultServices) mergedMap.set(svc.name, svc);
+  for (const svc of readManagedServices()) mergedMap.set(svc.name, svc);
+  const mergedServices = Array.from(mergedMap.values());
 
-  return {
-    service: "전문 공인노무사 상담",
-    reason: "핵심 이슈의 사실관계와 절차 선택이 먼저 필요해 초기 전략 상담이 가장 적합합니다.",
+  const counseling = mergedServices.find((s) => s.name === "전문 공인노무사 상담") || {
+    name: "전문 공인노무사 상담",
+    description: "핵심 이슈의 사실관계와 절차 선택을 빠르게 정리해 초기 대응 전략을 설계합니다.",
   };
+  const wageClaim = mergedServices.find((s) => s.name === "임금체불 진정사건 대리") || {
+    name: "임금체불 진정사건 대리",
+    description: "미지급 임금·수당·퇴직금 증빙을 정리하고 노동청 진정 절차를 대리합니다.",
+  };
+  const substitutePayment = mergedServices.find((s) => s.name === "대지급금 신청 대리") || {
+    name: "대지급금 신청 대리",
+    description: "도산·폐업 또는 지급불능 정황을 검토해 대지급금 신청 요건 검토와 신청 절차를 대리합니다.",
+  };
+
+  const ranked = mergedServices
+    .map((service) => ({ service, score: scoreService(service, combinedText) }))
+    .sort((a, b) => b.score - a.score)
+    .map((item) => item.service);
+
+  const addUnique = (arr: ManagedService[], service: ManagedService) => {
+    if (!arr.some((s) => s.name === service.name)) arr.push(service);
+  };
+
+  const picks: ManagedService[] = [];
+
+  if (category === "wage_arrears" && insolvency) {
+    addUnique(picks, substitutePayment);
+    addUnique(picks, wageClaim);
+    addUnique(picks, counseling);
+  } else if (category === "wage_arrears") {
+    addUnique(picks, wageClaim);
+    addUnique(picks, counseling);
+    addUnique(picks, substitutePayment);
+  } else {
+    addUnique(picks, counseling);
+  }
+
+  for (const candidate of ranked) {
+    if (picks.length >= 3) break;
+    addUnique(picks, candidate);
+  }
+  for (const fallback of [counseling, wageClaim, substitutePayment, ...mergedServices]) {
+    if (picks.length >= 3) break;
+    addUnique(picks, fallback);
+  }
+
+  return picks.slice(0, 3).map((service) => ({
+    name: service.name,
+    description: service.description,
+    workflowSteps: service.workflowSteps && service.workflowSteps.length > 0 ? service.workflowSteps : buildAutoWorkflow(service.name),
+    workflowInfographic:
+      service.workflowInfographic ||
+      buildWorkflowInfographicDataUrl(
+        service.name,
+        service.workflowSteps && service.workflowSteps.length > 0 ? service.workflowSteps : buildAutoWorkflow(service.name)
+      ),
+  }));
 }
 
 function buildSummary(situation: string, answers: string[], category: Category) {
@@ -190,23 +390,28 @@ export async function POST(req: Request) {
     let payload: DiscoveryResponse;
 
     if (round === 1) {
+      const second = buildSecondQuestion(category);
       payload = {
         stage: "ask",
-        question: buildSecondQuestion(category),
+        keyword: getKeywordLabel(category),
+        question: second.question,
+        focusInfo: second.focusInfo,
         round: 2,
       };
     } else if (round === 2) {
+      const third = buildThirdQuestion(category, combinedText);
       payload = {
         stage: "ask",
-        question: buildThirdQuestion(category, combinedText),
+        keyword: getKeywordLabel(category),
+        question: third.question,
+        focusInfo: third.focusInfo,
         round: 3,
       };
     } else {
-      const recommendation = recommendService(category, combinedText);
+      const services = recommendServices(category, combinedText);
       payload = {
         stage: "finalize",
-        recommendedService: recommendation.service,
-        recommendationReason: recommendation.reason,
+        recommendedServices: services,
         intakeSummary: buildSummary(situation, answers, category),
       };
     }
