@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
+type StepLog = {
+    session_id: string;
+    step: number;
+    event_type: string;
+    payload: Record<string, unknown> | null;
+    created_at: string;
+};
+
 export async function GET() {
     try {
         const supabase = getSupabaseAdmin();
@@ -36,6 +44,13 @@ export async function GET() {
             .order("created_at", { ascending: false })
             .limit(10);
 
+        // Step logs fallback for discovery-only sessions
+        const { data: recentStepLogs } = await supabase
+            .from("discovery_step_logs")
+            .select("session_id, step, event_type, payload, created_at")
+            .order("created_at", { ascending: false })
+            .limit(200);
+
         // Build interactions data
         const recentInteractions = (await Promise.all(
             (recentSessions || []).map(async (session) => {
@@ -61,11 +76,22 @@ export async function GET() {
 
                 const userMessage = messages?.find((m) => m.role === "user");
                 const aiMessage = messages?.find((m) => m.role === "assistant");
+                const sessionLogs = ((recentStepLogs || []) as StepLog[]).filter((log) => log.session_id === session.id);
+                const step1 = sessionLogs.find((log) => log.event_type === "step1_submitted");
+                const step2 = sessionLogs.find((log) => log.event_type === "step2_submitted");
+                const step3 = sessionLogs.find((log) => log.event_type === "step3_submitted");
 
                 return {
                     id: session.id,
-                    query: userMessage?.content || (request?.data?.initial_query) || "-",
-                    answer: aiMessage?.content || "-",
+                    query:
+                        userMessage?.content ||
+                        (request?.data?.initial_query) ||
+                        step1?.payload?.input ||
+                        "-",
+                    answer:
+                        aiMessage?.content ||
+                        [step2?.payload?.answer, step3?.payload?.answer].filter(Boolean).join(" / ") ||
+                        "-",
                     contact: request?.data?.contact || null,
                     created_at: session.created_at,
                 };

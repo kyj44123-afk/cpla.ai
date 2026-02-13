@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(req: Request) {
     try {
-        const { contact, name, query, sessionId } = await req.json();
+        const { contact, name, query, sessionId, selectedService, selectedPath } = await req.json();
 
         if (!contact) {
             return NextResponse.json({ error: "Contact info required" }, { status: 400 });
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
         // 2. Store Request/Contact Info linked to Session
         const { error: requestError } = await supabase.from("requests").insert({
             type: "contact_submission",
-            data: { contact, name, initial_query: query },
+            data: { contact, name, initial_query: query, selected_service: selectedService || null, selected_path: selectedPath || [] },
             session_id: targetSessionId,
         });
 
@@ -38,6 +38,19 @@ export async function POST(req: Request) {
             console.error("Request insertion error:", requestError);
             throw new Error("Failed to store contact info");
         }
+
+        // 3. Store final discovery step log (best effort)
+        await supabase.from("discovery_step_logs").insert({
+            session_id: targetSessionId,
+            step: 5,
+            event_type: "contact_submitted",
+            payload: {
+                name: name || "",
+                contact: contact || "",
+                selected_service: selectedService || null,
+                selected_path: Array.isArray(selectedPath) ? selectedPath : [],
+            },
+        });
 
         return NextResponse.json({ sessionId: targetSessionId, success: true });
 

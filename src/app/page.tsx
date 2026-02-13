@@ -71,6 +71,51 @@ export default function Home() {
 
   const progressText = useMemo(() => `${currentRound} / 3 단계`, [currentRound]);
 
+  const detectAudienceClient = (text: string): "worker" | "employer" => {
+    const normalized = String(text || "").toLowerCase().replace(/\s+/g, "");
+    const employerSignals = [
+      "사업주",
+      "대표",
+      "사용자",
+      "회사입장",
+      "회사측",
+      "인사팀",
+      "hr",
+      "인사담당",
+      "노무관리",
+      "취업규칙",
+      "근로감독",
+      "노사협의회",
+      "단체교섭",
+    ];
+    return employerSignals.some((s) => normalized.includes(s)) ? "employer" : "worker";
+  };
+
+  const logDiscoveryStep = async (
+    step: number,
+    eventType: string,
+    payload: Record<string, unknown>,
+    forcedSessionId?: string
+  ) => {
+    const targetSessionId = forcedSessionId || sessionId;
+    if (!targetSessionId) return;
+    try {
+      await fetch("/api/discovery-log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: targetSessionId,
+          step,
+          eventType,
+          audience: detectAudienceClient([situation, ...answers, firstInput, questionInput].join(" ")),
+          payload,
+        }),
+      });
+    } catch (error) {
+      console.error("failed to log discovery step:", error);
+    }
+  };
+
   const fetchDiscovery = async (baseSituation: string, nextAnswers: string[], round: number) => {
     setStep("loading");
 
@@ -108,7 +153,18 @@ export default function Home() {
     try {
       const sessionRes = await fetch("/api/session", { method: "POST" });
       const sessionData = await sessionRes.json();
-      setSessionId(sessionData.sessionId || "");
+      const createdSessionId = sessionData.sessionId || "";
+      setSessionId(createdSessionId);
+      if (createdSessionId) {
+        await logDiscoveryStep(
+          1,
+          "step1_submitted",
+          {
+            input: trimmed,
+          },
+          createdSessionId
+        );
+      }
     } catch (error) {
       console.error(error);
       setSessionId("");
@@ -121,6 +177,11 @@ export default function Home() {
         setCurrentQuestion(data.question);
         setQuickServices(Array.isArray(data.quickServices) ? data.quickServices.slice(0, 2) : []);
         setCurrentRound(data.round === 3 ? 3 : 2);
+        await logDiscoveryStep(2, "step2_question_generated", {
+          keyword: data.keyword,
+          question: data.question,
+          quick_services: Array.isArray(data.quickServices) ? data.quickServices.map((s) => s.name) : [],
+        });
         setStep("question");
         return;
       }
@@ -146,6 +207,9 @@ export default function Home() {
     const nextAnswers = [...answers, answer];
     setAnswers(nextAnswers);
     setQuestionInput("");
+    await logDiscoveryStep(currentRound, `step${currentRound}_submitted`, {
+      answer,
+    });
 
     try {
       const data = await fetchDiscovery(situation, nextAnswers, currentRound);
@@ -154,6 +218,11 @@ export default function Home() {
         setCurrentQuestion(data.question);
         setQuickServices(Array.isArray(data.quickServices) ? data.quickServices.slice(0, 2) : []);
         setCurrentRound(data.round === 3 ? 3 : 2);
+        await logDiscoveryStep(3, "step3_question_generated", {
+          keyword: data.keyword,
+          question: data.question,
+          quick_services: Array.isArray(data.quickServices) ? data.quickServices.map((s) => s.name) : [],
+        });
         setStep("question");
         return;
       }
@@ -256,6 +325,7 @@ export default function Home() {
                       key={`quick-${service.name}`}
                       type="button"
                       onClick={() => {
+                        void logDiscoveryStep(currentRound, "quick_service_clicked", { service: service.name, source: "question_page" });
                         setRecommendedServices(quickServices.length > 0 ? quickServices : defaultServices.slice(0, 2));
                         setSelectedService(service.name);
                         setStep("contact");
@@ -312,7 +382,10 @@ export default function Home() {
                     <div className="mt-4 flex justify-end">
                       <button
                         type="button"
-                        onClick={() => setSelectedService(service.name)}
+                        onClick={() => {
+                          void logDiscoveryStep(4, "service_apply_clicked", { service: service.name, source: "contact_list" });
+                          setSelectedService(service.name);
+                        }}
                         className="bg-[#E97132] text-white text-sm px-4 py-2"
                       >
                         신청하기
