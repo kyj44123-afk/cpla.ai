@@ -3,12 +3,13 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, FileText, BarChart3, Settings, Home, LogOut, MessageSquare, Briefcase } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, Settings, Home, LogOut, MessageSquare, Briefcase, Search } from "lucide-react";
 
 const navItems = [
     { href: "/admin", label: "대시보드", icon: LayoutDashboard },
     { href: "/admin/inquiries", label: "문의 내역", icon: MessageSquare },
     { href: "/admin/documents", label: "문서 관리", icon: FileText },
+    { href: "/admin/my-elabor", label: "My Elabor", icon: Search },
     { href: "/admin/services", label: "서비스 관리", icon: Briefcase },
     { href: "/admin/analytics", label: "분석", icon: BarChart3 },
     { href: "/admin/settings", label: "설정", icon: Settings },
