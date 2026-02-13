@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import * as fs from "fs";
 import * as path from "path";
 import { buildWorkflowInfographicDataUrl, buildWorkflowSteps } from "@/lib/workflowInfographic";
+import { BASE_LABOR_SERVICES } from "@/lib/laborServicesCatalog";
 
 type Body = {
   situation: string;
@@ -278,29 +279,14 @@ function buildThirdQuestion(category: Category, combinedText: string) {
 function recommendServices(category: Category, combinedText: string) {
   const insolvency = detectInsolvency(combinedText);
 
-  const defaultServices: ManagedService[] = [
-    {
-      name: "전문 공인노무사 상담",
-      description: "핵심 이슈의 사실관계와 절차 선택을 빠르게 정리해 초기 대응 전략을 설계합니다.",
-      keywords: ["상담", "전략", "진단", "노무사"],
-      workflowSteps: buildWorkflowSteps("전문 공인노무사 상담"),
-      workflowInfographic: buildWorkflowInfographicDataUrl("전문 공인노무사 상담", buildWorkflowSteps("전문 공인노무사 상담")),
-    },
-    {
-      name: "임금체불 진정사건 대리",
-      description: "미지급 임금·수당·퇴직금 증빙을 정리하고 노동청 진정 절차를 대리합니다.",
-      keywords: ["임금", "체불", "미지급", "퇴직금", "노동청", "진정"],
-      workflowSteps: buildWorkflowSteps("임금체불 진정사건 대리"),
-      workflowInfographic: buildWorkflowInfographicDataUrl("임금체불 진정사건 대리", buildWorkflowSteps("임금체불 진정사건 대리")),
-    },
-    {
-      name: "대지급금 신청 대리",
-      description: "도산·폐업 또는 지급불능 정황을 검토해 대지급금 신청 요건 검토와 신청 절차를 대리합니다.",
-      keywords: ["대지급금", "체당금", "폐업", "도산", "파산", "지급불능"],
-      workflowSteps: buildWorkflowSteps("대지급금 신청 대리"),
-      workflowInfographic: buildWorkflowInfographicDataUrl("대지급금 신청 대리", buildWorkflowSteps("대지급금 신청 대리")),
-    },
-  ];
+  const defaultServices: ManagedService[] = BASE_LABOR_SERVICES.map((service) => {
+    const steps = buildWorkflowSteps(service.name);
+    return {
+      ...service,
+      workflowSteps: steps,
+      workflowInfographic: buildWorkflowInfographicDataUrl(service.name, steps),
+    };
+  });
 
   const mergedMap = new Map<string, ManagedService>();
   for (const svc of defaultServices) mergedMap.set(svc.name, svc);

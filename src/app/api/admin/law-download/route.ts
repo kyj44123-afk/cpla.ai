@@ -23,6 +23,13 @@ interface SavedFile {
   path: string;
 }
 
+function maskSecret(value: string): string {
+  if (!value) return "";
+  if (value.length <= 2) return "*".repeat(value.length);
+  if (value.length <= 4) return `${value[0]}**${value[value.length - 1]}`;
+  return `${value.slice(0, 2)}***${value.slice(-2)}`;
+}
+
 function stripTagContent(value: string): string {
   return value
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
@@ -252,19 +259,25 @@ async function searchAllItems(target: SearchTarget, lawName: string, apiKey: str
 }
 
 export async function POST(req: Request) {
+  const envOc = process.env.NATIONAL_LAW_API_KEY || "";
   const apiKey = getNationalLawApiKey();
+  const debugInfo = {
+    usedOcMasked: maskSecret(apiKey),
+    ocSource: envOc ? "env" : "settings",
+  };
+
   if (!apiKey) {
-    return NextResponse.json({ error: "국가법령정보센터 API 키가 설정되지 않았습니다." }, { status: 400 });
+    return NextResponse.json({ error: "국가법령정보센터 API 키가 설정되지 않았습니다.", debug: debugInfo }, { status: 400 });
   }
 
   const { lawName } = await req.json();
   if (!lawName || typeof lawName !== "string") {
-    return NextResponse.json({ error: "법령명을 입력해 주세요." }, { status: 400 });
+    return NextResponse.json({ error: "법령명을 입력해 주세요.", debug: debugInfo }, { status: 400 });
   }
 
   const trimmedLawName = lawName.trim();
   if (!trimmedLawName) {
-    return NextResponse.json({ error: "법령명을 입력해 주세요." }, { status: 400 });
+    return NextResponse.json({ error: "법령명을 입력해 주세요.", debug: debugInfo }, { status: 400 });
   }
 
   try {
@@ -365,11 +378,12 @@ export async function POST(req: Request) {
       totalSaved: savedFiles.length,
       truncated: precResult.truncated || admrulResult.truncated,
       savedFiles,
+      debug: debugInfo,
     });
   } catch (error) {
     console.error("Reference material download error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "자료 다운로드 중 오류가 발생했습니다." },
+      { error: error instanceof Error ? error.message : "자료 다운로드 중 오류가 발생했습니다.", debug: debugInfo },
       { status: 500 }
     );
   }

@@ -13,7 +13,7 @@ export function getApiKey(keyName: "openai_api_key" | "national_law_api_key"): s
 
     const envValue = process.env[envMap[keyName]];
     if (envValue) {
-        return envValue;
+        return envValue.trim();
     }
 
     // Then check local settings file
@@ -27,9 +27,9 @@ export function getApiKey(keyName: "openai_api_key" | "national_law_api_key"): s
             if (value.includes(":")) {
                 // eslint-disable-next-line @typescript-eslint/no-require-imports
                 const { SecretsManager } = require("./SecretsManager");
-                return SecretsManager.decrypt(value);
+                return SecretsManager.decrypt(value).trim();
             }
-            return value;
+            return value.trim();
         }
     } catch (e) {
         console.error("Failed to read settings:", e);

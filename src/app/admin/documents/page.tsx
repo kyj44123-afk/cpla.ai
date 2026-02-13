@@ -26,6 +26,7 @@ export default function DocumentsPage() {
         savedFiles: { category: "precedent" | "administrative_ruling"; title: string; path: string }[];
     } | null>(null);
     const [lawError, setLawError] = useState("");
+    const [lawDebug, setLawDebug] = useState<{ usedOcMasked?: string; ocSource?: string } | null>(null);
 
     const fetchDocuments = async () => {
         try {
@@ -82,6 +83,7 @@ export default function DocumentsPage() {
         e.preventDefault();
         setLawError("");
         setLawResult(null);
+        setLawDebug(null);
 
         if (!lawForm.lawName.trim()) {
             setLawError("법령명을 입력해 주세요.");
@@ -96,6 +98,7 @@ export default function DocumentsPage() {
                 body: JSON.stringify(lawForm),
             });
             const data = await res.json();
+            setLawDebug(data?.debug || null);
 
             if (!res.ok) {
                 setLawError(data.error || "법령 다운로드에 실패했습니다.");
@@ -207,6 +210,11 @@ export default function DocumentsPage() {
                 </form>
 
                 {lawError && <p className="mt-4 text-sm text-red-600">{lawError}</p>}
+                {lawDebug && (
+                    <p className="mt-2 text-xs text-slate-500">
+                        debug: OC={lawDebug.usedOcMasked || "(empty)"} / source={lawDebug.ocSource || "unknown"}
+                    </p>
+                )}
 
                 {lawResult && (
                     <div className="mt-6 border border-indigo-100 bg-indigo-50 rounded-lg p-4">
