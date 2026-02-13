@@ -53,6 +53,26 @@ export default function BlogWriterPage() {
   const [draft, setDraft] = useState<DraftResult | null>(null);
 
   // --- Handlers ---
+  const normalizeIdeation = (raw: unknown): IdeationResult => {
+    const row = (raw ?? {}) as Record<string, unknown>;
+    const titles = Array.isArray(row.titles)
+      ? row.titles.map((v) => (typeof v === "string" ? v.trim() : "")).filter(Boolean)
+      : [];
+    const outline = Array.isArray(row.outline)
+      ? row.outline
+        .map((item) => {
+          const o = item as Record<string, unknown>;
+          const heading = typeof o.heading === "string" ? o.heading.trim() : "";
+          if (!heading) return null;
+          return {
+            heading,
+            description: typeof o.description === "string" ? o.description.trim() : "",
+          };
+        })
+        .filter((x): x is { heading: string; description: string } => x !== null)
+      : [];
+    return { titles, outline };
+  };
 
   const handleIdeation = async () => {
     if (!keyword.trim()) return;
@@ -72,9 +92,14 @@ export default function BlogWriterPage() {
       }
 
       const data = await res.json();
-      setIdeation(data);
-      setOutline(data.outline);
-      if (data.titles.length > 0) setSelectedTitle(data.titles[0]);
+      const normalized = normalizeIdeation(data);
+      setIdeation(normalized);
+      setOutline(normalized.outline);
+      if (normalized.titles.length > 0) {
+        setSelectedTitle(normalized.titles[0]);
+      } else {
+        setSelectedTitle(`${keyword} 실무 가이드`);
+      }
       setStep("ideation");
     } catch (e) {
       const message = e instanceof Error ? e.message : "오류가 발생했습니다. 다시 시도해주세요.";
