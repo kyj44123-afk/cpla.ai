@@ -9,9 +9,9 @@ import { cookies } from "next/headers";
 // However, for this task, I will implement a simple Map-based limiter as a starting point.
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 
-export function checkRateLimit(ip: string, limit = 10, windowMs = 60 * 1000): boolean {
+export function checkRateLimit(key: string, limit = 10, windowMs = 60 * 1000): boolean {
     const now = Date.now();
-    const record = rateLimitMap.get(ip) || { count: 0, lastReset: now };
+    const record = rateLimitMap.get(key) || { count: 0, lastReset: now };
 
     if (now - record.lastReset > windowMs) {
         record.count = 0;
@@ -23,7 +23,7 @@ export function checkRateLimit(ip: string, limit = 10, windowMs = 60 * 1000): bo
     }
 
     record.count += 1;
-    rateLimitMap.set(ip, record);
+    rateLimitMap.set(key, record);
     return true;
 }
 
@@ -75,11 +75,16 @@ export async function withSecurity(
     req: NextRequest,
     options: SecurityOptions = { checkAuth: true, rateLimit: { limit: 20 } }
 ): Promise<NextResponse | null> {
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    const forwarded = req.headers.get("x-forwarded-for");
+    const realIp = req.headers.get("x-real-ip");
+    const cfIp = req.headers.get("cf-connecting-ip");
+    const ip = (forwarded?.split(",")[0]?.trim() || realIp || cfIp || "local").trim();
+    const path = new URL(req.url).pathname;
+    const rateKey = `${ip}:${path}`;
 
     // 1. Rate Limit
     if (options.rateLimit) {
-        const passed = checkRateLimit(ip, options.rateLimit.limit, options.rateLimit.windowMs);
+        const passed = checkRateLimit(rateKey, options.rateLimit.limit, options.rateLimit.windowMs);
         if (!passed) {
             return NextResponse.json({ error: "Too many requests" }, { status: 429 });
         }

@@ -66,7 +66,10 @@ export default function BlogWriterPage() {
         body: JSON.stringify({ keyword, preset: "general" }), // Preset은 추후 확장 가능
       });
 
-      if (!res.ok) throw new Error("아이디어 생성 실패");
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        throw new Error(payload?.error || "아이디어 생성 실패");
+      }
 
       const data = await res.json();
       setIdeation(data);
@@ -74,7 +77,8 @@ export default function BlogWriterPage() {
       if (data.titles.length > 0) setSelectedTitle(data.titles[0]);
       setStep("ideation");
     } catch (e) {
-      setError("오류가 발생했습니다. 다시 시도해주세요.");
+      const message = e instanceof Error ? e.message : "오류가 발생했습니다. 다시 시도해주세요.";
+      setError(message);
     } finally {
       setLoading(false);
     }

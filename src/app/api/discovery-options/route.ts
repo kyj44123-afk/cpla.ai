@@ -88,6 +88,10 @@ const CATEGORY_KEYWORDS: Record<Exclude<Category, "none" | "other">, string[]> =
     "교대제",
     "근무표",
     "시프트",
+    "조직문화",
+    "조직문화컨설팅",
+    "동기부여",
+    "동기부여컨설팅",
   ],
 };
 
@@ -169,6 +173,14 @@ const EMPLOYER_INTENT_SIGNALS = [
   "징계위원회",
   "징계절차",
   "시정지시",
+  "조직문화",
+  "조직문화컨설팅",
+  "문화개선",
+  "조직진단",
+  "동기부여",
+  "동기부여컨설팅",
+  "구성원몰입",
+  "몰입도",
 ];
 
 function includesAny(text: string, patterns: string[]) {
@@ -348,6 +360,11 @@ function scoreService(service: ManagedService, text: string, exampleSignals?: Di
       "규정",
       "교대근무",
       "스케줄",
+      "조직문화",
+      "조직문화컨설팅",
+      "문화개선",
+      "동기부여",
+      "동기부여컨설팅",
     ]) > 0;
   const isGenericCounseling = service.name === "전문 공인노무사 상담" || (service.name.includes("상담") && service.name.includes("노무"));
   if (hasSpecificSignal && isGenericCounseling) adjustment -= 7;
@@ -515,6 +532,12 @@ function detectAudience(text: string, exampleHint?: DiscoveryExampleSignals): Au
     "실사",
     "dd",
     "m&a",
+    "조직문화",
+    "조직문화컨설팅",
+    "문화개선",
+    "동기부여",
+    "동기부여컨설팅",
+    "구성원몰입",
   ];
   return includesAny(normalized, employerSignals) ? "employer" : "worker";
 }
@@ -538,6 +561,9 @@ function detectContractSubtype(text: string): ContractSubtype {
   }
   if (countMatches(normalized, ["교대제", "근무표", "시프트", "교대근무", "스케줄"]) > 0) {
     return "workforce_schedule";
+  }
+  if (countMatches(normalized, ["조직문화", "조직문화컨설팅", "문화개선", "동기부여", "동기부여컨설팅", "몰입도"]) > 0) {
+    return "general";
   }
   return "general";
 }

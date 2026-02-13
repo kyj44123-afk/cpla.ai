@@ -26,6 +26,9 @@ const FALLBACK_SERVICE_TYPES = [
     "임금체불 진정",
     "노동위원회 사건",
     "직장 내 괴롭힘 상담",
+    "직장 내 성희롱",
+    "조직문화 컨설팅",
+    "동기부여 컨설팅",
     "산재 보상 신청",
     "법률 자문 (1회)",
     "법률 자문 (월정액)",
@@ -36,26 +39,36 @@ function normalizeText(value: string): string {
     return value.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
+function compactText(value: string): string {
+    return normalizeText(value).replace(/[^0-9a-z가-힣]/g, "");
+}
+
 function inferBestServiceType(query: string, services: ManagedService[]): string | null {
     const normalizedQuery = normalizeText(query);
+    const compactQuery = compactText(query);
     if (!normalizedQuery) return null;
 
     let best: { name: string; score: number } | null = null;
     for (const service of services) {
         const serviceName = normalizeText(service.name);
+        const compactServiceName = compactText(service.name);
         let score = 0;
 
         if (normalizedQuery.includes(serviceName)) score += 10;
+        if (compactQuery && compactServiceName && compactQuery.includes(compactServiceName)) score += 14;
 
         const nameTokens = serviceName.split(" ").filter((token) => token.length >= 2);
         for (const token of nameTokens) {
             if (normalizedQuery.includes(token)) score += 2;
+            if (compactQuery.includes(compactText(token))) score += 2;
         }
 
         for (const keyword of service.keywords || []) {
             const key = normalizeText(keyword);
+            const compactKey = compactText(keyword);
             if (!key) continue;
             if (normalizedQuery.includes(key)) score += 3;
+            if (compactKey && compactQuery.includes(compactKey)) score += 4;
         }
 
         if (!best || score > best.score) {
