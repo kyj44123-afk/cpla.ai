@@ -26,7 +26,17 @@ export default function DocumentsPage() {
         savedFiles: { category: "precedent" | "administrative_ruling"; title: string; path: string }[];
     } | null>(null);
     const [lawError, setLawError] = useState("");
-    const [lawDebug, setLawDebug] = useState<{ usedOcMasked?: string; ocSource?: string } | null>(null);
+    const [lawDebug, setLawDebug] = useState<{
+        usedOcMasked?: string;
+        ocSource?: string;
+        ocLength?: number;
+        trimmedChanged?: boolean;
+        hasWhitespace?: boolean;
+        hasNonAscii?: boolean;
+        charCodes?: number[];
+        ocHash12?: string;
+        probes?: { target: string; status: number; mode: string; h2?: string }[];
+    } | null>(null);
 
     const fetchDocuments = async () => {
         try {
@@ -211,9 +221,18 @@ export default function DocumentsPage() {
 
                 {lawError && <p className="mt-4 text-sm text-red-600">{lawError}</p>}
                 {lawDebug && (
-                    <p className="mt-2 text-xs text-slate-500">
-                        debug: OC={lawDebug.usedOcMasked || "(empty)"} / source={lawDebug.ocSource || "unknown"}
-                    </p>
+                    <div className="mt-2 text-xs text-slate-500 space-y-1">
+                        <p>debug: OC={lawDebug.usedOcMasked || "(empty)"} / len={lawDebug.ocLength ?? 0} / source={lawDebug.ocSource || "unknown"}</p>
+                        <p>hash={lawDebug.ocHash12 || "-"} / trimmedChanged={String(Boolean(lawDebug.trimmedChanged))} / whitespace={String(Boolean(lawDebug.hasWhitespace))} / nonAscii={String(Boolean(lawDebug.hasNonAscii))}</p>
+                        {lawDebug.charCodes && lawDebug.charCodes.length > 0 && (
+                            <p>charCodes=[{lawDebug.charCodes.join(", ")}]</p>
+                        )}
+                        {lawDebug.probes && lawDebug.probes.length > 0 && (
+                            <p>
+                                probes: {lawDebug.probes.map((p) => `${p.target}:${p.status}/${p.mode}${p.h2 ? `(${p.h2})` : ""}`).join(" | ")}
+                            </p>
+                        )}
+                    </div>
                 )}
 
                 {lawResult && (

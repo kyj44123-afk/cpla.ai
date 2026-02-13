@@ -14,6 +14,7 @@ type AskResponse = {
   stage: "ask";
   keyword: string;
   question: string;
+  quickServices: { name: string; description: string; workflowSteps: string[]; workflowInfographic: string }[];
   round: number;
 };
 
@@ -62,6 +63,7 @@ export default function Home() {
   const [answers, setAnswers] = useState<string[]>([]);
   const [currentKeyword, setCurrentKeyword] = useState("");
   const [currentQuestion, setCurrentQuestion] = useState("");
+  const [quickServices, setQuickServices] = useState<ServiceOption[]>([]);
   const [recommendedServices, setRecommendedServices] = useState<ServiceOption[]>([]);
   const [selectedService, setSelectedService] = useState("");
   const [intakeSummary, setIntakeSummary] = useState("");
@@ -98,6 +100,7 @@ export default function Home() {
     setAnswers([]);
     setQuestionInput("");
     setCurrentKeyword("");
+    setQuickServices([]);
     setRecommendedServices([]);
     setSelectedService("");
     setIntakeSummary("");
@@ -116,6 +119,7 @@ export default function Home() {
       if (data.stage === "ask") {
         setCurrentKeyword(data.keyword || "근로관계 이슈");
         setCurrentQuestion(data.question);
+        setQuickServices(Array.isArray(data.quickServices) ? data.quickServices.slice(0, 2) : []);
         setCurrentRound(data.round === 3 ? 3 : 2);
         setStep("question");
         return;
@@ -128,6 +132,7 @@ export default function Home() {
       console.error(error);
       setCurrentKeyword("근로관계 이슈");
       setCurrentQuestion("상황 파악에 어려움이 있어요. 최근 가장 불편했던 상황을 한 가지 사례로 적어주실 수 있을까요?");
+      setQuickServices(defaultServices.slice(0, 2));
       setCurrentRound(2);
       setStep("question");
     }
@@ -147,6 +152,7 @@ export default function Home() {
       if (data.stage === "ask") {
         setCurrentKeyword(data.keyword || "근로관계 이슈");
         setCurrentQuestion(data.question);
+        setQuickServices(Array.isArray(data.quickServices) ? data.quickServices.slice(0, 2) : []);
         setCurrentRound(data.round === 3 ? 3 : 2);
         setStep("question");
         return;
@@ -191,6 +197,7 @@ export default function Home() {
     setAnswers([]);
     setCurrentKeyword("");
     setCurrentQuestion("");
+    setQuickServices([]);
     setRecommendedServices([]);
     setSelectedService("");
     setIntakeSummary("");
@@ -240,6 +247,26 @@ export default function Home() {
               </div>
               <p className="text-xs text-[#E97132] font-medium mb-2">{progressText}</p>
               <h2 className="text-2xl font-bold text-slate-800 mb-5">{currentQuestion}</h2>
+
+              <div className="mb-5">
+                <p className="text-xs text-slate-500 mb-2">관련성이 높은 서비스 빠른 신청</p>
+                <div className="flex flex-wrap gap-2">
+                  {(quickServices.length > 0 ? quickServices : defaultServices.slice(0, 2)).map((service) => (
+                    <button
+                      key={`quick-${service.name}`}
+                      type="button"
+                      onClick={() => {
+                        setRecommendedServices(quickServices.length > 0 ? quickServices : defaultServices.slice(0, 2));
+                        setSelectedService(service.name);
+                        setStep("contact");
+                      }}
+                      className="px-3 py-2 border border-[#E97132] text-[#E97132] text-xs font-medium hover:bg-[#E97132] hover:text-white transition-colors"
+                    >
+                      {service.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <form onSubmit={handleSubmitQuestion} className="space-y-4">
                 <textarea

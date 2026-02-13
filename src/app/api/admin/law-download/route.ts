@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import crypto from "crypto";
 import { getNationalLawApiKey } from "@/lib/settings";
 
 export const runtime = "nodejs";
@@ -23,11 +24,19 @@ interface SavedFile {
   path: string;
 }
 
+interface TargetProbeResult {
+  target: "law" | "prec" | "admrul";
+  status: number;
+  contentType: string;
+  mode: "xml" | "html" | "unknown";
+  h2: string;
+}
+
 function maskSecret(value: string): string {
   if (!value) return "";
   if (value.length <= 2) return "*".repeat(value.length);
-  if (value.length <= 4) return `${value[0]}**${value[value.length - 1]}`;
-  return `${value.slice(0, 2)}***${value.slice(-2)}`;
+  if (value.length <= 4) return `${value[0]}${"*".repeat(value.length - 2)}${value[value.length - 1]}`;
+  return `${value.slice(0, 2)}${"*".repeat(value.length - 4)}${value.slice(-2)}`;
 }
 
 function stripTagContent(value: string): string {
@@ -63,6 +72,10 @@ function sanitizeForFilename(input: string): string {
     .replace(/[\\/:*?"<>|]/g, "-")
     .replace(/\s+/g, "_")
     .slice(0, 80);
+}
+
+function sha256Short(input: string): string {
+  return crypto.createHash("sha256").update(input).digest("hex").slice(0, 12);
 }
 
 async function decodeXmlResponse(response: Response): Promise<string> {
@@ -118,6 +131,35 @@ function extractHtmlErrorMessage(html: string): string {
   }
 
   return h2Text || "국가법령정보센터가 HTML 오류 페이지를 반환했습니다.";
+}
+
+async function probeTargetAccess(apiKey: string, target: "law" | "prec" | "admrul"): Promise<TargetProbeResult> {
+  const url = new URL(`${LAW_API_BASE}/lawSearch.do`);
+  url.searchParams.set("OC", apiKey);
+  url.searchParams.set("target", target);
+  url.searchParams.set("type", "XML");
+  url.searchParams.set("query", "근로기준법");
+  url.searchParams.set("display", "1");
+
+  const response = await fetch(url.toString());
+  const body = await decodeXmlResponse(response);
+  const contentType = response.headers.get("content-type") || "";
+  const normalized = body.replace(/\s+/g, " ").trim();
+  const h2Match = normalized.match(/<h2[^>]*>(.*?)<\/h2>/i);
+  const h2 = h2Match ? stripTagContent(h2Match[1]) : "";
+  const mode: "xml" | "html" | "unknown" = /^<\?xml|<[A-Za-z]+Search|<[A-Za-z]+Service/.test(normalized)
+    ? "xml"
+    : /<html[\s>]|<!doctype html/i.test(normalized)
+      ? "html"
+      : "unknown";
+
+  return {
+    target,
+    status: response.status,
+    contentType,
+    mode,
+    h2,
+  };
 }
 
 function parseSearchItems(xml: string, target: SearchTarget): SearchItem[] {
@@ -261,12 +303,29 @@ async function searchAllItems(target: SearchTarget, lawName: string, apiKey: str
 export async function POST(req: Request) {
   const envOc = process.env.NATIONAL_LAW_API_KEY || "";
   const apiKey = getNationalLawApiKey();
+  const trimmedApiKey = apiKey.trim();
+  const hasWhitespace = /\s/.test(apiKey);
+  const hasNonAscii = /[^\x20-\x7E]/.test(apiKey);
+  const charCodes = Array.from(trimmedApiKey).map((ch) => ch.charCodeAt(0));
+  const [lawProbe, precProbe, admrulProbe] = await Promise.all([
+    probeTargetAccess(trimmedApiKey, "law"),
+    probeTargetAccess(trimmedApiKey, "prec"),
+    probeTargetAccess(trimmedApiKey, "admrul"),
+  ]);
+
   const debugInfo = {
-    usedOcMasked: maskSecret(apiKey),
+    usedOcMasked: maskSecret(trimmedApiKey),
+    ocLength: trimmedApiKey.length,
     ocSource: envOc ? "env" : "settings",
+    trimmedChanged: apiKey !== trimmedApiKey,
+    hasWhitespace,
+    hasNonAscii,
+    charCodes,
+    ocHash12: sha256Short(trimmedApiKey),
+    probes: [lawProbe, precProbe, admrulProbe],
   };
 
-  if (!apiKey) {
+  if (!trimmedApiKey) {
     return NextResponse.json({ error: "국가법령정보센터 API 키가 설정되지 않았습니다.", debug: debugInfo }, { status: 400 });
   }
 
@@ -282,8 +341,8 @@ export async function POST(req: Request) {
 
   try {
     const [precResult, admrulResult] = await Promise.all([
-      searchAllItems("prec", trimmedLawName, apiKey),
-      searchAllItems("admrul", trimmedLawName, apiKey),
+      searchAllItems("prec", trimmedLawName, trimmedApiKey),
+      searchAllItems("admrul", trimmedLawName, trimmedApiKey),
     ]);
 
     const precedentCandidates = precResult.items;
@@ -298,7 +357,7 @@ export async function POST(req: Request) {
     const savedFiles: SavedFile[] = [];
 
     for (const item of precedentCandidates) {
-      const detailXml = await fetchDetailXml("prec", item.id, apiKey);
+      const detailXml = await fetchDetailXml("prec", item.id, trimmedApiKey);
       if (!hasLawCitation(detailXml, trimmedLawName)) continue;
 
       const caseNumber = extractFirstTagValue(detailXml, ["사건번호"]);
@@ -332,7 +391,7 @@ export async function POST(req: Request) {
     }
 
     for (const item of admrulCandidates) {
-      const detailXml = await fetchDetailXml("admrul", item.id, apiKey);
+      const detailXml = await fetchDetailXml("admrul", item.id, trimmedApiKey);
       if (!hasLawCitation(detailXml, trimmedLawName)) continue;
 
       const issueNumber = extractFirstTagValue(detailXml, ["안건번호", "문서번호", "회시번호"]);

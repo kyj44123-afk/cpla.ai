@@ -18,6 +18,7 @@ type DiscoveryResponse =
       keyword: string;
       question: string;
       focusInfo: string;
+      quickServices: { name: string; description: string; workflowSteps: string[]; workflowInfographic: string }[];
       round: number;
     }
   | {
@@ -186,42 +187,98 @@ function getKeywordLabel(category: Category) {
   }
 }
 
-function buildSecondQuestion(category: Category) {
+type ExtractedFacts = {
+  amount?: string;
+  when?: string;
+  hasEvidence: boolean;
+  reportedToAgency: boolean;
+  reportedInCompany: boolean;
+  wantsFast: boolean;
+  wantsCompensation: boolean;
+  wantsReinstatement: boolean;
+};
+
+function extractFacts(text: string): ExtractedFacts {
+  const raw = String(text || "");
+  const normalized = normalize(raw);
+
+  const amountMatch = raw.match(/(\d{1,3}(,\d{3})*(\.\d+)?\s*(원|만원|천원))/);
+  const dateMatch =
+    raw.match(/(\d{4}[./-]\d{1,2}[./-]\d{1,2})/) ||
+    raw.match(/((최근|지난)\s*\d+\s*(일|주|개월|달|년))/);
+
+  return {
+    amount: amountMatch?.[1],
+    when: dateMatch?.[1],
+    hasEvidence: includesAny(normalized, ["문자", "카톡", "메일", "녹취", "녹음", "증거", "캡처", "명세서", "근로계약서"]),
+    reportedToAgency: includesAny(normalized, ["노동청신고", "진정", "고소", "접수", "신고완료", "신고했"]),
+    reportedInCompany: includesAny(normalized, ["사내신고", "인사팀", "대표에게", "신고했", "고충처리"]),
+    wantsFast: includesAny(normalized, ["빨리", "즉시", "당장", "긴급", "최대한빨리"]),
+    wantsCompensation: includesAny(normalized, ["보상", "배상", "합의금", "금전", "돈", "지급"]),
+    wantsReinstatement: includesAny(normalized, ["복직", "원직", "돌아가", "직장복귀"]),
+  };
+}
+
+function buildSignalPrefix(category: Category, facts: ExtractedFacts) {
+  const parts: string[] = [];
+  if (facts.amount) parts.push(`금액(${facts.amount})`);
+  if (facts.when) parts.push(`시점(${facts.when})`);
+  if (facts.hasEvidence) parts.push("증빙 보유");
+
+  const baseByCategory: Record<Category, string> = {
+    wage_arrears: "임금 미지급 신호",
+    dismissal: "해고·징계 분쟁 신호",
+    harassment: "괴롭힘/성희롱 분쟁 신호",
+    industrial_accident: "산재 가능성 신호",
+    contract: "근로조건 위반 신호",
+    none: "잠재 노무 리스크 신호",
+    other: "근로관계 분쟁 신호",
+  };
+
+  if (parts.length === 0) return `입력하신 내용을 보면 ${baseByCategory[category]}가 보입니다.`;
+  return `입력하신 내용을 보면 ${baseByCategory[category]}가 보입니다. (${parts.join(", ")})`;
+}
+
+function buildSecondQuestion(category: Category, combinedText: string) {
+  const facts = extractFacts(combinedText);
+  const prefix = buildSignalPrefix(category, facts);
+  const empathyPrefix = "충분히 힘드셨을 상황으로 보입니다. 핵심을 정확히 짚어드릴게요.";
+
   switch (category) {
     case "wage_arrears":
       return {
-        question: "임금체불은 시간이 지날수록 증빙 정리와 회수 전략이 더 중요해지는 이슈입니다. 현재 상황을 더 정확히 확인하겠습니다.",
+        question: `${empathyPrefix} ${prefix} 미지급 항목(기본급/수당/퇴직금)별 금액과 지급일, 회사에 지급 요청한 방식(구두/문자/메일)을 알려주세요.`,
         focusInfo: "AI가 확인하려는 정보: 미지급 항목·금액·기간, 회사에 지급 요청한 기록(문자/메일/녹취 등)",
       };
     case "dismissal":
       return {
-        question: "부당해고·징계 이슈는 초기 대응 방향에 따라 결과가 크게 달라질 수 있습니다. 현재 상황을 더 정확히 확인하겠습니다.",
+        question: `${empathyPrefix} ${prefix} 회사 조치가 해고·징계·권고사직 중 무엇인지, 통보 시점/방식(구두·서면), 현재 근무상태를 알려주세요.`,
         focusInfo: "AI가 확인하려는 정보: 회사 조치 내용, 통보 시점, 서면 통지 수령 여부",
       };
     case "harassment":
       return {
-        question: "직장 내 괴롭힘 이슈는 반복 정황과 증거 확보가 핵심입니다. 현재 상황을 더 정확히 확인하겠습니다.",
+        question: `${empathyPrefix} ${prefix} 가장 심각했던 사건 1건을 기준으로, 누가 어떤 말/행동을 했는지와 반복 횟수, 현재 증빙 보유 여부를 알려주세요.`,
         focusInfo: "AI가 확인하려는 정보: 반복된 행동 유형, 발생 시점, 사내 신고 여부",
       };
     case "industrial_accident":
       return {
-        question: "산업재해 이슈는 업무관련성 입증 포인트를 초기에 잡는 것이 매우 중요합니다. 현재 상황을 더 정확히 확인하겠습니다.",
+        question: `${empathyPrefix} ${prefix} 사고(또는 증상) 발생 시점, 진단명, 회사 보고 여부와 현재 치료 상태를 알려주세요.`,
         focusInfo: "AI가 확인하려는 정보: 사고·증상 발생 시점, 진단명, 회사 보고 여부, 치료 상태",
       };
     case "contract":
       return {
-        question: "근로조건 이슈는 계약과 실제 운영의 차이를 특정하면 해결 경로가 빨라집니다. 현재 상황을 더 정확히 확인하겠습니다.",
+        question: `${empathyPrefix} ${prefix} 계약서 기준 조건과 실제 운영이 다른 핵심 항목 1~2개를 예시로 적어주세요.`,
         focusInfo: "AI가 확인하려는 정보: 가장 문제인 조건 1개, 계약 내용과 실제 운영(임금·시간·휴게·연차) 비교",
       };
     case "none":
       return {
-        question: "지금은 문제를 명확히 이름 붙이기 전 단계로 보이지만, 이 시점에 정확히 짚으면 분쟁을 미리 막을 수 있습니다.",
+        question: `${empathyPrefix} ${prefix} 최근 2주 내 가장 불편했던 상황 1건을 시간순으로 적어주세요. 함께 정확히 정리해보겠습니다.`,
         focusInfo: "AI가 확인하려는 정보: 최근 2주 내 불편/불안 장면 1건(누가, 언제, 무엇을 했는지)",
       };
     case "other":
     default:
       return {
-        question: "사실관계를 먼저 구조화하면 대응 속도와 정확도가 크게 올라갑니다. 현재 상황을 더 정확히 확인하겠습니다.",
+        question: `${empathyPrefix} ${prefix} 최근 사건을 시간순으로 2~3문장으로 적어주세요. 핵심 쟁점을 빠르게 구조화해보겠습니다.`,
         focusInfo: "AI가 확인하려는 정보: 최근 사건을 시점 순서대로 2~3문장",
       };
   }
@@ -229,48 +286,63 @@ function buildSecondQuestion(category: Category) {
 
 function buildThirdQuestion(category: Category, combinedText: string) {
   const insolvency = detectInsolvency(combinedText);
+  const facts = extractFacts(combinedText);
+
+  const intentLine =
+    facts.wantsReinstatement
+      ? "현재 입력을 보면 복직/원직 회복 의지가 보입니다."
+      : facts.wantsCompensation
+        ? "현재 입력을 보면 금전 회수/보상 의지가 분명합니다."
+        : facts.wantsFast
+          ? "현재 입력을 보면 신속한 해결이 최우선으로 보입니다."
+          : "현재 입력을 보면 실질적인 해결 방법 정리가 필요한 단계입니다.";
+
+  const agencyLine = facts.reportedToAgency
+    ? "이미 외부 신고를 진행한 정황이 있어 후속 대응 설계가 중요합니다."
+    : "아직 외부 신고 전이라면 초기 설계에 따라 결과 차이가 커질 수 있습니다.";
+  const expertLead = "전문가 관점에서 다음 의사결정을 먼저 확정하는 것이 좋습니다.";
 
   switch (category) {
     case "wage_arrears":
       if (insolvency) {
         return {
-          question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+          question: `${expertLead} ${intentLine} ${agencyLine} 대지급금 중심 진행과 임금체불 진정 중심 진행 중 어디에 우선순위를 둘지 적어주세요.`,
           focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 보유 증빙 수준",
         };
       }
       return {
-        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        question: `${expertLead} ${intentLine} ${agencyLine} 공인노무사에게 먼저 맡길 단계(증빙정리/진정대리/협의대응)를 선택해 알려주세요.`,
         focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 보유 증빙 수준",
       };
     case "dismissal":
       return {
-        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        question: `${expertLead} ${intentLine} ${agencyLine} 목표를 복직/합의·금전보상 중 어디에 둘지 정하고, 우선 요청할 도움을 알려주세요.`,
         focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
       };
     case "harassment":
       return {
-        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        question: `${expertLead} ${intentLine} 사내 절차 우선 vs 외부 절차 병행 중 우선전략을 정하고, 공인노무사에게 맡길 대응을 알려주세요.`,
         focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
       };
     case "industrial_accident":
       return {
-        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        question: `${expertLead} ${intentLine} 산재 인정 가능성을 높일 자료 우선순위를 정하기 위해, 공인노무사에게 먼저 받고 싶은 도움을 알려주세요.`,
         focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
       };
     case "contract":
       return {
-        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        question: `${expertLead} ${intentLine} 회사 협의 우선/법적 절차 우선 중 방향을 정하고, 공인노무사 개입 범위를 알려주세요.`,
         focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
       };
     case "none":
       return {
-        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        question: `${expertLead} ${intentLine} 분쟁 예방 선제 점검(리스크 진단/규정 점검/사건 대응 설계) 중 원하는 방식으로 알려주세요.`,
         focusInfo: "AI가 확인하려는 정보: 선제 점검 상담 여부, 제안서 요청 여부, 진행 희망 일정",
       };
     case "other":
     default:
       return {
-        question: "현재 상황에서 전문가인 공인노무사에게 어떤 도움을 받고 싶나요?",
+        question: `${expertLead} ${intentLine} 핵심 사실 정리와 절차 선택 중 우선 지원이 필요한 항목을 알려주세요.`,
         focusInfo: "AI가 확인하려는 정보: 원하는 지원 형태(상담 / 제안서), 진행 희망 일정, 당장 필요한 액션",
       };
   }
@@ -376,21 +448,25 @@ export async function POST(req: Request) {
     let payload: DiscoveryResponse;
 
     if (round === 1) {
-      const second = buildSecondQuestion(category);
+      const second = buildSecondQuestion(category, combinedText);
+      const quickServices = recommendServices(category, combinedText).slice(0, 2);
       payload = {
         stage: "ask",
         keyword: getKeywordLabel(category),
         question: second.question,
         focusInfo: second.focusInfo,
+        quickServices,
         round: 2,
       };
     } else if (round === 2) {
       const third = buildThirdQuestion(category, combinedText);
+      const quickServices = recommendServices(category, combinedText).slice(0, 2);
       payload = {
         stage: "ask",
         keyword: getKeywordLabel(category),
         question: third.question,
         focusInfo: third.focusInfo,
+        quickServices,
         round: 3,
       };
     } else {
