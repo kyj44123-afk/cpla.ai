@@ -16,6 +16,14 @@ export default function DocumentsPage() {
     const [uploading, setUploading] = useState(false);
     const [showUpload, setShowUpload] = useState(false);
     const [newDoc, setNewDoc] = useState({ title: "", content: "" });
+    const [lawLoading, setLawLoading] = useState(false);
+    const [lawForm, setLawForm] = useState({ lawName: "", articleNumbers: "" });
+    const [lawResult, setLawResult] = useState<{
+        lawTitle: string;
+        totalSaved: number;
+        savedFiles: { article: string; path: string }[];
+    } | null>(null);
+    const [lawError, setLawError] = useState("");
 
     const fetchDocuments = async () => {
         try {
@@ -65,6 +73,43 @@ export default function DocumentsPage() {
             fetchDocuments();
         } catch (e) {
             console.error("Failed to delete document:", e);
+        }
+    };
+
+    const handleLawDownload = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLawError("");
+        setLawResult(null);
+
+        if (!lawForm.lawName.trim() || !lawForm.articleNumbers.trim()) {
+            setLawError("법령명과 조문 번호를 모두 입력해 주세요.");
+            return;
+        }
+
+        setLawLoading(true);
+        try {
+            const res = await fetch("/api/admin/law-download", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(lawForm),
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                setLawError(data.error || "법령 다운로드에 실패했습니다.");
+                return;
+            }
+
+            setLawResult({
+                lawTitle: data.lawTitle,
+                totalSaved: data.totalSaved,
+                savedFiles: data.savedFiles || [],
+            });
+        } catch (error) {
+            console.error("Law download failed:", error);
+            setLawError("법령 다운로드 중 오류가 발생했습니다.");
+        } finally {
+            setLawLoading(false);
         }
     };
 
@@ -131,6 +176,61 @@ export default function DocumentsPage() {
             )}
 
             {/* Documents List */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+                <h2 className="text-xl font-bold text-slate-800 mb-4">국가법령정보센터 일괄 다운로드</h2>
+                <p className="text-sm text-slate-500 mb-4">
+                    법령명과 조문 번호를 입력하면 해당 조문을 자동으로 수집해 <code>law-data/</code> 폴더에 TXT로 저장합니다.
+                </p>
+
+                <form onSubmit={handleLawDownload} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">법령명</label>
+                        <input
+                            type="text"
+                            value={lawForm.lawName}
+                            onChange={(e) => setLawForm({ ...lawForm, lawName: e.target.value })}
+                            placeholder="예: 근로기준법"
+                            className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">조문 번호</label>
+                        <input
+                            type="text"
+                            value={lawForm.articleNumbers}
+                            onChange={(e) => setLawForm({ ...lawForm, articleNumbers: e.target.value })}
+                            placeholder="예: 23, 24, 76"
+                            className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={lawLoading}
+                        className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                    >
+                        {lawLoading ? "다운로드 중..." : "조문 일괄 다운로드"}
+                    </button>
+                </form>
+
+                {lawError && <p className="mt-4 text-sm text-red-600">{lawError}</p>}
+
+                {lawResult && (
+                    <div className="mt-6 border border-indigo-100 bg-indigo-50 rounded-lg p-4">
+                        <p className="font-medium text-slate-800">
+                            {lawResult.lawTitle} 조문 {lawResult.totalSaved}건 저장 완료
+                        </p>
+                        <ul className="mt-3 space-y-2 text-sm text-slate-700">
+                            {lawResult.savedFiles.map((file) => (
+                                <li key={file.path}>
+                                    {file.article} → <code>{file.path}</code>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+            </div>
+
             <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                     <FileText className="w-5 h-5" />
