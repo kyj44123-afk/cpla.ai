@@ -34,6 +34,7 @@ export const BASE_LABOR_SERVICES: BaseLaborService[] = [
   { name: "취업규칙 제·개정 자문", description: "취업규칙 작성, 불이익변경 절차, 신고까지 지원합니다.", keywords: ["취업규칙", "불이익변경", "규정"], audience: "employer" },
   { name: "근로계약서 점검·작성", description: "근로계약서 적법성 점검 및 표준화 작성을 지원합니다.", keywords: ["근로계약서", "근로조건", "계약"], audience: "employer" },
   { name: "인사규정 정비 자문", description: "채용·평가·징계·퇴직 규정의 정합성과 리스크를 점검합니다.", keywords: ["인사규정", "징계규정", "취업규칙"], audience: "employer" },
+  { name: "교대제·근무표 설계 자문", description: "교대제 패턴, 인력 운영, 수당 영향을 반영한 근무표를 설계합니다.", keywords: ["교대제", "근무표", "시프트", "스케줄", "교대근무"], audience: "employer" },
   { name: "임금체계 개편 자문", description: "직무·성과·연공 기반 임금체계 개편을 설계합니다.", keywords: ["임금체계", "연봉제", "직무급", "성과급"], audience: "employer" },
   { name: "성과급·인센티브 설계 자문", description: "성과보상 제도의 설계 및 법적 리스크를 점검합니다.", keywords: ["성과급", "인센티브", "보상"], audience: "employer" },
   { name: "인사평가 제도 설계", description: "평가체계 설계, 운영기준 수립, 분쟁예방 장치를 제공합니다.", keywords: ["인사평가", "평가제도", "성과관리"], audience: "employer" },

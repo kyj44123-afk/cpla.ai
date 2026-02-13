@@ -1,0 +1,51 @@
+name: Discovery Maintenance
+
+on:
+  schedule:
+    # Every Monday 02:00 UTC
+    - cron: "0 2 * * 1"
+  workflow_dispatch:
+
+jobs:
+  maintain:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      NATIONAL_LAW_API_KEY: ${{ secrets.NATIONAL_LAW_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare local key file
+        run: |
+          if [ ! -f .secret.key ]; then
+            echo "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" > .secret.key
+          fi
+
+      - name: Run weekly discovery maintenance
+        run: npm run discovery:maintenance
+
+      - name: Commit and push updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/lib/discoveryLearnedExamples.json src/lib/discoveryMismatchExamples.json docs/discovery-matching-audit-report.json docs/discovery-matching-audit-report.md
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: weekly discovery matching maintenance"
+          git push

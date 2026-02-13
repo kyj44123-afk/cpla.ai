@@ -1,5 +1,16 @@
 [
   {
+    "text": "교대제 근무표 작성",
+    "audience": "worker",
+    "category": "other",
+    "services": [
+      "전문 공인노무사 상담",
+      "임금체불 진정사건 대리"
+    ],
+    "count": 1,
+    "lastSeen": "2026-02-13T13:35:54.949045+00:00"
+  },
+  {
     "text": "임금체계 개편",
     "audience": "worker",
     "category": "wage_arrears",

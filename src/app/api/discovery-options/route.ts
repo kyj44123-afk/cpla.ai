@@ -85,6 +85,9 @@ const CATEGORY_KEYWORDS: Record<Exclude<Category, "none" | "other">, string[]> =
     "도급",
     "노사협의회",
     "단체교섭",
+    "교대제",
+    "근무표",
+    "시프트",
   ],
 };
 
@@ -154,6 +157,18 @@ const EMPLOYER_INTENT_SIGNALS = [
   "노사협의회",
   "근로감독",
   "고충처리",
+  "교대제",
+  "근무표",
+  "시프트",
+  "연봉제",
+  "직무급",
+  "인센티브",
+  "보상",
+  "평가제도",
+  "성과관리",
+  "징계위원회",
+  "징계절차",
+  "시정지시",
 ];
 
 function includesAny(text: string, patterns: string[]) {
@@ -225,7 +240,7 @@ function detectCategory(text: string, exampleHint?: DiscoveryExampleSignals): Ca
 
 function detectInsolvency(text: string) {
   const normalized = normalize(text);
-  return includesAny(normalized, ["폐업", "도산", "파산", "회생", "청산", "연락두절"]);
+  return includesAny(normalized, ["폐업", "도산", "파산", "회생", "청산", "연락두절", "체당금", "대지급금", "지급불능"]);
 }
 
 function readManagedServices(): ManagedService[] {
@@ -304,6 +319,38 @@ function scoreService(service: ManagedService, text: string, exampleSignals?: Di
   if (queryWageArrears > 0 && serviceWageArrears > 0) adjustment += 6;
   if (queryWageSystem > 0 && serviceWageArrears > 0 && serviceWageSystem === 0) adjustment -= 8;
   if (queryWageArrears > 0 && serviceWageSystem > 0 && serviceWageArrears === 0) adjustment -= 4;
+
+  const hasSpecificSignal =
+    countMatches(normalized, [
+      ...WAGE_SYSTEM_SIGNALS,
+      ...WAGE_ARREARS_SIGNALS,
+      "부당해고",
+      "해고",
+      "징계",
+      "권고사직",
+      "괴롭힘",
+      "성희롱",
+      "산재",
+      "취업규칙",
+      "근로계약",
+      "인사규정",
+      "근로감독",
+      "교대제",
+      "근무표",
+      "시프트",
+      "파견",
+      "도급",
+      "단체교섭",
+      "단체협약",
+      "취업규칙",
+      "근로계약서",
+      "인사규정",
+      "규정",
+      "교대근무",
+      "스케줄",
+    ]) > 0;
+  const isGenericCounseling = service.name === "전문 공인노무사 상담" || (service.name.includes("상담") && service.name.includes("노무"));
+  if (hasSpecificSignal && isGenericCounseling) adjustment -= 7;
 
   const exampleBoost = (exampleSignals?.serviceScores[service.name] || 0) * 10;
   return baseScore + adjustment + exampleBoost;
@@ -401,7 +448,7 @@ type ExtractedFacts = {
 };
 
 type Audience = "worker" | "employer";
-type ContractSubtype = "wage_system" | "rules" | "labor_relations" | "outsourcing" | "compliance" | "general";
+type ContractSubtype = "wage_system" | "rules" | "labor_relations" | "outsourcing" | "compliance" | "workforce_schedule" | "general";
 
 function extractFacts(text: string): ExtractedFacts {
   const raw = String(text || "");
@@ -450,6 +497,24 @@ function detectAudience(text: string, exampleHint?: DiscoveryExampleSignals): Au
     "단체교섭",
     "직원",
     "근로자관리",
+    "연봉제",
+    "직무급",
+    "인센티브",
+    "평가제도",
+    "성과관리",
+    "징계위원회",
+    "징계절차",
+    "시정지시",
+    "기간제",
+    "원하청",
+    "협력사",
+    "노무리스크",
+    "직장폐쇄",
+    "쟁의",
+    "노사갈등",
+    "실사",
+    "dd",
+    "m&a",
   ];
   return includesAny(normalized, employerSignals) ? "employer" : "worker";
 }
@@ -470,6 +535,9 @@ function detectContractSubtype(text: string): ContractSubtype {
   }
   if (countMatches(normalized, ["근로감독", "컴플라이언스", "법정의무", "4대보험", "노동청"]) > 0) {
     return "compliance";
+  }
+  if (countMatches(normalized, ["교대제", "근무표", "시프트", "교대근무", "스케줄"]) > 0) {
+    return "workforce_schedule";
   }
   return "general";
 }
@@ -523,8 +591,10 @@ function buildSecondQuestion(category: Category, combinedText: string) {
                   ? "이번 노사 이슈에서 회사가 우선 달성하려는 목표는 무엇인가요? (교섭 타결, 분쟁 최소화, 운영 안정) 그리고 현재 긴급 의제 1~2가지를 알려주세요."
                   : contractSubtype === "outsourcing"
                     ? "파견·도급 구조에서 가장 걱정되는 리스크가 무엇인가요? (불법파견/사용자책임/협력사 관리) 그리고 대상 조직 규모를 알려주세요."
-                    : contractSubtype === "compliance"
+                : contractSubtype === "compliance"
                       ? "점검이 필요한 영역을 골라주세요. (근로감독 대응/법정의무/4대보험/근로시간) 그리고 최근 지적받은 항목이 있으면 알려주세요."
+                      : contractSubtype === "workforce_schedule"
+                        ? "근무표를 개편하려는 가장 큰 이유가 무엇인가요? (인력부족 대응/초과수당 통제/공정성 개선/운영 안정) 그리고 대상 인원 규모를 알려주세요."
                       : "개선이 필요한 제도 영역 1~2가지를 알려주세요. 그리고 이번 분기 내 우선순위도 함께 알려주세요."
             : "현재 조건에서 가장 바꾸고 싶은 포인트가 무엇인가요? (임금/근무시간/휴게/연차/평가) 그리고 왜 그 항목이 가장 불편한지도 알려주세요.",
         focusInfo: "핵심 파악 포인트: 개편 이유, 조직/예산 규모, 우선 개선 항목",
@@ -602,8 +672,10 @@ function buildThirdQuestion(category: Category, combinedText: string) {
                   ? "전략 방향을 선택해 주세요. (조기 타결 중심 / 리스크 방어 중심 / 장기 협상 대비) 그리고 노무사에게 맡길 범위를 알려주세요."
                   : contractSubtype === "outsourcing"
                     ? "진단 목표를 선택해 주세요. (불법파견 판단 / 책임구조 정비 / 계약구조 재설계) 그리고 우선 점검할 사업장부터 알려주세요."
-                    : contractSubtype === "compliance"
+                  : contractSubtype === "compliance"
                       ? "이번 점검의 목표를 선택해 주세요. (근로감독 대비 / 법 위반 해소 / 재발 방지 체계화) 그리고 착수 희망 일정을 알려주세요."
+                    : contractSubtype === "workforce_schedule"
+                      ? "근무표 설계 기준을 선택해 주세요. (법정기준 준수 / 운영효율 우선 / 수당비용 최적화 / 직원선호 반영) 그리고 시범운영 기간을 알려주세요."
                       : "이번 제도 정비의 목표를 선택해 주세요. (리스크 축소 / 운영 효율 / 분쟁 예방) 그리고 우선 적용 범위를 알려주세요."
             : "해결 방향을 선택해 주세요. (회사와 협의 우선 / 법적 대응 우선) 그리고 공인노무사에게 기대하는 역할을 알려주세요.",
         focusInfo: "최종 결정 포인트: 개편 목적, 예산/범위 또는 대응 경로",
@@ -629,6 +701,8 @@ function recommendServices(
   exampleSignals?: DiscoveryExampleSignals
 ) {
   const insolvency = detectInsolvency(combinedText);
+  const normalizedCombined = normalize(combinedText);
+  const hasSubstituteSignal = includesAny(normalizedCombined, ["체당금", "대지급금", "지급불능", "도산", "폐업"]);
 
   const defaultServices: ManagedService[] = BASE_LABOR_SERVICES.filter((s) => s.audience === audience).map((service) => {
     const steps = buildWorkflowSteps(service.name);
@@ -671,6 +745,10 @@ function recommendServices(
     addUnique(picks, substitutePayment);
     addUnique(picks, wageClaim);
     if (counseling) addUnique(picks, counseling);
+  } else if (audience === "worker" && category === "wage_arrears" && hasSubstituteSignal) {
+    addUnique(picks, substitutePayment);
+    addUnique(picks, wageClaim);
+    if (counseling) addUnique(picks, counseling);
   } else if (audience === "worker" && category === "wage_arrears") {
     addUnique(picks, wageClaim);
     if (counseling) addUnique(picks, counseling);
@@ -685,6 +763,7 @@ function recommendServices(
     counseling,
     wageClaim,
     substitutePayment,
+    hasSubstituteSignal,
     mergedServices,
   };
 }
@@ -700,9 +779,20 @@ function buildFinalPicks(
     if (!arr.some((s) => s.name === svc.name)) arr.push(svc);
   };
 
-  for (const svc of aiPicked) addUnique(finalPicked, svc);
-
   const isWorkerWageArrears = audience === "worker" && category === "wage_arrears";
+  const preferRuleFirst = isWorkerWageArrears && rec.hasSubstituteSignal;
+  if (preferRuleFirst) {
+    for (const svc of rec.picks) {
+      if (finalPicked.length >= 3) break;
+      addUnique(finalPicked, svc);
+    }
+  }
+
+  for (const svc of aiPicked) {
+    if (finalPicked.length >= 3) break;
+    addUnique(finalPicked, svc);
+  }
+
   const primaryFallback = isWorkerWageArrears ? rec.picks : rec.rankedByKeyword;
   const secondaryFallback = isWorkerWageArrears ? rec.rankedByKeyword : rec.picks;
 
@@ -716,6 +806,85 @@ function buildFinalPicks(
   }
 
   return finalPicked;
+}
+
+function applyHardPriority(
+  picks: ManagedService[],
+  rec: ReturnType<typeof recommendServices>,
+  category: Category,
+  audience: Audience,
+  combinedText: string
+) {
+  const normalized = normalize(combinedText);
+  const byName = new Map(rec.mergedServices.map((s) => [s.name, s]));
+  const prioritized: ManagedService[] = [];
+  const add = (name: string) => {
+    const svc = byName.get(name);
+    if (!svc) return;
+    if (!prioritized.some((s) => s.name === svc.name)) prioritized.push(svc);
+  };
+
+  if (audience === "employer") {
+    if (includesAny(normalized, ["연봉제", "직무급", "임금구조"])) add("임금체계 개편 자문");
+    if (includesAny(normalized, ["보상"])) add("성과급·인센티브 설계 자문");
+    if (includesAny(normalized, ["인센티브", "성과급"])) add("성과급·인센티브 설계 자문");
+    if (includesAny(normalized, ["평가제도", "성과관리", "인사평가"])) add("인사평가 제도 설계");
+    if (includesAny(normalized, ["징계위원회", "징계절차"])) add("징계위원회 운영 자문");
+    if (includesAny(normalized, ["시정지시"])) add("노동청 근로감독 대응");
+    if (includesAny(normalized, ["4대보험", "취득", "상실", "보수"])) add("4대보험 취득·상실 정정 자문");
+    if (includesAny(normalized, ["근로자참여", "협의"])) add("노사협의회 설치·운영 자문");
+    if (includesAny(normalized, ["고충처리", "고충상담", "분쟁예방"])) add("고충처리제도 구축");
+    if (includesAny(normalized, ["노동조합", "노조", "교섭"])) add("단체교섭 전략 자문");
+    if (includesAny(normalized, ["단체협약"])) add("단체협약 검토 자문");
+    if (includesAny(normalized, ["직장폐쇄", "쟁의", "노사갈등"])) add("직장폐쇄·쟁의 국면 대응");
+    if (includesAny(normalized, ["노동쟁의", "파업", "쟁의행위"])) add("노동쟁의 대응 자문");
+    if (includesAny(normalized, ["부당노동행위", "노조활동"])) add("부당노동행위 구제신청 지원");
+    if (includesAny(normalized, ["기간제", "비정규직", "차별시정"])) add("비정규직 차별시정 대응");
+    if (includesAny(normalized, ["원하청", "협력사", "노무리스크"])) add("원·하청 노무리스크 점검");
+    if (includesAny(normalized, ["실사", "dd", "m&a"])) add("기업 인사노무 실사(DD)");
+    if (includesAny(normalized, ["교대제", "근무표", "시프트", "스케줄"])) add("교대제·근무표 설계 자문");
+    if (includesAny(normalized, ["취업규칙", "불이익변경"])) add("취업규칙 제·개정 자문");
+    if (includesAny(normalized, ["근로계약서", "근로조건", "계약서", "계약"])) add("근로계약서 점검·작성");
+    if (includesAny(normalized, ["인사규정", "규정", "징계규정"])) add("인사규정 정비 자문");
+    if (includesAny(normalized, ["단체교섭", "단체협약", "노조"])) add("단체교섭 전략 자문");
+    if (includesAny(normalized, ["파견", "도급", "불법파견"])) add("파견·도급 적법성 진단");
+    if (includesAny(normalized, ["컴플라이언스", "법정의무", "노동법"])) add("노동관계 법정의무 컴플라이언스 점검");
+    if (includesAny(normalized, ["근로감독"])) add("노동청 근로감독 대응");
+    if (includesAny(normalized, ["hr", "노무자문", "인사담당"])) add("사업주·인사담당 노무자문");
+  }
+
+  if (audience === "worker") {
+    if (includesAny(normalized, ["전보", "전직"])) add("부당전직·전보 대응");
+    if (includesAny(normalized, ["미교부", "임금명세서"])) add("임금명세서 위반 대응");
+    if (includesAny(normalized, ["직업병"])) add("업무상질병 산재 인정 대응");
+    if (includesAny(normalized, ["장의비"])) add("유족급여·장의비 청구 지원");
+  }
+
+  if (prioritized.length > 0) {
+    for (const svc of picks) {
+      if (prioritized.length >= 3) break;
+      if (!prioritized.some((s) => s.name === svc.name)) prioritized.push(svc);
+    }
+    return prioritized;
+  }
+
+  if (audience === "worker" && category === "wage_arrears") {
+    const workerPrioritized: ManagedService[] = [];
+    const addService = (svc?: ManagedService) => {
+      if (!svc) return;
+      if (!workerPrioritized.some((s) => s.name === svc.name)) workerPrioritized.push(svc);
+    };
+
+    if (includesAny(normalized, ["체당금", "대지급금", "지급불능", "폐업", "도산"])) {
+      addService(rec.substitutePayment);
+    }
+    if (includesAny(normalized, ["미지급", "체불", "임금", "진정", "퇴직금"])) {
+      addService(rec.wageClaim);
+    }
+    for (const svc of picks) addService(svc);
+    return workerPrioritized;
+  }
+  return picks;
 }
 
 function toServiceCards(services: ManagedService[]) {
@@ -773,7 +942,7 @@ export async function POST(req: Request) {
       const aiPicked = aiPickedNames
         .map((name) => rec.mergedServices.find((s) => s.name === name))
         .filter((s): s is ManagedService => Boolean(s));
-      const finalPicked = buildFinalPicks(aiPicked, rec, category, audience);
+      const finalPicked = applyHardPriority(buildFinalPicks(aiPicked, rec, category, audience), rec, category, audience, combinedText);
       const quickServices = toServiceCards(finalPicked).slice(0, 2);
       payload = {
         stage: "ask",
@@ -790,7 +959,7 @@ export async function POST(req: Request) {
       const aiPicked = aiPickedNames
         .map((name) => rec.mergedServices.find((s) => s.name === name))
         .filter((s): s is ManagedService => Boolean(s));
-      const finalPicked = buildFinalPicks(aiPicked, rec, category, audience);
+      const finalPicked = applyHardPriority(buildFinalPicks(aiPicked, rec, category, audience), rec, category, audience, combinedText);
       const quickServices = toServiceCards(finalPicked).slice(0, 2);
       payload = {
         stage: "ask",
@@ -806,7 +975,7 @@ export async function POST(req: Request) {
       const aiPicked = aiPickedNames
         .map((name) => rec.mergedServices.find((s) => s.name === name))
         .filter((s): s is ManagedService => Boolean(s));
-      const finalPicked = buildFinalPicks(aiPicked, rec, category, audience);
+      const finalPicked = applyHardPriority(buildFinalPicks(aiPicked, rec, category, audience), rec, category, audience, combinedText);
 
       payload = {
         stage: "finalize",

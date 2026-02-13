@@ -1,0 +1,224 @@
+{
+  "generatedQuestions": 1000,
+  "alignedCount": 925,
+  "alignedRate": 92.5,
+  "mismatchCount": 75,
+  "mismatchTop20": [
+    {
+      "question": "전보 상황이 반복되는데 절차적으로 어떻게 진행하나요?",
+      "audience": "employer",
+      "coreKeyword": "전보",
+      "recommendedService": "성과급·인센티브 설계 자문",
+      "score": 99,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "인수합병 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+      "audience": "worker",
+      "coreKeyword": "인수합병",
+      "recommendedService": "전문 공인노무사 상담",
+      "score": 0,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "인수합병 관련 리스크가 커져서 점검받고 싶습니다.",
+      "audience": "worker",
+      "coreKeyword": "인수합병",
+      "recommendedService": "전문 공인노무사 상담",
+      "score": 0,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "HRDD 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+      "audience": "employer",
+      "coreKeyword": "HRDD",
+      "recommendedService": "기업 인사노무 실사(DD)",
+      "score": 99,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "HRDD 운영을 개선하려는데 실무적으로 무엇을 먼저 해야 하나요?",
+      "audience": "employer",
+      "coreKeyword": "HRDD",
+      "recommendedService": "기업 인사노무 실사(DD)",
+      "score": 99,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "HRDD 도입(또는 개편) 프로젝트를 진행하려고 합니다.",
+      "audience": "employer",
+      "coreKeyword": "HRDD",
+      "recommendedService": "기업 인사노무 실사(DD)",
+      "score": 99,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "HRDD 관련 리스크가 커져서 점검받고 싶습니다.",
+      "audience": "employer",
+      "coreKeyword": "HRDD",
+      "recommendedService": "기업 인사노무 실사(DD)",
+      "score": 99,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "HRDD 때문에 현장 혼선이 큰데 제도 설계가 필요합니다.",
+      "audience": "employer",
+      "coreKeyword": "HRDD",
+      "recommendedService": "기업 인사노무 실사(DD)",
+      "score": 99,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "보고서 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+      "audience": "worker",
+      "coreKeyword": "보고서",
+      "recommendedService": "전문 공인노무사 상담",
+      "score": 0,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "보고서 관련 리스크가 커져서 점검받고 싶습니다.",
+      "audience": "worker",
+      "coreKeyword": "보고서",
+      "recommendedService": "전문 공인노무사 상담",
+      "score": 0,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "리스크 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+      "audience": "worker",
+      "coreKeyword": "",
+      "recommendedService": "전문 공인노무사 상담",
+      "score": 0,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "리스크 관련 리스크가 커져서 점검받고 싶습니다.",
+      "audience": "worker",
+      "coreKeyword": "",
+      "recommendedService": "전문 공인노무사 상담",
+      "score": 0,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "교육 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+      "audience": "worker",
+      "coreKeyword": "교육",
+      "recommendedService": "전문 공인노무사 상담",
+      "score": 0,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "교육 관련 리스크가 커져서 점검받고 싶습니다.",
+      "audience": "worker",
+      "coreKeyword": "교육",
+      "recommendedService": "전문 공인노무사 상담",
+      "score": 0,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "노동법교육 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+      "audience": "worker",
+      "coreKeyword": "노동법교육",
+      "recommendedService": "노동관계 법정의무 컴플라이언스 점검",
+      "score": 99,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "노동법교육 운영을 개선하려는데 실무적으로 무엇을 먼저 해야 하나요?",
+      "audience": "employer",
+      "coreKeyword": "노동법교육",
+      "recommendedService": "노동관계 법정의무 컴플라이언스 점검",
+      "score": 99,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "노동법교육 도입(또는 개편) 프로젝트를 진행하려고 합니다.",
+      "audience": "employer",
+      "coreKeyword": "노동법교육",
+      "recommendedService": "노동관계 법정의무 컴플라이언스 점검",
+      "score": 99,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "노동법교육 관련 리스크가 커져서 점검받고 싶습니다.",
+      "audience": "worker",
+      "coreKeyword": "노동법교육",
+      "recommendedService": "노동관계 법정의무 컴플라이언스 점검",
+      "score": 99,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "노동법교육 때문에 현장 혼선이 큰데 제도 설계가 필요합니다.",
+      "audience": "employer",
+      "coreKeyword": "노동법교육",
+      "recommendedService": "노동관계 법정의무 컴플라이언스 점검",
+      "score": 99,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    },
+    {
+      "question": "인사실무 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+      "audience": "worker",
+      "coreKeyword": "인사실무",
+      "recommendedService": "전문 공인노무사 상담",
+      "score": 0,
+      "aligned": false,
+      "keywordCoveredInCatalog": true
+    }
+  ],
+  "missingKeywords": [],
+  "webSeedSources": [
+    {
+      "source": "Wanted HR 커뮤니티 인터뷰(인사담당자 고민 주제)",
+      "url": "https://www.wanted.co.kr/events/22_06_s08_b01",
+      "sampleQuestions": [
+        "급여 테이블을 다시 짜야 하는데 어디부터 시작해야 하나요?",
+        "인사평가와 보상을 연동하려면 어떤 기준이 필요할까요?",
+        "근로감독을 앞두고 우선 점검할 문서는 무엇인가요?",
+        "취업규칙 개정 시 현장에서 가장 많이 막히는 지점은 어디인가요?",
+        "노조와 교섭 전에 인사팀이 먼저 준비해야 할 자료는 무엇인가요?"
+      ]
+    },
+    {
+      "source": "원티드 소셜 HR 아티클(커뮤니티에서 자주 언급되는 질문 주제)",
+      "url": "https://social.wanted.co.kr/community/article/112935",
+      "sampleQuestions": [
+        "연장근로수당 계산 기준이 맞는지 점검받고 싶어요.",
+        "퇴직금 산정 기준이 헷갈리는데 검토가 필요해요.",
+        "근로계약서 필수 기재사항이 누락된 것 같아요.",
+        "직장 내 괴롭힘 신고 후 절차가 어떻게 진행되나요?",
+        "산재 신청 시 어떤 자료를 먼저 준비해야 하나요?"
+      ]
+    },
+    {
+      "source": "직장인 커뮤니티 근무표 질문(교대근무 패턴/휴게시간 관심사)",
+      "url": "https://www.teamblind.com/kr/post/%EC%B2%A0%EB%8F%84%EA%B8%B0%EA%B4%80%EC%82%AC%EB%8B%98-%EA%B7%BC%EB%AC%B4%ED%91%9C-%EC%A7%88%EB%AC%B8-2wRhgn5o",
+      "sampleQuestions": [
+        "교대제 근무표를 만들고 싶은데 법 위반 없이 설계하려면?",
+        "시프트 운영 중 야간수당이 과도하게 나와 개선하고 싶어요.",
+        "인사규정과 실제 운영이 달라 분쟁이 생기고 있어요.",
+        "노동청 시정지시를 받은 뒤 재점검은 어떻게 해야 하나요?",
+        "파견·도급 구조가 불법파견인지 미리 진단받고 싶어요."
+      ]
+    }
+  ]
+}

@@ -93,7 +93,15 @@ export default function BlogWriterPage() {
       if (!res.ok) throw new Error("초안 생성 실패");
 
       const data = await res.json();
-      setDraft(data);
+
+      // Map API response to DraftResult
+      setDraft({
+        title: data.draft.title,
+        content: data.markdown,
+        hashtags: data.draft.hashtags || [],
+        imagePrompts: data.imagePrompts || []
+      });
+
       setStep("result");
     } catch (e) {
       console.error(e);

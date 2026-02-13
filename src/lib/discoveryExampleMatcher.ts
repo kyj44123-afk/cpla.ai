@@ -1,3 +1,6 @@
+import learnedExamplesRaw from "./discoveryLearnedExamples.json";
+import mismatchExamplesRaw from "./discoveryMismatchExamples.json";
+
 export type DiscoveryAudience = "worker" | "employer";
 export type DiscoveryCategory = "none" | "wage_arrears" | "dismissal" | "harassment" | "industrial_accident" | "contract" | "other";
 
@@ -76,6 +79,9 @@ const EXAMPLES: DiscoveryExample[] = [
   { text: "장시간 운전 후 뇌심혈관 질환 진단을 받아 산재 문의합니다.", audience: "worker", category: "industrial_accident", services: ["업무상질병 산재 인정 대응", "산재보상 신청 대리"] },
   { text: "우리 회사 인사담당자인데 취업규칙 개정 절차를 정비해야 합니다.", audience: "employer", category: "contract", services: ["취업규칙 제·개정 자문", "사업주·인사담당 노무자문"] },
   { text: "신규 입사자 근로계약서를 표준화하고 법 위반 요소를 점검하고 싶습니다.", audience: "employer", category: "contract", services: ["근로계약서 점검·작성", "사업주·인사담당 노무자문"] },
+  { text: "교대제 근무표를 새로 작성하고 싶습니다.", audience: "employer", category: "contract", services: ["교대제·근무표 설계 자문", "사업주·인사담당 노무자문"] },
+  { text: "시프트 스케줄을 법정근로시간에 맞게 재설계하려고 합니다.", audience: "employer", category: "contract", services: ["교대제·근무표 설계 자문", "노동관계 법정의무 컴플라이언스 점검"] },
+  { text: "교대근무 인력운영 때문에 수당이 급증해 근무표 개선이 필요합니다.", audience: "employer", category: "contract", services: ["교대제·근무표 설계 자문", "사업주·인사담당 노무자문"] },
   { text: "인사규정이 오래돼 징계와 퇴직 규정을 전면 정비하려고 합니다.", audience: "employer", category: "contract", services: ["인사규정 정비 자문", "취업규칙 제·개정 자문"] },
   { text: "임금체계 개편 프로젝트를 시작하려고 하는데 직무급 설계가 필요합니다.", audience: "employer", category: "contract", services: ["임금체계 개편 자문", "성과급·인센티브 설계 자문"] },
   { text: "성과급 제도 도입 시 법적 리스크와 설계 포인트를 알고 싶습니다.", audience: "employer", category: "contract", services: ["성과급·인센티브 설계 자문", "임금체계 개편 자문"] },
@@ -150,11 +156,10 @@ const EXAMPLES: DiscoveryExample[] = [
   { text: "파견 도급 적법성 진단", audience: "employer", category: "contract", services: ["파견·도급 적법성 진단", "원·하청 노무리스크 점검"] },
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const learnedExamplesRaw = require("./discoveryLearnedExamples.json") as LearnedDiscoveryExample[];
+const learnedExamples = learnedExamplesRaw as LearnedDiscoveryExample[];
 
-const LEARNED_EXAMPLES: DiscoveryExample[] = Array.isArray(learnedExamplesRaw)
-  ? learnedExamplesRaw
+const LEARNED_EXAMPLES: DiscoveryExample[] = Array.isArray(learnedExamples)
+  ? learnedExamples
       .filter((item) => {
         const text = String(item?.text || "").trim();
         const audience = item?.audience;
@@ -177,7 +182,25 @@ const LEARNED_EXAMPLES: DiscoveryExample[] = Array.isArray(learnedExamplesRaw)
       }))
   : [];
 
-const ALL_EXAMPLES: DiscoveryExample[] = [...EXAMPLES, ...LEARNED_EXAMPLES];
+const mismatchExamples = mismatchExamplesRaw as LearnedDiscoveryExample[];
+const MISMATCH_EXAMPLES: DiscoveryExample[] = Array.isArray(mismatchExamples)
+  ? mismatchExamples
+      .filter((item) => {
+        const text = String(item?.text || "").trim();
+        const audience = item?.audience;
+        const category = item?.category;
+        const services = Array.isArray(item?.services) ? item.services.filter(Boolean) : [];
+        return text.length >= 4 && (audience === "worker" || audience === "employer") && typeof category === "string" && services.length > 0;
+      })
+      .map((item) => ({
+        text: String(item.text),
+        audience: item.audience as DiscoveryAudience,
+        category: item.category as DiscoveryCategory,
+        services: (item.services || []).map((service) => String(service)),
+      }))
+  : [];
+
+const ALL_EXAMPLES: DiscoveryExample[] = [...EXAMPLES, ...LEARNED_EXAMPLES, ...MISMATCH_EXAMPLES];
 
 function normalize(text: string) {
   return String(text || "")

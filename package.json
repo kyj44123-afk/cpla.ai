@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "discovery:learn": "node scripts/build_discovery_learned_examples.js"
+    "discovery:learn": "node scripts/build_discovery_learned_examples.js",
+    "discovery:audit": "node --experimental-strip-types scripts/audit_discovery_matching.mjs",
+    "discovery:autofix": "node scripts/apply_mismatch_autofix.mjs",
+    "discovery:maintenance": "npm run discovery:learn && npm run discovery:audit && npm run discovery:autofix && npm run discovery:audit"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

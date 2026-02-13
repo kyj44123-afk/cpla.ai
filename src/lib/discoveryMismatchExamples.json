@@ -1,0 +1,182 @@
+[
+  {
+    "text": "전보 상황이 반복되는데 절차적으로 어떻게 진행하나요?",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "성과급·인센티브 설계 자문"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "기간제 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "비정규직 차별시정 대응"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "기간제 관련 리스크가 커져서 점검받고 싶습니다.",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "비정규직 차별시정 대응"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "원하청 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "원·하청 노무리스크 점검"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "원하청 관련 리스크가 커져서 점검받고 싶습니다.",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "원·하청 노무리스크 점검"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "협력사 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "원·하청 노무리스크 점검"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "협력사 관련 리스크가 커져서 점검받고 싶습니다.",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "원·하청 노무리스크 점검"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "노무리스크 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "원·하청 노무리스크 점검"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "노무리스크 관련 리스크가 커져서 점검받고 싶습니다.",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "원·하청 노무리스크 점검"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "직장폐쇄 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+    "audience": "employer",
+    "category": "other",
+    "services": [
+      "직장폐쇄·쟁의 국면 대응"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "직장폐쇄 관련 리스크가 커져서 점검받고 싶습니다.",
+    "audience": "employer",
+    "category": "other",
+    "services": [
+      "직장폐쇄·쟁의 국면 대응"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "쟁의 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+    "audience": "employer",
+    "category": "other",
+    "services": [
+      "직장폐쇄·쟁의 국면 대응"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "쟁의 관련 리스크가 커져서 점검받고 싶습니다.",
+    "audience": "employer",
+    "category": "other",
+    "services": [
+      "직장폐쇄·쟁의 국면 대응"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "노사갈등 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+    "audience": "employer",
+    "category": "other",
+    "services": [
+      "직장폐쇄·쟁의 국면 대응"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "노사갈등 관련 리스크가 커져서 점검받고 싶습니다.",
+    "audience": "employer",
+    "category": "other",
+    "services": [
+      "직장폐쇄·쟁의 국면 대응"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "실사 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "기업 인사노무 실사(DD)"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "실사 관련 리스크가 커져서 점검받고 싶습니다.",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "기업 인사노무 실사(DD)"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "DD 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "기업 인사노무 실사(DD)"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "DD 관련 리스크가 커져서 점검받고 싶습니다.",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "기업 인사노무 실사(DD)"
+    ],
+    "source": "audit_mismatch_autofix"
+  },
+  {
+    "text": "M&A 체계를 정비하려고 합니다. 어디부터 시작하면 좋을까요?",
+    "audience": "employer",
+    "category": "contract",
+    "services": [
+      "기업 인사노무 실사(DD)"
+    ],
+    "source": "audit_mismatch_autofix"
+  }
+]
