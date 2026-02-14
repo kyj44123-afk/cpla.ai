@@ -24,6 +24,16 @@ type SettingsShape = {
   [key: string]: unknown;
 };
 
+const LEGACY_SERVICE_NAME_MAP: Record<string, string> = {
+  "직장 내 괴롭힘 신고 대응": "직장 내 괴롭힘 신고 지원",
+  "직장 내 성희롱 대응": "직장 내 성희롱 신고 지원",
+};
+
+function canonicalizeServiceName(name: string) {
+  const trimmed = String(name || "").trim();
+  return LEGACY_SERVICE_NAME_MAP[trimmed] || trimmed;
+}
+
 const DEFAULT_SERVICES: ManagedService[] = BASE_LABOR_SERVICES.map((service) => {
   const steps = buildWorkflowSteps(service.name);
   return {
@@ -52,7 +62,7 @@ function normalizeServices(services: unknown, audience: Audience): ManagedServic
   if (!Array.isArray(services)) return [];
   return services
     .map((s) => ({
-      name: String((s as ManagedService)?.name || "").trim(),
+      name: canonicalizeServiceName(String((s as ManagedService)?.name || "")),
       description: String((s as ManagedService)?.description || "").trim(),
       audience,
       keywords: Array.isArray((s as ManagedService)?.keywords)
@@ -80,9 +90,7 @@ export async function GET() {
   try {
     const settings = readSettings();
 
-    const legacy = Array.isArray(settings.labor_services)
-      ? settings.labor_services.map((s) => ({ ...s, audience: "worker" as const }))
-      : [];
+    const legacy = normalizeServices(settings.labor_services, "worker");
     const workerCustom = normalizeServices(settings.labor_services_worker, "worker");
     const employerCustom = normalizeServices(settings.labor_services_employer, "employer");
 

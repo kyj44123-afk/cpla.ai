@@ -26,6 +26,20 @@ type LearnedDiscoveryExample = {
   count?: number;
 };
 
+const LEGACY_SERVICE_NAME_MAP: Record<string, string> = {
+  "직장 내 괴롭힘 신고 대응": "직장 내 괴롭힘 신고 지원",
+  "직장 내 성희롱 대응": "직장 내 성희롱 신고 지원",
+};
+
+function canonicalizeServiceName(name: string) {
+  const trimmed = String(name || "").trim();
+  return LEGACY_SERVICE_NAME_MAP[trimmed] || trimmed;
+}
+
+function canonicalizeServices(services: string[]) {
+  return Array.from(new Set(services.map((service) => canonicalizeServiceName(service)).filter(Boolean)));
+}
+
 const EXAMPLES: DiscoveryExample[] = [
   { text: "월급이 두 달째 밀렸고 대표가 계속 다음 달에 준다고만 합니다.", audience: "worker", category: "wage_arrears", services: ["임금체불 진정사건 대리", "전문 공인노무사 상담"] },
   { text: "퇴사했는데 퇴직금을 못 받아서 청구 절차를 진행하고 싶습니다.", audience: "worker", category: "wage_arrears", services: ["퇴직금 청구 대리", "임금체불 진정사건 대리"] },
@@ -47,12 +61,12 @@ const EXAMPLES: DiscoveryExample[] = [
   { text: "전직 발령이 사실상 퇴사 압박이라 대응이 필요합니다.", audience: "worker", category: "dismissal", services: ["부당전직·전보 대응", "권고사직·사직강요 대응"] },
   { text: "징계위원회 없이 바로 징계 통보를 받아 억울합니다.", audience: "worker", category: "dismissal", services: ["부당징계 구제신청 대리", "전문 공인노무사 상담"] },
   { text: "해고사유가 모호하고 소명 기회도 못 받았습니다.", audience: "worker", category: "dismissal", services: ["부당해고 구제신청 대리", "전문 공인노무사 상담"] },
-  { text: "상사가 공개적으로 모욕하고 반복적으로 따돌립니다.", audience: "worker", category: "harassment", services: ["직장 내 괴롭힘 신고 대응", "전문 공인노무사 상담"] },
-  { text: "팀장이 폭언을 계속해서 사내 신고와 외부 대응을 고민 중입니다.", audience: "worker", category: "harassment", services: ["직장 내 괴롭힘 신고 대응", "전문 공인노무사 상담"] },
-  { text: "직장 내 왕따로 정신과 치료까지 받는 중입니다.", audience: "worker", category: "harassment", services: ["직장 내 괴롭힘 신고 대응", "산재보상 신청 대리"] },
-  { text: "회식 자리에서 성희롱을 당했고 회사가 제대로 조사하지 않습니다.", audience: "worker", category: "harassment", services: ["직장 내 성희롱 대응", "전문 공인노무사 상담"] },
-  { text: "성적 농담과 신체접촉이 반복되어 증거를 모으고 있습니다.", audience: "worker", category: "harassment", services: ["직장 내 성희롱 대응", "직장 내 괴롭힘 신고 대응"] },
-  { text: "괴롭힘 신고했는데 오히려 불이익 인사 조치를 받았습니다.", audience: "worker", category: "harassment", services: ["직장 내 괴롭힘 신고 대응", "부당전직·전보 대응"] },
+  { text: "상사가 공개적으로 모욕하고 반복적으로 따돌립니다.", audience: "worker", category: "harassment", services: ["직장 내 괴롭힘 신고 지원", "전문 공인노무사 상담"] },
+  { text: "팀장이 폭언을 계속해서 사내 신고와 외부 대응을 고민 중입니다.", audience: "worker", category: "harassment", services: ["직장 내 괴롭힘 신고 지원", "전문 공인노무사 상담"] },
+  { text: "직장 내 왕따로 정신과 치료까지 받는 중입니다.", audience: "worker", category: "harassment", services: ["직장 내 괴롭힘 신고 지원", "산재보상 신청 대리"] },
+  { text: "회식 자리에서 성희롱을 당했고 회사가 제대로 조사하지 않습니다.", audience: "worker", category: "harassment", services: ["직장 내 성희롱 신고 지원", "전문 공인노무사 상담"] },
+  { text: "성적 농담과 신체접촉이 반복되어 증거를 모으고 있습니다.", audience: "worker", category: "harassment", services: ["직장 내 성희롱 신고 지원", "직장 내 괴롭힘 신고 지원"] },
+  { text: "괴롭힘 신고했는데 오히려 불이익 인사 조치를 받았습니다.", audience: "worker", category: "harassment", services: ["직장 내 괴롭힘 신고 지원", "부당전직·전보 대응"] },
   { text: "업무 중 사고로 다쳤는데 산재 신청 절차를 모르겠습니다.", audience: "worker", category: "industrial_accident", services: ["산재보상 신청 대리", "전문 공인노무사 상담"] },
   { text: "출근길 교통사고가 났는데 산재 인정이 가능한가요.", audience: "worker", category: "industrial_accident", services: ["산재보상 신청 대리", "전문 공인노무사 상담"] },
   { text: "과로로 디스크가 심해졌는데 업무상질병 입증이 필요합니다.", audience: "worker", category: "industrial_accident", services: ["업무상질병 산재 인정 대응", "산재보상 신청 대리"] },
@@ -73,8 +87,8 @@ const EXAMPLES: DiscoveryExample[] = [
   { text: "카톡으로 사직 처리됐는데 정식 절차가 아닌 것 같습니다.", audience: "worker", category: "dismissal", services: ["권고사직·사직강요 대응", "부당해고 구제신청 대리"] },
   { text: "병가 중 해고를 통보받아 노동위 구제신청을 준비 중입니다.", audience: "worker", category: "dismissal", services: ["부당해고 구제신청 대리", "전문 공인노무사 상담"] },
   { text: "계약직인데 계약만료를 빌미로 갑자기 내보내려 합니다.", audience: "worker", category: "dismissal", services: ["부당해고 구제신청 대리", "권고사직·사직강요 대응"] },
-  { text: "상습 폭언 때문에 퇴사했는데 괴롭힘 입증이 가능할까요.", audience: "worker", category: "harassment", services: ["직장 내 괴롭힘 신고 대응", "전문 공인노무사 상담"] },
-  { text: "성희롱 신고 후 인사상 불이익을 받아 추가 대응이 필요합니다.", audience: "worker", category: "harassment", services: ["직장 내 성희롱 대응", "부당전직·전보 대응"] },
+  { text: "상습 폭언 때문에 퇴사했는데 괴롭힘 입증이 가능할까요.", audience: "worker", category: "harassment", services: ["직장 내 괴롭힘 신고 지원", "전문 공인노무사 상담"] },
+  { text: "성희롱 신고 후 인사상 불이익을 받아 추가 대응이 필요합니다.", audience: "worker", category: "harassment", services: ["직장 내 성희롱 신고 지원", "부당전직·전보 대응"] },
   { text: "업무 중 넘어져 골절됐고 요양급여 신청을 도와주세요.", audience: "worker", category: "industrial_accident", services: ["산재보상 신청 대리", "장해급여 청구 지원"] },
   { text: "장시간 운전 후 뇌심혈관 질환 진단을 받아 산재 문의합니다.", audience: "worker", category: "industrial_accident", services: ["업무상질병 산재 인정 대응", "산재보상 신청 대리"] },
   { text: "우리 회사 인사담당자인데 취업규칙 개정 절차를 정비해야 합니다.", audience: "employer", category: "contract", services: ["취업규칙 제·개정 자문", "사업주·인사담당 노무자문"] },
@@ -117,6 +131,9 @@ const EXAMPLES: DiscoveryExample[] = [
   { text: "고용노동부 점검 전에 임금명세서와 근로시간 운영을 선점검하고 싶습니다.", audience: "employer", category: "contract", services: ["노동청 근로감독 대응", "노동관계 법정의무 컴플라이언스 점검"] },
   { text: "사내 괴롭힘 신고가 늘어 익명 신고 채널 구축이 급합니다.", audience: "employer", category: "harassment", services: ["직장 내 괴롭힘 예방체계 구축", "고충처리제도 구축"] },
   { text: "성희롱 사건 발생 후 재발방지 체계를 전면 개편하려고 합니다.", audience: "employer", category: "harassment", services: ["직장 내 성희롱 예방체계 구축", "고충처리제도 구축"] },
+  { text: "직장 내 괴롭힘 신고 접수가 들어와 즉시 사실조사가 필요합니다.", audience: "employer", category: "harassment", services: ["직장 내 괴롭힘 전문 조사", "직장 내 괴롭힘"] },
+  { text: "성희롱 신고가 접수되어 조사위원회 구성과 조사보고서 작성이 필요합니다.", audience: "employer", category: "harassment", services: ["직장 내 성희롱 전문 조사", "직장 내 성희롱"] },
+  { text: "징계 사안 신고 접수가 들어와 소명 포함 전문 조사를 먼저 진행하고 싶습니다.", audience: "employer", category: "dismissal", services: ["징계 사안 전문 조사", "징계위원회 운영 자문"] },
   { text: "조직문화컨설팅이 필요합니다. 팀 간 갈등이 많고 소통이 단절됐습니다.", audience: "employer", category: "contract", services: ["조직문화 컨설팅", "사업주·인사담당 노무자문"] },
   { text: "조직문화 개선 프로젝트를 시작하려고 합니다.", audience: "employer", category: "contract", services: ["조직문화 컨설팅", "사내 교육(노동법·인사실무)"] },
   { text: "직장 내 괴롭힘 이슈가 반복돼 대응 체계를 새로 만들고 싶습니다.", audience: "employer", category: "harassment", services: ["직장 내 괴롭힘", "직장 내 괴롭힘 예방체계 구축"] },
@@ -153,8 +170,11 @@ const EXAMPLES: DiscoveryExample[] = [
   { text: "연장근로 수당 청구", audience: "worker", category: "wage_arrears", services: ["연장·야간·휴일수당 청구", "전문 공인노무사 상담"] },
   { text: "부당해고 구제신청", audience: "worker", category: "dismissal", services: ["부당해고 구제신청 대리", "전문 공인노무사 상담"] },
   { text: "권고사직 강요 대응", audience: "worker", category: "dismissal", services: ["권고사직·사직강요 대응", "부당해고 구제신청 대리"] },
-  { text: "괴롭힘 폭언 신고", audience: "worker", category: "harassment", services: ["직장 내 괴롭힘 신고 대응", "전문 공인노무사 상담"] },
-  { text: "성희롱 사건 대응", audience: "worker", category: "harassment", services: ["직장 내 성희롱 대응", "전문 공인노무사 상담"] },
+  { text: "괴롭힘 폭언 신고", audience: "worker", category: "harassment", services: ["직장 내 괴롭힘 신고 지원", "전문 공인노무사 상담"] },
+  { text: "성희롱 사건 신고 지원", audience: "worker", category: "harassment", services: ["직장 내 성희롱 신고 지원", "전문 공인노무사 상담"] },
+  { text: "괴롭힘 신고 접수 조사", audience: "employer", category: "harassment", services: ["직장 내 괴롭힘 전문 조사", "직장 내 괴롭힘"] },
+  { text: "성희롱 신고 접수 조사", audience: "employer", category: "harassment", services: ["직장 내 성희롱 전문 조사", "직장 내 성희롱"] },
+  { text: "징계 사안 접수 조사", audience: "employer", category: "dismissal", services: ["징계 사안 전문 조사", "징계위원회 운영 자문"] },
   { text: "산재 신청 대리", audience: "worker", category: "industrial_accident", services: ["산재보상 신청 대리", "업무상질병 산재 인정 대응"] },
   { text: "취업규칙 개정 자문", audience: "employer", category: "contract", services: ["취업규칙 제·개정 자문", "사업주·인사담당 노무자문"] },
   { text: "임금체계 개편 설계", audience: "employer", category: "contract", services: ["임금체계 개편 자문", "성과급·인센티브 설계 자문"] },
@@ -184,7 +204,7 @@ const LEARNED_EXAMPLES: DiscoveryExample[] = Array.isArray(learnedExamples)
         text: String(item.text),
         audience: item.audience as DiscoveryAudience,
         category: item.category as DiscoveryCategory,
-        services: (item.services || []).map((service) => String(service)),
+        services: canonicalizeServices((item.services || []).map((service) => String(service))),
       }))
   : [];
 
@@ -202,7 +222,7 @@ const MISMATCH_EXAMPLES: DiscoveryExample[] = Array.isArray(mismatchExamples)
         text: String(item.text),
         audience: item.audience as DiscoveryAudience,
         category: item.category as DiscoveryCategory,
-        services: (item.services || []).map((service) => String(service)),
+        services: canonicalizeServices((item.services || []).map((service) => String(service))),
       }))
   : [];
 

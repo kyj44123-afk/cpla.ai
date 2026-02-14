@@ -290,8 +290,8 @@ const PRESET_CONFIG: Record<PresetKey, PresetConfig> = {
   harassment_sexual: createPreset({
     label: "직장 내 괴롭힘·성희롱",
     defaultTone: "민감이슈 대응형, 보호·절차 중심 톤",
-    titleSuffix: "괴롭힘·성희롱 대응 가이드",
-    caseStudySuffix: "괴롭힘·성희롱 대응 사례",
+    titleSuffix: "괴롭힘·성희롱 지원 가이드",
+    caseStudySuffix: "괴롭힘·성희롱 지원 사례",
     playbook: [
       "피해자 보호와 공정 절차를 동시에 강조",
       "민감 주제이므로 자극적 표현 금지",

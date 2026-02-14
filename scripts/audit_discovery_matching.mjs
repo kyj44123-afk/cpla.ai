@@ -77,8 +77,8 @@ const HARD_KEYWORD_SERVICE_RULES = [
   { keywords: ["체당금", "대지급금"], service: "대지급금 신청 대리" },
   { keywords: ["미지급", "임금체불", "체불", "진정"], service: "임금체불 진정사건 대리" },
   { keywords: ["퇴직금"], service: "퇴직금 청구 대리" },
-  { keywords: ["괴롭힘"], service: "직장 내 괴롭힘 신고 대응" },
-  { keywords: ["성희롱"], service: "직장 내 성희롱 대응" },
+  { keywords: ["괴롭힘"], service: "직장 내 괴롭힘 신고 지원" },
+  { keywords: ["성희롱"], service: "직장 내 성희롱 신고 지원" },
   { keywords: ["직업병"], service: "업무상질병 산재 인정 대응" },
   { keywords: ["장의비"], service: "유족급여·장의비 청구 지원" },
 ];

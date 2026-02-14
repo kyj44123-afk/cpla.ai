@@ -39,6 +39,15 @@ type ManagedService = {
 };
 
 const SETTINGS_PATH = path.join(process.cwd(), ".settings.json");
+const LEGACY_SERVICE_NAME_MAP: Record<string, string> = {
+  "직장 내 괴롭힘 신고 대응": "직장 내 괴롭힘 신고 지원",
+  "직장 내 성희롱 대응": "직장 내 성희롱 신고 지원",
+};
+
+function canonicalizeServiceName(name: string) {
+  const trimmed = String(name || "").trim();
+  return LEGACY_SERVICE_NAME_MAP[trimmed] || trimmed;
+}
 
 const CATEGORY_KEYWORDS: Record<Exclude<Category, "none" | "other">, string[]> = {
   wage_arrears: [
@@ -275,7 +284,7 @@ function readManagedServices(): ManagedService[] {
       : [];
     return [...legacy, ...workers, ...employers]
       .map((s) => ({
-        name: String(s?.name || "").trim(),
+        name: canonicalizeServiceName(String(s?.name || "")),
         description: String(s?.description || "").trim(),
         audience: (s?.audience === "employer" ? "employer" : "worker") as "worker" | "employer",
         keywords: Array.isArray(s?.keywords)
@@ -851,6 +860,16 @@ function applyHardPriority(
   };
 
   if (audience === "employer") {
+    if (includesAny(normalized, ["괴롭힘", "직장내괴롭힘"]) && includesAny(normalized, ["신고접수", "신고가들어", "접수됐", "접수되어", "접수", "조사필요", "사실조사"])) {
+      add("직장 내 괴롭힘 전문 조사");
+    }
+    if (includesAny(normalized, ["성희롱", "직장내성희롱"]) && includesAny(normalized, ["신고접수", "신고가들어", "접수됐", "접수되어", "접수", "조사필요", "사실조사"])) {
+      add("직장 내 성희롱 전문 조사");
+    }
+    if (includesAny(normalized, ["징계", "징계사안"]) && includesAny(normalized, ["신고접수", "접수", "사실조사", "조사필요", "소명"])) {
+      add("징계 사안 전문 조사");
+    }
+
     if (includesAny(normalized, ["연봉제", "직무급", "임금구조"])) add("임금체계 개편 자문");
     if (includesAny(normalized, ["보상"])) add("성과급·인센티브 설계 자문");
     if (includesAny(normalized, ["인센티브", "성과급"])) add("성과급·인센티브 설계 자문");
