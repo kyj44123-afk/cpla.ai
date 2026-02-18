@@ -38,17 +38,17 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-white text-[#121212]">
-      <div className="mx-auto w-full max-w-[1800px] p-2 md:p-4">
-        <section className="border border-[#b9b9b9] bg-[#dfdfe1] px-4 py-4 md:px-10 md:py-8">
-          <header className="text-[clamp(1rem,1.55vw,1.95rem)] font-medium leading-none tracking-tight">
+    <main className="min-h-screen bg-[#e7e7e7] text-[#121212]">
+      <div className="mx-auto w-full max-w-[1800px] px-4 pb-4 pt-6 md:px-10 md:pb-8 md:pt-10">
+        <section className="px-1 py-1 md:px-2">
+          <header className="whitespace-nowrap text-[clamp(0.68rem,1.05vw,1.4rem)] font-normal leading-none tracking-[-0.01em] text-[#222222]">
             DIRECTOR&nbsp; 노무법인 호연 대표노무사 곽영준&nbsp; KWAK YOUNG JUN
           </header>
 
-          <div className="mx-auto mt-8 w-full max-w-[1400px] text-center md:mt-10">
+          <div className="mx-auto mt-12 w-full max-w-[1450px] text-center md:mt-16">
             <div className="relative">
-              <p className="text-[clamp(2.2rem,7.2vw,8.4rem)] font-black leading-none tracking-[0.02em] text-[#c6c6cb]">
-                AI- PREPARED
+              <p className="text-[clamp(2.1rem,7.1vw,8.1rem)] font-black leading-none tracking-[0.01em] text-[#c9c9c9]">
+                AI - PREPARED
               </p>
               <Image
                 src="/pptx-assets/robot-from-ppt.png"
@@ -56,32 +56,32 @@ export default function Home() {
                 width={220}
                 height={220}
                 priority
-                className="absolute right-[2%] top-1/2 hidden h-auto w-[clamp(110px,13vw,220px)] -translate-y-1/2 md:block"
+                className="absolute right-[2.4%] top-[4%] hidden h-auto w-[clamp(98px,11.2vw,184px)] md:block"
               />
             </div>
 
-            <h1 className="mt-2 text-[clamp(4.6rem,18vw,17rem)] font-black leading-[0.9] tracking-tight text-[#5c95bc] drop-shadow-[0_8px_8px_rgba(0,0,0,0.22)]">
+            <h1 className="mt-2 text-[clamp(4.45rem,17.3vw,16.2rem)] font-black leading-[0.9] tracking-tight text-[#3b95bb] drop-shadow-[0_4px_6px_rgba(0,0,0,0.2)]">
               CPLA<span className="lowercase">s</span>
             </h1>
           </div>
 
-          <div className="mx-auto mt-10 grid w-full max-w-[1600px] grid-cols-1 gap-5 md:mt-12 md:grid-cols-2 md:gap-10">
+          <div className="mx-auto mt-10 grid w-full max-w-[1600px] grid-cols-1 gap-5 md:mt-14 md:grid-cols-2 md:gap-12">
             <button
               type="button"
               onClick={() => openDetail("enterprise")}
-              className="flex min-h-[120px] items-center gap-5 rounded-[28px] border-2 border-white bg-[#5b84a3] px-6 py-6 text-left text-white shadow-[0_4px_10px_rgba(0,0,0,0.24)] transition-all duration-100 hover:brightness-105 md:min-h-[190px] md:px-12"
+              className="flex min-h-[112px] items-center gap-4 rounded-[24px] border border-[#d2d2d2] bg-[#ececec] px-6 py-5 text-left text-[#2f7896] shadow-[0_3px_8px_rgba(0,0,0,0.18)] transition-all duration-100 hover:brightness-[1.02] md:min-h-[142px] md:px-9"
             >
-              <span className="text-[clamp(2rem,3.8vw,4.8rem)] leading-none">▶</span>
-              <span className="text-[clamp(2rem,3.2vw,4.25rem)] font-black leading-none tracking-tight">사업주 FOR ENTERPRISE</span>
+              <span className="text-[clamp(2rem,3.2vw,3.8rem)] leading-none">▶</span>
+              <span className="text-[clamp(1.9rem,3.08vw,4rem)] font-black leading-none tracking-tight">사업주 FOR ENTERPRISE</span>
             </button>
 
             <button
               type="button"
               onClick={() => openDetail("employee")}
-              className="flex min-h-[120px] items-center gap-5 rounded-[28px] border-2 border-white bg-[#d2ac3f] px-6 py-6 text-left text-white shadow-[0_4px_10px_rgba(0,0,0,0.24)] transition-all duration-100 hover:brightness-105 md:min-h-[190px] md:px-12"
+              className="flex min-h-[112px] items-center gap-4 rounded-[24px] border border-[#d2d2d2] bg-[#ececec] px-6 py-5 text-left text-[#e3a401] shadow-[0_3px_8px_rgba(0,0,0,0.18)] transition-all duration-100 hover:brightness-[1.02] md:min-h-[142px] md:px-9"
             >
-              <span className="text-[clamp(2rem,3.8vw,4.8rem)] leading-none">▶</span>
-              <span className="text-[clamp(2rem,3.2vw,4.25rem)] font-black leading-none tracking-tight">근로자 FOR EMPLOYEES</span>
+              <span className="text-[clamp(2rem,3.2vw,3.8rem)] leading-none">▶</span>
+              <span className="text-[clamp(1.9rem,3.08vw,4rem)] font-black leading-none tracking-tight">근로자 FOR EMPLOYEES</span>
             </button>
           </div>
         </section>
@@ -89,7 +89,7 @@ export default function Home() {
         <section
           ref={detailRef}
           className={`mx-auto w-full max-w-[1600px] overflow-hidden transition-all duration-100 ${
-            selectedAudience ? "mt-2 max-h-[8000px] opacity-100" : "mt-0 max-h-0 opacity-0"
+            selectedAudience ? "mt-5 max-h-[8000px] opacity-100" : "mt-0 max-h-0 opacity-0"
           }`}
           aria-hidden={!selectedAudience}
         >
