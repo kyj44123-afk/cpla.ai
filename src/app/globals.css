@@ -1,12 +1,39 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@font-face {
+  font-family: "S-CoreDream";
+  src: url("https://cdn.jsdelivr.net/npm/@noonnu/s-coredream-4regular/S-CoreDream-4Regular.woff")
+    format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "S-CoreDream";
+  src: url("https://cdn.jsdelivr.net/npm/@noonnu/s-coredream-7extrabold/S-CoreDream-7ExtraBold.woff")
+    format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "S-CoreDream";
+  src: url("https://cdn.jsdelivr.net/npm/@noonnu/s-coredream-9black/S-CoreDream-9Black.woff")
+    format("woff");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-s-core);
   --font-mono: var(--font-geist-mono);
   --font-serif: var(--font-noto-serif-kr);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -48,6 +75,7 @@
 }
 
 :root {
+  --font-s-core: "S-CoreDream", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

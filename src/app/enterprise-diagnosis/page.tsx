@@ -47,14 +47,12 @@ export default function EnterpriseDiagnosisPage() {
   const [showResult, setShowResult] = useState(false);
 
   const allAnswered = useMemo(() => answers.every((answer) => answer !== null), [answers]);
-
   const yesCount = useMemo(() => answers.filter((answer) => answer === true).length, [answers]);
 
   const diagnosisMessage = useMemo(() => {
     if (!allAnswered) {
       return "";
     }
-
     return getDiagnosisMessage(answers as boolean[]);
   }, [allAnswered, answers]);
 
@@ -79,84 +77,86 @@ export default function EnterpriseDiagnosisPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#e8e8e8] p-2 text-[#121212]">
-      <div className="mx-auto max-w-[1660px] border border-[#bdbdbd] px-5 py-6 md:px-8 md:py-8">
-        <header className="mx-auto w-full max-w-[1300px]">
-          <p className="text-sm font-bold uppercase tracking-[0.12em] text-[#2f7896]">Enterprise Diagnosis</p>
-          <h1 className="mt-2 text-[clamp(2rem,6vw,5rem)] font-black leading-none tracking-tight">사업주 진단 페이지</h1>
-          <p className="mt-3 text-lg font-semibold text-[#3a3a3a]">10개 질문에 YES 또는 NO로 답변해 주세요.</p>
-        </header>
+    <main className="min-h-screen bg-white text-[#111111]">
+      <div className="mx-auto w-full max-w-[1800px] p-2 md:p-4">
+        <section className="border border-[#d2d2d2] bg-[#f7f7f8] px-4 py-6 md:px-8 md:py-9">
+          <header className="mx-auto w-full max-w-[1500px]">
+            <p className="text-[0.78rem] font-black uppercase tracking-[0.14em] text-[#2f7896] md:text-sm">Enterprise Diagnosis</p>
+            <h1 className="mt-2 text-[clamp(2rem,7vw,5.2rem)] font-black leading-none tracking-tight">사업주 진단 페이지</h1>
+            <p className="mt-3 text-[clamp(1.05rem,3.9vw,1.7rem)] font-semibold text-[#2e2e2e]">10개 질문에 YES 또는 NO로 답변해 주세요.</p>
+          </header>
 
-        <section className="mx-auto mt-6 flex w-full max-w-[1300px] flex-col gap-4 md:gap-5">
-          {QUESTIONS.map((question, index) => {
-            const answer = answers[index];
-            return (
-              <article
-                key={question}
-                className="rounded-[24px] border border-white bg-white/80 px-5 py-5 shadow-[0_8px_18px_rgba(0,0,0,0.14)] md:px-7 md:py-7"
+          <section className="mx-auto mt-5 flex w-full max-w-[1500px] flex-col gap-3 md:gap-4">
+            {QUESTIONS.map((question, index) => {
+              const answer = answers[index];
+              return (
+                <article
+                  key={question}
+                  className="rounded-[22px] border border-white bg-white px-4 py-5 shadow-[0_6px_14px_rgba(0,0,0,0.08)] md:px-7 md:py-7"
+                >
+                  <p className="text-[clamp(1.12rem,4.6vw,2.1rem)] font-black leading-snug tracking-tight text-[#171717]">
+                    {index + 1}. {question}
+                  </p>
+                  <div className="mt-4 flex gap-2.5 md:gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleAnswer(index, true)}
+                      className={`rounded-[14px] border-2 px-5 py-2.5 text-[clamp(1rem,3.8vw,1.2rem)] font-black transition-all duration-100 ${
+                        answer === true
+                          ? "border-[#2f7896] bg-[#2f7896] text-white"
+                          : "border-[#2f7896] bg-white text-[#2f7896]"
+                      }`}
+                    >
+                      YES
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAnswer(index, false)}
+                      className={`rounded-[14px] border-2 px-5 py-2.5 text-[clamp(1rem,3.8vw,1.2rem)] font-black transition-all duration-100 ${
+                        answer === false
+                          ? "border-[#ce8a12] bg-[#ce8a12] text-white"
+                          : "border-[#ce8a12] bg-white text-[#ce8a12]"
+                      }`}
+                    >
+                      NO
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+
+            {allAnswered ? (
+              <button
+                type="button"
+                onClick={openResult}
+                className="w-full rounded-[18px] border-2 border-white bg-[#2f7896] px-5 py-5 text-[clamp(1.25rem,5.2vw,2.4rem)] font-black text-white shadow-[0_8px_18px_rgba(0,0,0,0.2)] transition-all duration-100 hover:brightness-105"
               >
-                <p className="text-[clamp(1.08rem,2vw,1.85rem)] font-black leading-snug tracking-tight text-[#1a1a1a]">
-                  {index + 1}. {question}
-                </p>
-                <div className="mt-4 flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleAnswer(index, true)}
-                    className={`rounded-[14px] border-2 px-5 py-2 text-base font-black transition-all duration-150 md:text-lg ${
-                      answer === true
-                        ? "border-[#2f7896] bg-[#2f7896] text-white"
-                        : "border-[#2f7896] bg-white text-[#2f7896]"
-                    }`}
-                  >
-                    YES
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAnswer(index, false)}
-                    className={`rounded-[14px] border-2 px-5 py-2 text-base font-black transition-all duration-150 md:text-lg ${
-                      answer === false
-                        ? "border-[#d87b00] bg-[#d87b00] text-white"
-                        : "border-[#d87b00] bg-white text-[#d87b00]"
-                    }`}
-                  >
-                    NO
-                  </button>
-                </div>
-              </article>
-            );
-          })}
+                진단결과 바로 보기
+              </button>
+            ) : null}
+          </section>
 
-          {allAnswered ? (
-            <button
-              type="button"
-              onClick={openResult}
-              className="w-full rounded-[20px] border-2 border-white bg-[#2f7896] px-5 py-5 text-[clamp(1.15rem,2.6vw,2.2rem)] font-black text-white shadow-[0_8px_18px_rgba(0,0,0,0.22)] transition-all duration-150 hover:brightness-105"
-            >
-              진단결과 바로 보기
-            </button>
-          ) : null}
-        </section>
-
-        <section
-          ref={resultRef}
-          className={`mx-auto w-full max-w-[1300px] overflow-hidden transition-all duration-150 ${
-            showResult ? "mt-5 max-h-[800px] opacity-100" : "mt-0 max-h-0 opacity-0"
-          }`}
-          aria-hidden={!showResult}
-        >
-          <div className="rounded-[24px] border border-white bg-white/80 px-5 py-6 shadow-[0_10px_22px_rgba(0,0,0,0.16)] md:px-7 md:py-8">
-            <p className="text-sm font-bold uppercase tracking-[0.12em] text-[#2f7896]">Diagnosis Result</p>
-            <h2 className="mt-3 text-[clamp(1.6rem,3.6vw,3.4rem)] font-black leading-tight tracking-tight text-[#1a1a1a]">
-              {diagnosisMessage}
-            </h2>
-            <p className="mt-3 text-base font-semibold text-[#3a3a3a]">YES 답변 수: {yesCount} / 10</p>
-            <button
-              type="button"
-              className="mt-5 w-full rounded-[16px] border-2 border-white bg-[#eba900] px-5 py-4 text-[clamp(1.05rem,2.3vw,1.75rem)] font-black text-white shadow-[0_8px_18px_rgba(0,0,0,0.2)] transition-all duration-150 hover:brightness-105"
-            >
-              문의하기
-            </button>
-          </div>
+          <section
+            ref={resultRef}
+            className={`mx-auto w-full max-w-[1500px] overflow-hidden transition-all duration-100 ${
+              showResult ? "mt-4 max-h-[1000px] opacity-100" : "mt-0 max-h-0 opacity-0"
+            }`}
+            aria-hidden={!showResult}
+          >
+            <div className="rounded-[22px] border border-white bg-white px-4 py-6 shadow-[0_8px_18px_rgba(0,0,0,0.12)] md:px-7 md:py-8">
+              <p className="text-[0.78rem] font-black uppercase tracking-[0.14em] text-[#2f7896] md:text-sm">Diagnosis Result</p>
+              <h2 className="mt-3 text-[clamp(1.65rem,6.1vw,3.8rem)] font-black leading-tight tracking-tight text-[#1a1a1a]">
+                {diagnosisMessage}
+              </h2>
+              <p className="mt-3 text-[clamp(1.02rem,3.7vw,1.4rem)] font-semibold text-[#3a3a3a]">YES 답변 수: {yesCount} / 10</p>
+              <button
+                type="button"
+                className="mt-5 w-full rounded-[16px] border-2 border-white bg-[#d2ac3f] px-5 py-4 text-[clamp(1.15rem,4.8vw,2.1rem)] font-black text-white shadow-[0_8px_18px_rgba(0,0,0,0.16)] transition-all duration-100 hover:brightness-105"
+              >
+                문의하기
+              </button>
+            </div>
+          </section>
         </section>
       </div>
     </main>

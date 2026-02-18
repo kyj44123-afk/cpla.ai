@@ -18,20 +18,12 @@ export default function Home() {
   const [selectedAudience, setSelectedAudience] = useState<Audience | null>(null);
   const [enterpriseStep, setEnterpriseStep] = useState(0);
 
-  const scrollToDetail = () => {
-    window.setTimeout(() => {
-      detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
-
   const openDetail = (audience: Audience) => {
     setSelectedAudience(audience);
-    if (audience === "enterprise") {
-      setEnterpriseStep(1);
-    } else {
-      setEnterpriseStep(0);
-    }
-    scrollToDetail();
+    setEnterpriseStep(audience === "enterprise" ? 1 : 0);
+    window.setTimeout(() => {
+      detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 40);
   };
 
   const revealNextEnterprise = () => {
@@ -39,72 +31,70 @@ export default function Home() {
       const next = Math.min(prev + 1, ENTERPRISE_QUESTIONS.length);
       window.setTimeout(() => {
         const target = document.getElementById(`enterprise-card-${next}`);
-        target?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 40);
+        target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 35);
       return next;
     });
   };
 
   return (
-    <main className="min-h-screen bg-[#e8e8e8] p-2 text-[#121212]">
-      <div className="mx-auto flex min-h-[calc(100vh-1rem)] max-w-[1660px] flex-col border border-[#bdbdbd] px-5 py-4 md:px-8 md:py-5">
-        <header className="text-[22px] leading-none tracking-tight md:text-[38px]">
-          DIRECTOR&nbsp; 노무법인 호연 대표노무사 곽영준&nbsp; KWAK YOUNG JUN
-        </header>
+    <main className="min-h-screen bg-white text-[#121212]">
+      <div className="mx-auto w-full max-w-[1800px] p-2 md:p-4">
+        <section className="border border-[#b9b9b9] bg-[#dfdfe1] px-4 py-4 md:px-10 md:py-8">
+          <header className="text-[clamp(1rem,1.55vw,1.95rem)] font-medium leading-none tracking-tight">
+            DIRECTOR&nbsp; 노무법인 호연 대표노무사 곽영준&nbsp; KWAK YOUNG JUN
+          </header>
 
-        <section className="mx-auto mt-8 flex w-full max-w-[1300px] flex-col items-center justify-center">
-          <div className="relative w-full text-center">
-            <p className="text-[clamp(2.5rem,6.4vw,8.6rem)] font-black leading-none tracking-[0.03em] text-[#ceced0]">
-              AI- PREPARED
-            </p>
-            <Image
-              src="/ai-robot.png"
-              alt="AI robot"
-              width={210}
-              height={210}
-              className="absolute right-[6%] top-1/2 hidden h-auto w-[clamp(100px,11vw,210px)] -translate-y-1/2 md:block"
-              priority
-            />
+          <div className="mx-auto mt-8 w-full max-w-[1400px] text-center md:mt-10">
+            <div className="relative">
+              <p className="text-[clamp(2.2rem,7.2vw,8.4rem)] font-black leading-none tracking-[0.02em] text-[#c6c6cb]">
+                AI- PREPARED
+              </p>
+              <Image
+                src="/pptx-assets/robot-from-ppt.png"
+                alt="AI robot"
+                width={220}
+                height={220}
+                priority
+                className="absolute right-[2%] top-1/2 hidden h-auto w-[clamp(110px,13vw,220px)] -translate-y-1/2 md:block"
+              />
+            </div>
+
+            <h1 className="mt-2 text-[clamp(4.6rem,18vw,17rem)] font-black leading-[0.9] tracking-tight text-[#5c95bc] drop-shadow-[0_8px_8px_rgba(0,0,0,0.22)]">
+              CPLA<span className="lowercase">s</span>
+            </h1>
           </div>
 
-          <h1 className="mt-2 text-center text-[clamp(5.6rem,18vw,17rem)] font-black leading-[0.9] tracking-[0.01em] text-[#3797bf] drop-shadow-[0_8px_8px_rgba(0,0,0,0.22)]">
-            CPLA<span className="lowercase">s</span>
-          </h1>
-
-          <div className="mt-10 grid w-full grid-cols-1 gap-6 pb-6 md:mt-14 md:grid-cols-2 md:gap-8 md:pb-4">
+          <div className="mx-auto mt-10 grid w-full max-w-[1600px] grid-cols-1 gap-5 md:mt-12 md:grid-cols-2 md:gap-10">
             <button
               type="button"
               onClick={() => openDetail("enterprise")}
-              className="flex min-h-[128px] items-center gap-5 rounded-[28px] border-2 border-white bg-[#2f7896] px-6 py-6 text-left text-white shadow-[3px_4px_8px_rgba(0,0,0,0.3)] transition-transform duration-150 hover:scale-[1.01] md:min-h-[165px] md:px-8"
+              className="flex min-h-[120px] items-center gap-5 rounded-[28px] border-2 border-white bg-[#5b84a3] px-6 py-6 text-left text-white shadow-[0_4px_10px_rgba(0,0,0,0.24)] transition-all duration-100 hover:brightness-105 md:min-h-[190px] md:px-12"
             >
-              <span className="text-[46px] leading-none md:text-[62px]">▶</span>
-              <span className="text-[clamp(2rem,2.4vw,3.4rem)] font-black leading-tight tracking-tight">
-                사업주 FOR ENTERPRISE
-              </span>
+              <span className="text-[clamp(2rem,3.8vw,4.8rem)] leading-none">▶</span>
+              <span className="text-[clamp(2rem,3.2vw,4.25rem)] font-black leading-none tracking-tight">사업주 FOR ENTERPRISE</span>
             </button>
 
             <button
               type="button"
               onClick={() => openDetail("employee")}
-              className="flex min-h-[128px] items-center gap-5 rounded-[28px] border-2 border-white bg-[#eba900] px-6 py-6 text-left text-white shadow-[3px_4px_8px_rgba(0,0,0,0.3)] transition-transform duration-150 hover:scale-[1.01] md:min-h-[165px] md:px-8"
+              className="flex min-h-[120px] items-center gap-5 rounded-[28px] border-2 border-white bg-[#d2ac3f] px-6 py-6 text-left text-white shadow-[0_4px_10px_rgba(0,0,0,0.24)] transition-all duration-100 hover:brightness-105 md:min-h-[190px] md:px-12"
             >
-              <span className="text-[46px] leading-none md:text-[62px]">▶</span>
-              <span className="text-[clamp(2rem,2.4vw,3.4rem)] font-black leading-tight tracking-tight">
-                근로자 FOR EMPLOYEES
-              </span>
+              <span className="text-[clamp(2rem,3.8vw,4.8rem)] leading-none">▶</span>
+              <span className="text-[clamp(2rem,3.2vw,4.25rem)] font-black leading-none tracking-tight">근로자 FOR EMPLOYEES</span>
             </button>
           </div>
         </section>
 
         <section
           ref={detailRef}
-          className={`mx-auto w-full max-w-[1300px] overflow-hidden transition-all duration-150 ${
-            selectedAudience ? "mt-6 max-h-[2200px] pb-8 opacity-100" : "mt-0 max-h-0 pb-0 opacity-0"
+          className={`mx-auto w-full max-w-[1600px] overflow-hidden transition-all duration-100 ${
+            selectedAudience ? "mt-2 max-h-[8000px] opacity-100" : "mt-0 max-h-0 opacity-0"
           }`}
           aria-hidden={!selectedAudience}
         >
           {selectedAudience === "enterprise" ? (
-            <div className="flex flex-col gap-4 md:gap-5">
+            <div className="flex flex-col gap-2">
               {ENTERPRISE_QUESTIONS.slice(0, enterpriseStep).map((question, index) => {
                 const isCurrent = index === enterpriseStep - 1;
                 const canOpenNext = isCurrent && enterpriseStep < ENTERPRISE_QUESTIONS.length;
@@ -115,13 +105,11 @@ export default function Home() {
                     id={`enterprise-card-${index + 1}`}
                     type="button"
                     onClick={canOpenNext ? revealNextEnterprise : undefined}
-                    className={`w-full rounded-[28px] border border-white bg-white/75 px-5 py-7 text-left shadow-[0_8px_18px_rgba(0,0,0,0.16)] transition-all duration-150 md:px-8 md:py-10 ${
+                    className={`flex min-h-[92dvh] w-full items-center rounded-[26px] border border-[#e6e6e6] bg-[#f5f5f6] px-5 py-8 text-left shadow-[0_6px_14px_rgba(0,0,0,0.14)] transition-all duration-100 md:min-h-[320px] md:px-10 ${
                       canOpenNext ? "cursor-pointer active:scale-[0.995]" : "cursor-default"
                     }`}
                   >
-                    <p className="text-[clamp(2rem,4.8vw,5.8rem)] font-black leading-[1.04] tracking-tight text-[#1a1a1a]">
-                      {question}
-                    </p>
+                    <p className="text-[clamp(2.25rem,9vw,6rem)] font-black leading-[1.05] tracking-tight text-[#161616]">{question}</p>
                   </button>
                 );
               })}
@@ -129,7 +117,7 @@ export default function Home() {
               {enterpriseStep >= ENTERPRISE_QUESTIONS.length ? (
                 <Link
                   href="/enterprise-diagnosis"
-                  className="mt-1 w-full rounded-[20px] border-2 border-white bg-[#2f7896] px-5 py-5 text-[clamp(1.15rem,2.6vw,2.2rem)] font-black text-white shadow-[0_8px_18px_rgba(0,0,0,0.22)] transition-all duration-150 hover:brightness-105 md:px-8 md:py-6"
+                  className="flex min-h-[20dvh] items-center justify-center rounded-[20px] border-2 border-white bg-[#2f7896] px-6 py-6 text-center text-[clamp(1.35rem,5.6vw,2.8rem)] font-black text-white shadow-[0_8px_18px_rgba(0,0,0,0.22)] transition-all duration-100 hover:brightness-105"
                 >
                   우리 회사 HR 안전성 진단하러 가기
                 </Link>
@@ -138,12 +126,11 @@ export default function Home() {
           ) : null}
 
           {selectedAudience === "employee" ? (
-            <div className="rounded-[28px] border border-white bg-white/75 p-6 shadow-[0_8px_20px_rgba(0,0,0,0.18)] transition-all duration-150 md:p-8">
-              <p className="inline-block rounded-full bg-[#eba900] px-4 py-2 text-sm font-bold text-white">근로자 전용 안내</p>
-              <h2 className="mt-4 text-[clamp(2rem,4.5vw,5rem)] font-black leading-[1.04] tracking-tight">
+            <article className="flex min-h-[92dvh] items-center rounded-[26px] border border-[#e6e6e6] bg-[#f5f5f6] px-5 py-8 shadow-[0_6px_14px_rgba(0,0,0,0.14)] md:min-h-[420px] md:px-10">
+              <h2 className="text-[clamp(2.1rem,8.6vw,5rem)] font-black leading-[1.05] tracking-tight text-[#161616]">
                 근로자를 위한 맞춤 창이 열렸습니다.
               </h2>
-            </div>
+            </article>
           ) : null}
         </section>
       </div>
