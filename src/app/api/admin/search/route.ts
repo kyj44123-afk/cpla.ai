@@ -1,10 +1,24 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import OpenAI from "openai";
+import { z } from "zod";
+
+import { withSecurity } from "@/lib/api-security";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const runtime = "nodejs";
 
+const SearchSchema = z.object({
+  query: z.string().trim().min(1).max(500),
+  limit: z.number().int().min(1).max(50).optional().default(10),
+});
+
 export async function POST(req: Request) {
+  const securityError = await withSecurity(req, {
+    checkAuth: true,
+    rateLimit: { limit: 30, windowMs: 60_000 },
+  });
+  if (securityError) return securityError;
+
   const supabase = getSupabaseAdmin();
 
   let body: unknown;
@@ -14,23 +28,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { query, limit = 10 } = body as { query?: string; limit?: number };
-  if (!query || typeof query !== "string") {
-    return NextResponse.json({ error: "Missing query" }, { status: 400 });
+  const parsed = SearchSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
   const key = process.env.OPENAI_API_KEY;
   if (!key) {
-    return NextResponse.json(
-      { error: "OPENAI_API_KEY not configured" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Server not configured" }, { status: 500 });
   }
 
   const client = new OpenAI({ apiKey: key });
   const embedRes = await client.embeddings.create({
     model: "text-embedding-3-small",
-    input: query,
+    input: parsed.data.query,
   });
 
   const embedding = embedRes.data[0]?.embedding;
@@ -38,25 +49,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to generate embedding" }, { status: 500 });
   }
 
-  // Supabase vector search
   const { data, error } = await supabase.rpc("match_document_chunks", {
     query_embedding: embedding,
-    match_count: Math.min(limit, 50),
+    match_count: parsed.data.limit,
   });
 
   if (error) {
-    return NextResponse.json(
-      { error: "Search failed", details: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Search failed" }, { status: 500 });
   }
 
-  // 문서 정보도 함께 가져오기
   const docIds = [...new Set((data ?? []).map((d: { document_id: string }) => d.document_id))];
-  const { data: docs } = await supabase
-    .from("documents")
-    .select("id,title,source,filename")
-    .in("id", docIds);
+  const { data: docs } = await supabase.from("documents").select("id,title,source,filename").in("id", docIds);
 
   const docMap = new Map((docs ?? []).map((d) => [d.id, d]));
 

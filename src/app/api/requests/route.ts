@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { getClientIpFromHeaders, sanitizeText } from "@/lib/security-core";
 
 export const runtime = "nodejs";
 
-type RequestType =
-  | "personal_call"
-  | "personal_quote"
-  | "biz_call"
-  | "biz_quote"
-  | "biz_brochure";
+const RequestSchema = z.object({
+  type: z.enum(["personal_call", "personal_quote", "biz_call", "biz_quote", "biz_brochure"]),
+  data: z.record(z.string(), z.unknown()),
+});
 
 export async function POST(req: Request) {
   const supabase = getSupabaseAdmin();
@@ -20,42 +21,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { type, data } = body as { type?: RequestType; data?: unknown };
-  if (!type || !data) {
-    return NextResponse.json({ error: "Missing type or data" }, { status: 400 });
+  const parsed = RequestSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const allowed: RequestType[] = [
-    "personal_call",
-    "personal_quote",
-    "biz_call",
-    "biz_quote",
-    "biz_brochure",
-  ];
-  if (!allowed.includes(type)) {
-    return NextResponse.json({ error: "Invalid type" }, { status: 400 });
-  }
-
-  const ip =
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    null;
-  const ua = req.headers.get("user-agent") ?? null;
+  const ip = getClientIpFromHeaders(req.headers);
+  const ua = sanitizeText(req.headers.get("user-agent") ?? "", 512) || null;
 
   const { error } = await supabase.from("requests").insert({
-    type,
-    data,
+    type: parsed.data.type,
+    data: parsed.data.data,
     ip,
     user_agent: ua,
   });
 
   if (error) {
-    return NextResponse.json(
-      { error: "Failed to save request", details: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to save request" }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
 }
-

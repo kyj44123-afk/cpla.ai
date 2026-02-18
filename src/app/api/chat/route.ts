@@ -12,12 +12,7 @@ import { headers } from "next/headers";
 // Key: IP address, Value: { count: number, resetTime: Date }
 const rateLimitStore = new Map<string, { count: number; resetTime: Date }>();
 
-// Whitelist IPs (add your IP here)
-const WHITELISTED_IPS = [
-    "127.0.0.1",
-    "::1", // localhost
-    "66.249.66.164", // User's public IP
-];
+const WHITELISTED_IPS = ["127.0.0.1", "::1"];
 
 const RATE_LIMIT_MAX = 5; // 5 questions per day
 
@@ -78,11 +73,11 @@ function isLikelyGibberish(text: string): boolean {
     if (specialRatio > 0.5) return true;
     if (koreanRatio + englishRatio < 0.3 && trimmed.length > 5) return true;
 
-    // Check for repeating characters (e.g., "ㅋㅋㅋㅋㅋ" or "aaaaaaa")
+    // Check for repeating characters (e.g., "?뗣뀑?뗣뀑?? or "aaaaaaa")
     const repeatingPattern = /(.)\1{5,}/;
     if (repeatingPattern.test(trimmed)) return true;
 
-    // Check for random consonant-only Korean input (e.g., "ㅁㄴㅇㄻ")
+    // Check for random consonant-only Korean input (e.g., "?곥꽩?뉎꽰")
     const jamo = (trimmed.match(/[\u3131-\u314E\u314F-\u3163]/g) || []).length;
     if (jamo > trimmed.length * 0.5 && trimmed.length > 3) return true;
 
@@ -98,7 +93,7 @@ export async function POST(req: Request) {
         if (!rateCheck.allowed) {
             return NextResponse.json(
                 {
-                    error: "일일 질문 한도(5회)를 초과했습니다. 내일 다시 시도해주세요.",
+                    error: "?쇱씪 吏덈Ц ?쒕룄(5??瑜?珥덇낵?덉뒿?덈떎. ?댁씪 ?ㅼ떆 ?쒕룄?댁＜?몄슂.",
                     limitExceeded: true
                 },
                 { status: 429 }
@@ -117,7 +112,7 @@ export async function POST(req: Request) {
         if (isLikelyGibberish(lastMessage.content)) {
             return NextResponse.json(
                 {
-                    error: "입력하신 내용을 이해하기 어렵습니다. 페이지를 새로고침한 후 질문을 다시 작성해 주세요.",
+                    error: "?낅젰?섏떊 ?댁슜???댄빐?섍린 ?대졄?듬땲?? ?섏씠吏瑜??덈줈怨좎묠????吏덈Ц???ㅼ떆 ?묒꽦??二쇱꽭??",
                     gibberish: true
                 },
                 { status: 400 }
@@ -161,26 +156,26 @@ export async function POST(req: Request) {
 
     ** STRATEGY **:
                         The legal search engine only finds cases where the keyword appears in the TITLE.
-    Therefore, you must extract a "primary" Broad Legal Category(e.g., 부당해고, 임금체불, 손해배상, 산재) that is likely to be in the case title.
-        Then, put specific colloquial details(e.g., 왕따, 짤림, 수습) into "secondary" keywords for local filtering.
+    Therefore, you must extract a "primary" Broad Legal Category(e.g., 遺?뱁빐怨? ?꾧툑泥대텋, ?먰빐諛곗긽, ?곗옱) that is likely to be in the case title.
+        Then, put specific colloquial details(e.g., ?뺣뵲, 吏ㅻ┝, ?섏뒿) into "secondary" keywords for local filtering.
 
                         ** RULES **:
     1. Return ONLY a JSON object.No markdown, no explanations.
                         2. Format: { "primary": "BROAD_TERM", "secondary": "SPECIFIC_FILTER_TERM" }
-3. "primary" MUST be a Labor Law specific term: 부당해고, 해고, 임금, 퇴직금, 산재, 징계, 취업규칙.
-                        4. ** AVOID "손해배상"(Damages) ** unless strictly necessary.
-                        5. "secondary" should be the specific issue(e.g., 괴롭힘, 수습, 평가).
-                        6. ** SPECIAL RULE **: For "Evaluation System"(평가체계, 인사고과) or "Compensation System"(보상체계), set "primary": "취업규칙" or "임금", and "secondary": "평가" or "성과".Do NOT use "징계".
+3. "primary" MUST be a Labor Law specific term: 遺?뱁빐怨? ?닿퀬, ?꾧툑, ?댁쭅湲? ?곗옱, 吏뺢퀎, 痍⑥뾽洹쒖튃.
+                        4. ** AVOID "?먰빐諛곗긽"(Damages) ** unless strictly necessary.
+                        5. "secondary" should be the specific issue(e.g., 愿대∼?? ?섏뒿, ?됯?).
+                        6. ** SPECIAL RULE **: For "Evaluation System"(?됯?泥닿퀎, ?몄궗怨좉낵) or "Compensation System"(蹂댁긽泥닿퀎), set "primary": "痍⑥뾽洹쒖튃" or "?꾧툑", and "secondary": "?됯?" or "?깃낵".Do NOT use "吏뺢퀎".
 
                         ** EXAMPLES **:
-- "왕따 당했어" -> { "primary": "징계", "secondary": "괴롭힘" }
-    - "직장내괴롭힘" -> { "primary": "징계", "secondary": "괴롭힘" }
-    - "짤렸어" -> { "primary": "부당해고", "secondary": "" }
-    - "돈 못받음" -> { "primary": "임금", "secondary": "체불" }
-    - "수습인데 잘림" -> { "primary": "해고", "secondary": "수습" }
-    - "평가 보상 체계" -> { "primary": "임금", "secondary": "평가" }
-    - "인사평가 불만" -> { "primary": "인사", "secondary": "평가" }(If 'Personnel' category exists, otherwise '부당해고' or '징계')
-    - "성과급 못받음" -> { "primary": "임금", "secondary": "성과" }
+- "?뺣뵲 ?뱁뻽?? -> { "primary": "吏뺢퀎", "secondary": "愿대∼?? }
+    - "吏곸옣?닿눼濡?옒" -> { "primary": "吏뺢퀎", "secondary": "愿대∼?? }
+    - "吏ㅻ졇?? -> { "primary": "遺?뱁빐怨?, "secondary": "" }
+    - "??紐삳컺?? -> { "primary": "?꾧툑", "secondary": "泥대텋" }
+    - "?섏뒿?몃뜲 ?섎┝" -> { "primary": "?닿퀬", "secondary": "?섏뒿" }
+    - "?됯? 蹂댁긽 泥닿퀎" -> { "primary": "?꾧툑", "secondary": "?됯?" }
+    - "?몄궗?됯? 遺덈쭔" -> { "primary": "?몄궗", "secondary": "?됯?" }(If 'Personnel' category exists, otherwise '遺?뱁빐怨? or '吏뺢퀎')
+    - "?깃낵湲?紐삳컺?? -> { "primary": "?꾧툑", "secondary": "?깃낵" }
 
 Input: "${lastMessage.content}"`
                     },
@@ -205,14 +200,14 @@ Input: "${lastMessage.content}"`
                 // Search laws (using primary)
                 const lawResults = await searchNationalLaw(primaryTerm);
                 if (lawResults.length > 0) {
-                    lawDataText = lawResults.map(r => `[법령: ${r.title}]\n${r.content} `).join("\n\n");
+                    lawDataText = lawResults.map(r => `[踰뺣졊: ${r.title}]\n${r.content} `).join("\n\n");
                 }
 
                 // Search precedents (using primary + filter)
                 precedentResults = await searchPrecedent(primaryTerm, filterTerm);
                 if (precedentResults.length > 0) {
                     precedentDataText = precedentResults
-                        .map(r => `[판례: ${r.title} (${r.caseNumber})]\n판결요지: ${r.content} `)
+                        .map(r => `[?먮?: ${r.title} (${r.caseNumber})]\n?먭껐?붿?: ${r.content} `)
                         .join("\n\n");
                 } else {
                     console.log("No precedents found even after fallback.");
@@ -225,7 +220,7 @@ Input: "${lastMessage.content}"`
             console.log(`National Law search skipped: ${e} `);
         }
 
-        // 3. File Content Relevance Check (2차 검증)
+        // 3. File Content Relevance Check (2李?寃利?
         const { fileContent } = body; // This "body" call may fail if stream already read? No, body was read at start.
         // Wait, 'body' variable is available from line 107.
 
@@ -238,10 +233,10 @@ Input: "${lastMessage.content}"`
                 messages: [
                     {
                         role: "system",
-                        content: `당신은 문서 분석가입니다. 
-사용자의 질문(Query)과 첨부된 파일 내용(File Content)이 서로 관련이 있는지 판단하세요.
-파일 내용이 질문에 대한 답변을 제공하거나 참고가 된다면 "relevant": true, 전혀 관계 없다면 "relevant": false를 반환하세요.
-응답은 오직 JSON 형식으로만 하세요: { "relevant": true / false, "reason": "이유" } `
+                        content: `?뱀떊? 臾몄꽌 遺꾩꽍媛?낅땲?? 
+?ъ슜?먯쓽 吏덈Ц(Query)怨?泥⑤????뚯씪 ?댁슜(File Content)???쒕줈 愿?⑥씠 ?덈뒗吏 ?먮떒?섏꽭??
+?뚯씪 ?댁슜??吏덈Ц??????듬????쒓났?섍굅??李멸퀬媛 ?쒕떎硫?"relevant": true, ?꾪? 愿怨??녿떎硫?"relevant": false瑜?諛섑솚?섏꽭??
+?묐떟? ?ㅼ쭅 JSON ?뺤떇?쇰줈留??섏꽭?? { "relevant": true / false, "reason": "?댁쑀" } `
                     },
                     {
                         role: "user",
@@ -290,8 +285,8 @@ Your goal is to rewrite the provided legal text(Precedent Summary) into a consum
 
     ** RULES **:
 - Keep it under 200 characters total.
-- Use polite, easy Korean(e.g., "~한 사건입니다.", "~라고 판단했습니다.").
-- ** ACCURACY IS PARAMOUNT **: Do not invent terms or distort facts for simplicity.Use standard legal terminology where necessary(e.g., use '재해 발생일' or '사망일' instead of awkward phrases like '자해한 날').
+- Use polite, easy Korean(e.g., "~???ш굔?낅땲??", "~?쇨퀬 ?먮떒?덉뒿?덈떎.").
+- ** ACCURACY IS PARAMOUNT **: Do not invent terms or distort facts for simplicity.Use standard legal terminology where necessary(e.g., use '?ы빐 諛쒖깮?? or '?щ쭩?? instead of awkward phrases like '?먰빐????).
 - Remove legal jargon * only * if it doesn't lose meaning.
     - ** Output ONLY the summarized text.** Do not include labels like "Summary:".`
                                 },
@@ -318,7 +313,7 @@ Your goal is to rewrite the provided legal text(Precedent Summary) into a consum
 
         // 4. Build System Prompt (Updated as requested)
         let systemPrompt = `You are a helpful AI assistant for a Certified Public Labor Attorney(CPLA) in Korea. 
-Your name is 'CPLA AI (공인노무사 AI 어시스턴트)'.
+Your name is 'CPLA AI (怨듭씤?몃Т??AI ?댁떆?ㅽ꽩??'.
 
 *** IMPORTANT: DO NOT REVEAL YOUR PERSONA ***
     You are an expert with 30 years of experience as a Certified Public Labor Attorney(CPLA), 10 years as a Management Instructor, and a Ph.D.in Labor Law.
@@ -331,22 +326,22 @@ Your name is 'CPLA AI (공인노무사 AI 어시스턴트)'.
 
 *** ANSWER STRUCTURE(CRITICAL) ***
     When the user asks "Can I do X?" or "Am I eligible for Y?":
-1. ** NEVER say "Yes, you can" or "네, 가능합니다" immediately.**
+1. ** NEVER say "Yes, you can" or "?? 媛?ν빀?덈떎" immediately.**
     2. ** FIRST, explain the REQUIREMENTS / CONDITIONS ** that must be met(e.g., employment period, injury type, documentation).
-3. ** THEN, use CONDITIONAL language **: "이러한 요건을 충족하는 경우, [X]를 신청하실 수 있습니다." or "다만, 아래 요건을 모두 충족해야 합니다."
+3. ** THEN, use CONDITIONAL language **: "?대윭???붽굔??異⑹”?섎뒗 寃쎌슦, [X]瑜??좎껌?섏떎 ???덉뒿?덈떎." or "?ㅻ쭔, ?꾨옒 ?붽굔??紐⑤몢 異⑹”?댁빞 ?⑸땲??"
 4. If the user's situation is unclear, ask clarifying questions before giving eligibility guidance.
 
-Example BAD answer: "네, 산재보험을 신청할 수 있습니다."
-Example GOOD answer: "산재보험 신청을 위해서는 다음과 같은 요건을 충족해야 합니다: 1) 업무상 재해로 인정될 것, 2) 4일 이상의 요양이 필요할 것. 이 요건을 충족하신다면, 산재보험 신청이 가능합니다."
+Example BAD answer: "?? ?곗옱蹂댄뿕???좎껌?????덉뒿?덈떎."
+Example GOOD answer: "?곗옱蹂댄뿕 ?좎껌???꾪빐?쒕뒗 ?ㅼ쓬怨?媛숈? ?붽굔??異⑹”?댁빞 ?⑸땲?? 1) ?낅Т???ы빐濡??몄젙??寃? 2) 4???댁긽???붿뼇???꾩슂??寃? ???붽굔??異⑹”?섏떊?ㅻ㈃, ?곗옱蹂댄뿕 ?좎껌??媛?ν빀?덈떎."
 
     *** CONTENT GUIDELINES ***
         - Briefly introduce relevant labor law provisions or cases from the US, Japan, or France(Comparative Law) to provide a broader perspective and depth to your answer.
 - Provide a detailed explanation based on the provided context(RAG, Laws, Precedents).
 
-    ${contextText ? `[RAG Context (참고 문서)]\n${contextText}\n` : ""}
-${lawDataText ? `[National Law Data (관련 법령)]\n${lawDataText}\n` : ""}
-${precedentDataText ? `[Precedent Data (관련 판례 - 판결요지)]\n${precedentDataText}\n` : ""}
-${validFileContext ? `[Uploaded Document (사용자 첨부 문서)]\n${validFileContext}\n` : ""}
+    ${contextText ? `[RAG Context (李멸퀬 臾몄꽌)]\n${contextText}\n` : ""}
+${lawDataText ? `[National Law Data (愿??踰뺣졊)]\n${lawDataText}\n` : ""}
+${precedentDataText ? `[Precedent Data (愿???먮? - ?먭껐?붿?)]\n${precedentDataText}\n` : ""}
+${validFileContext ? `[Uploaded Document (?ъ슜??泥⑤? 臾몄꽌)]\n${validFileContext}\n` : ""}
 
 If the provided precedent data is not relevant to the user's question, you may ignore it.
     `;
@@ -396,8 +391,7 @@ If the provided precedent data is not relevant to the user's question, you may i
         });
 
     } catch (error: any) {
-        // ... err handling
         console.error("Chat API Error:", error);
-        return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

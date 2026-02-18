@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import Link from "next/link";
@@ -36,7 +36,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const handleLogout = async () => {
-    await fetch("/api/admin/logout", { method: "POST" });
+    const csrf = document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("admin_csrf="))
+      ?.split("=")[1];
+
+    await fetch("/api/admin/logout", {
+      method: "POST",
+      headers: csrf ? { "x-csrf-token": decodeURIComponent(csrf) } : undefined,
+    });
     router.push("/admin/login");
     router.refresh();
   };

@@ -1,104 +1,131 @@
-
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { cookies } from "next/headers";
 
-// --- Rate Limiting (Simple In-Memory for Demo/MVP) ---
-// In a real production serverless environment (like Vercel), 
-// you should use KV (Radius/Upstash) because in-memory state is not shared between lambdas.
-// However, for this task, I will implement a simple Map-based limiter as a starting point.
+import { writeAuditLog } from "@/lib/audit-log";
+import { getClientIpFromHeaders, verifyAdminSessionToken } from "@/lib/security-core";
+
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 
 export function checkRateLimit(key: string, limit = 10, windowMs = 60 * 1000): boolean {
-    const now = Date.now();
-    const record = rateLimitMap.get(key) || { count: 0, lastReset: now };
+  const now = Date.now();
+  const record = rateLimitMap.get(key) || { count: 0, lastReset: now };
 
-    if (now - record.lastReset > windowMs) {
-        record.count = 0;
-        record.lastReset = now;
-    }
+  if (now - record.lastReset > windowMs) {
+    record.count = 0;
+    record.lastReset = now;
+  }
 
-    if (record.count >= limit) {
-        return false;
-    }
-
-    record.count += 1;
-    rateLimitMap.set(key, record);
-    return true;
-}
-
-// --- Auth Verification ---
-export async function verifyAdminSession() {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("admin_session");
-
-    // Also check for Supabase session if migrated to full Supabase Auth later.
-    // For now, we respect the existing "admin_session" cookie logic from middleware.
-    if (session?.value === "authenticated") {
-        return true;
-    }
+  if (record.count >= limit) {
     return false;
+  }
+
+  record.count += 1;
+  rateLimitMap.set(key, record);
+  return true;
 }
 
-// --- Validation Wrapper ---
-export async function validateBody<T>(req: NextRequest, schema: z.Schema<T>): Promise<{ success: true; data: T } | { success: false; error: NextResponse }> {
-    try {
-        const body = await req.json();
-        const parsed = schema.safeParse(body);
+export async function verifyAdminSession() {
+  const cookieStore = await cookies();
+  const session = cookieStore.get("admin_session")?.value;
+  if (!session) return false;
+  const claims = await verifyAdminSessionToken(session);
+  return Boolean(claims);
+}
 
-        if (!parsed.success) {
-            return {
-                success: false,
-                error: NextResponse.json(
-                    { error: "Invalid input", details: parsed.error.issues },
-                    { status: 400 }
-                ),
-            };
-        }
+function validateNoSqlMetaChars(input: unknown): boolean {
+  if (typeof input === "string") {
+    return !/[;$]|--|\/\*|\*\//.test(input);
+  }
 
-        return { success: true, data: parsed.data };
-    } catch (e) {
-        return {
-            success: false,
-            error: NextResponse.json({ error: "Invalid JSON body" }, { status: 400 }),
-        };
+  if (Array.isArray(input)) {
+    return input.every(validateNoSqlMetaChars);
+  }
+
+  if (input && typeof input === "object") {
+    return Object.values(input as Record<string, unknown>).every(validateNoSqlMetaChars);
+  }
+
+  return true;
+}
+
+export async function validateBody<T>(
+  req: Request | NextRequest,
+  schema: z.Schema<T>
+): Promise<{ success: true; data: T } | { success: false; error: NextResponse }> {
+  try {
+    const body = await req.json();
+    if (!validateNoSqlMetaChars(body)) {
+      return {
+        success: false,
+        error: NextResponse.json({ error: "Invalid input characters" }, { status: 400 }),
+      };
     }
+
+    const parsed = schema.safeParse(body);
+
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: NextResponse.json(
+          { error: "Invalid input", details: parsed.error.issues.map((i) => ({ path: i.path, message: i.message })) },
+          { status: 400 }
+        ),
+      };
+    }
+
+    return { success: true, data: parsed.data };
+  } catch {
+    return {
+      success: false,
+      error: NextResponse.json({ error: "Invalid JSON body" }, { status: 400 }),
+    };
+  }
 }
 
-// --- Common Security Wrapper ---
 type SecurityOptions = {
-    checkAuth?: boolean;
-    rateLimit?: { limit: number; windowMs?: number };
+  checkAuth?: boolean;
+  rateLimit?: { limit: number; windowMs?: number };
 };
 
 export async function withSecurity(
-    req: NextRequest,
-    options: SecurityOptions = { checkAuth: true, rateLimit: { limit: 20 } }
+  req: Request | NextRequest,
+  options: SecurityOptions = { checkAuth: true, rateLimit: { limit: 20 } }
 ): Promise<NextResponse | null> {
-    const forwarded = req.headers.get("x-forwarded-for");
-    const realIp = req.headers.get("x-real-ip");
-    const cfIp = req.headers.get("cf-connecting-ip");
-    const ip = (forwarded?.split(",")[0]?.trim() || realIp || cfIp || "local").trim();
-    const path = new URL(req.url).pathname;
-    const rateKey = `${ip}:${path}`;
+  const headers = req.headers;
+  const ip = getClientIpFromHeaders(headers);
+  const path = new URL(req.url).pathname;
+  const rateKey = `${ip}:${path}`;
 
-    // 1. Rate Limit
-    if (options.rateLimit) {
-        const passed = checkRateLimit(rateKey, options.rateLimit.limit, options.rateLimit.windowMs);
-        if (!passed) {
-            return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-        }
+  if (options.rateLimit) {
+    const passed = checkRateLimit(rateKey, options.rateLimit.limit, options.rateLimit.windowMs);
+    if (!passed) {
+      writeAuditLog(req, {
+        category: "security",
+        action: "rate_limit_block",
+        success: false,
+        details: { path, ip },
+      });
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
+  }
 
-    // 2. Auth Check
-    if (options.checkAuth) {
-        const isAdmin = await verifyAdminSession();
-        if (!isAdmin) {
-            // Allow if authorized via Authorization header (e.g. Service Role) - Optional extension
-            // For now, strict cookie check
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+  if (options.checkAuth) {
+    const isAdmin = await verifyAdminSession();
+    if (!isAdmin) {
+      writeAuditLog(req, {
+        category: "access",
+        action: "admin_access_denied",
+        success: false,
+        details: { path, ip },
+      });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+  }
 
-    return null;
+  return null;
+}
+
+export function safeServerError(): NextResponse {
+  return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
 }

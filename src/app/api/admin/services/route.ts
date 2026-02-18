@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import * as fs from "fs";
 import * as path from "path";
-import { buildWorkflowInfographicDataUrl, buildWorkflowSteps } from "@/lib/workflowInfographic";
+import { z } from "zod";
+
+import { withSecurity } from "@/lib/api-security";
 import { BASE_LABOR_SERVICES } from "@/lib/laborServicesCatalog";
+import { buildWorkflowInfographicDataUrl, buildWorkflowSteps } from "@/lib/workflowInfographic";
 
 const SETTINGS_PATH = path.join(process.cwd(), ".settings.json");
 
@@ -23,6 +26,29 @@ type SettingsShape = {
   labor_services_employer?: ManagedService[];
   [key: string]: unknown;
 };
+
+const ServiceInputSchema = z.object({
+  workerServices: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1).max(200),
+        description: z.string().trim().min(1).max(2000),
+        keywords: z.array(z.string().trim().max(80)).max(30).optional(),
+        workflowSteps: z.array(z.string().trim().max(300)).max(10).optional(),
+      })
+    )
+    .optional(),
+  employerServices: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1).max(200),
+        description: z.string().trim().min(1).max(2000),
+        keywords: z.array(z.string().trim().max(80)).max(30).optional(),
+        workflowSteps: z.array(z.string().trim().max(300)).max(10).optional(),
+      })
+    )
+    .optional(),
+});
 
 const LEGACY_SERVICE_NAME_MAP: Record<string, string> = {
   "직장 내 괴롭힘 신고 대응": "직장 내 괴롭힘 신고 지원",
@@ -48,8 +74,7 @@ function readSettings(): SettingsShape {
     if (!fs.existsSync(SETTINGS_PATH)) return {};
     const raw = fs.readFileSync(SETTINGS_PATH, "utf-8");
     return JSON.parse(raw) as SettingsShape;
-  } catch (error) {
-    console.error("Failed to read settings:", error);
+  } catch {
     return {};
   }
 }
@@ -86,7 +111,13 @@ function mergeWithDefaults(custom: ManagedService[]) {
   return Array.from(map.values());
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const securityError = await withSecurity(req, {
+    checkAuth: true,
+    rateLimit: { limit: 30, windowMs: 60_000 },
+  });
+  if (securityError) return securityError;
+
   try {
     const settings = readSettings();
 
@@ -101,20 +132,25 @@ export async function GET() {
       employerServices: merged.filter((s) => s.audience === "employer"),
       defaultKeys: DEFAULT_SERVICES.map((s) => `${s.audience}:${s.name}`),
     });
-  } catch (error) {
-    console.error("Failed to fetch services:", error);
+  } catch {
     return NextResponse.json({ error: "Failed to fetch services" }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
-  try {
-    const body = (await req.json()) as {
-      workerServices?: ManagedService[];
-      employerServices?: ManagedService[];
-    };
+  const securityError = await withSecurity(req, {
+    checkAuth: true,
+    rateLimit: { limit: 10, windowMs: 60_000 },
+  });
+  if (securityError) return securityError;
 
-    const workerNormalized = normalizeServices(body.workerServices, "worker").map((service) => {
+  try {
+    const parsed = ServiceInputSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    }
+
+    const workerNormalized = normalizeServices(parsed.data.workerServices, "worker").map((service) => {
       const steps = service.workflowSteps && service.workflowSteps.length > 0
         ? service.workflowSteps.slice(0, 6)
         : buildWorkflowSteps(service.name);
@@ -125,7 +161,7 @@ export async function POST(req: Request) {
       };
     });
 
-    const employerNormalized = normalizeServices(body.employerServices, "employer").map((service) => {
+    const employerNormalized = normalizeServices(parsed.data.employerServices, "employer").map((service) => {
       const steps = service.workflowSteps && service.workflowSteps.length > 0
         ? service.workflowSteps.slice(0, 6)
         : buildWorkflowSteps(service.name);
@@ -143,8 +179,7 @@ export async function POST(req: Request) {
     writeSettings(settings);
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Failed to save services:", error);
+  } catch {
     return NextResponse.json({ error: "Failed to save services" }, { status: 500 });
   }
 }
