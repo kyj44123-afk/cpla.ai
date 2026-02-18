@@ -22,18 +22,19 @@ export default function Home() {
       <div className="mx-auto w-full max-w-7xl px-6 py-8 md:px-10 md:py-12">
         <header className="mb-14 flex items-center justify-between border-b border-slate-200 pb-5">
           <div>
-            <p className="text-xs font-semibold tracking-[0.2em] text-slate-500">CPLA.AI</p>
-            <p className="mt-1 text-sm text-slate-600">공인노무사 기반 AI 노무 전략 플랫폼</p>
+            <p className="text-xs font-semibold tracking-[0.2em] text-slate-500">CPLA + AI</p>
+            <p className="mt-1 text-sm text-slate-600">노무법인 호연의 AI 플랫폼</p>
           </div>
-          <p className="hidden rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 md:block">
-            AI의 분석을 전문가가 완성합니다.
-          </p>
+          <div className="hidden text-right md:block">
+            <p className="text-xs font-semibold tracking-[0.16em] text-slate-500">Director</p>
+            <p className="mt-1 text-sm text-slate-700">노무법인호연 대표노무사 곽영준 KWAK YOUNG JUN</p>
+          </div>
         </header>
 
         <section className="grid gap-12 lg:grid-cols-12 lg:items-center">
           <div className="lg:col-span-6">
             <p className="mb-5 inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold tracking-[0.12em] text-slate-600">
-              LEGAL AUTHORITY x SAAS PRECISION
+              PROFESSIONAL × AI LEGAL TECH
             </p>
             <h1 className="text-5xl font-semibold tracking-tight md:text-6xl">공인노무사 + AI</h1>
             <p className="mt-6 whitespace-pre-line text-xl leading-relaxed text-slate-700">
@@ -44,14 +45,14 @@ export default function Home() {
                 href="/chat?mode=enterprise"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0F172A] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800"
               >
-                기업용 서비스 안내
+                기업용(Enterprise)
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/counseling"
                 className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-700"
               >
-                근로자·프리랜서 서비스 안내
+                근로자·프리랜서
               </Link>
             </div>
           </div>
@@ -93,42 +94,16 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-12">
-          <p className="mb-4 text-center text-lg font-semibold text-[#0F172A]">AI가 알려준 판결문 진위검증하기</p>
-          <form
-            action="/rightcasenumber"
-            method="get"
-            className="mx-auto max-w-3xl rounded-3xl border border-blue-100 bg-white p-6 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.5)]"
-          >
-            <p className="mb-3 text-sm text-slate-600">AI가 알려준 판결번호와 인용한 문구를 입력하세요.</p>
-            <textarea
-              name="input"
-              required
-              placeholder="예) 2023다12345&#10;“근로시간 산정은 실질적 지휘·감독 여부를 중심으로 판단한다.”"
-              className="h-36 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-blue-500"
-            />
-            <button
-              type="submit"
-              className="mt-4 inline-flex rounded-xl bg-[#0F172A] px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-            >
-              진위 검증 페이지로 이동
-            </button>
-          </form>
-        </section>
-
         <section className="mt-16 rounded-3xl border border-slate-200 bg-white p-6 md:p-8">
-          <p className="text-xs font-semibold tracking-[0.14em] text-slate-500">EXPERT WITH AI POSITIONING</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#0F172A] md:text-4xl">
-            법적 권위와 데이터 기반 실행력을 결합한 하이브리드 모델
+          <h2 className="text-center text-3xl font-semibold tracking-tight text-[#0F172A] md:text-4xl">
+            AI를 가장 완벽하게 사용하는 방법
           </h2>
-          <p className="mt-5 inline-flex rounded-full bg-[#0F172A] px-4 py-2 text-sm font-semibold text-white">
-            공인노무사+AI 팀을 구성했습니다.
-          </p>
+          <p className="mt-5 text-center text-2xl font-semibold text-[#0F172A]">[공인노무사 + AI] ONE-TEAM</p>
 
           <div className="mt-9 grid gap-4 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-stretch">
-            <article className="rounded-2xl border border-blue-100 bg-blue-50/40 p-5">
-              <h3 className="text-lg font-semibold text-[#0F172A]">{positioningColumns[0].title}</h3>
-              <ul className="mt-4 space-y-3 text-sm leading-relaxed text-slate-700">
+            <article className="rounded-2xl border border-blue-100 bg-blue-50/40 p-6 text-center">
+              <h3 className="text-3xl font-semibold text-[#0F172A]">{positioningColumns[0].title}</h3>
+              <ul className="mt-5 space-y-4 text-xl leading-relaxed text-slate-700">
                 {positioningColumns[0].items.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
@@ -137,9 +112,9 @@ export default function Home() {
 
             <div className="flex items-center justify-center text-3xl font-semibold text-blue-300">+</div>
 
-            <article className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-              <h3 className="text-lg font-semibold text-[#0F172A]">{positioningColumns[1].title}</h3>
-              <ul className="mt-4 space-y-3 text-sm leading-relaxed text-slate-700">
+            <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center">
+              <h3 className="text-3xl font-semibold text-[#0F172A]">{positioningColumns[1].title}</h3>
+              <ul className="mt-5 space-y-4 text-xl leading-relaxed text-slate-700">
                 {positioningColumns[1].items.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
@@ -148,9 +123,9 @@ export default function Home() {
 
             <div className="flex items-center justify-center text-3xl font-semibold text-blue-300">+</div>
 
-            <article className="rounded-2xl border border-blue-100 bg-blue-50/40 p-5">
-              <h3 className="text-lg font-semibold text-[#0F172A]">{positioningColumns[2].title}</h3>
-              <ul className="mt-4 space-y-3 text-sm leading-relaxed text-slate-700">
+            <article className="rounded-2xl border border-blue-100 bg-blue-50/40 p-6 text-center">
+              <h3 className="text-3xl font-semibold text-[#0F172A]">{positioningColumns[2].title}</h3>
+              <ul className="mt-5 space-y-4 text-xl leading-relaxed text-slate-700">
                 {positioningColumns[2].items.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
@@ -160,8 +135,8 @@ export default function Home() {
         </section>
 
         <section className="mt-16 rounded-3xl border border-slate-200 bg-[#0F172A] px-6 py-12 text-center md:px-8">
-          <h2 className="mx-auto max-w-4xl whitespace-pre-line text-3xl font-semibold leading-tight tracking-tight text-white md:text-4xl">
-            {"생성형 AI 좋습니다.\n진짜 믿어야 할 것은 제대로 된 전문가입니다."}
+          <h2 className="mx-auto max-w-4xl text-3xl font-semibold leading-tight tracking-tight text-white md:text-4xl">
+            AI는 제안하고, 호연은 리드합니다.
           </h2>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
