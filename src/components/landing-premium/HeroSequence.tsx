@@ -30,6 +30,7 @@ function drawImageContain(
   image: HTMLImageElement,
   canvasWidth: number,
   canvasHeight: number,
+  alignX: number,
   alpha = 1,
 ) {
   const imageRatio = image.naturalWidth / image.naturalHeight;
@@ -47,7 +48,7 @@ function drawImageContain(
   } else {
     drawHeight = canvasHeight;
     drawWidth = canvasHeight * imageRatio;
-    drawX = (canvasWidth - drawWidth) / 2;
+    drawX = (canvasWidth - drawWidth) * clamp(alignX, 0, 1);
   }
 
   ctx.save();
@@ -166,6 +167,8 @@ export default function HeroSequence({
       const width = Math.max(1, Math.floor(rect.width));
       const height = Math.max(1, Math.floor(rect.height));
       ctx.clearRect(0, 0, width, height);
+      const isDesktop = width >= 1024;
+      const alignX = isDesktop ? 0.82 : 0.5;
 
       const frameCount = sampledFrameSources.length;
       if (frameCount === 0) return;
@@ -182,16 +185,16 @@ export default function HeroSequence({
       const nextImage = ensureImage(nextSrc);
 
       if (isReadyImage(baseImage)) {
-        drawImageContain(ctx, baseImage, width, height, 1);
+        drawImageContain(ctx, baseImage, width, height, alignX, 1);
         if (isReadyImage(nextImage) && blend > 0) {
-          drawImageContain(ctx, nextImage, width, height, blend);
+          drawImageContain(ctx, nextImage, width, height, alignX, blend);
         }
         return;
       }
 
       const fallbackImage = getNearestLoadedImage(baseIndex);
       if (fallbackImage) {
-        drawImageContain(ctx, fallbackImage, width, height, 1);
+        drawImageContain(ctx, fallbackImage, width, height, alignX, 1);
       }
     };
 
@@ -262,7 +265,7 @@ export default function HeroSequence({
             <canvas ref={canvasRef} className="absolute inset-0 block" aria-hidden="true" />
           ) : (
             <div
-              className="absolute inset-0 bg-contain bg-center bg-no-repeat"
+              className="absolute inset-0 bg-contain bg-center bg-no-repeat md:bg-[position:82%_50%]"
               style={{ backgroundImage: `url("${introSrc}")` }}
             />
           )}
@@ -272,7 +275,9 @@ export default function HeroSequence({
           <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl items-end px-5 pb-10 md:px-8 md:pb-18">
             <div className="max-w-xl space-y-4 rounded-2xl bg-slate-900/35 p-4 backdrop-blur-[2px] md:bg-transparent md:p-0 md:backdrop-blur-none">
               <p className="text-xs uppercase tracking-[0.22em] text-slate-200">Official Labor Law Partner</p>
-              <h1 className="font-serif text-3xl leading-tight text-white md:text-6xl">{headline}</h1>
+              <h1 className="whitespace-pre-line font-serif text-3xl leading-tight text-white md:text-6xl">
+                {headline}
+              </h1>
               <p className="text-sm leading-relaxed text-slate-100 md:text-base">{subcopy}</p>
               <Link
                 href={ctaHref}
