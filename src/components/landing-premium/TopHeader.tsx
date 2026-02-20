@@ -34,7 +34,7 @@ export default function TopHeader() {
           }`}
           aria-label="노무법인 호연 홈으로 이동"
         >
-          노무법인 호연
+          공인노무사 곽영준
         </Link>
 
         <nav aria-label="주요 메뉴" className="flex items-center gap-5 text-sm md:gap-8">
@@ -52,15 +52,23 @@ export default function TopHeader() {
               isScrolled ? "text-slate-700" : "text-white/90"
             }`}
           >
-            서비스소개
+            노동법률자문
           </Link>
           <Link
-            href="/chat"
+            href="/#products"
             className={`transition-colors hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 ${
               isScrolled ? "text-slate-700" : "text-white/90"
             }`}
           >
-            AI챗봇
+            노무진단·컨설팅
+          </Link>
+          <Link
+            href="/#products"
+            className={`transition-colors hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 ${
+              isScrolled ? "text-slate-700" : "text-white/90"
+            }`}
+          >
+            기업교육문의
           </Link>
         </nav>
       </div>

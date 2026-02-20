@@ -279,13 +279,22 @@ export default function HeroSequence({
                 {headline}
               </h1>
               <p className="text-sm leading-relaxed text-slate-100 md:text-base">{subcopy}</p>
-              <Link
-                href={ctaHref}
-                className="inline-flex items-center rounded-full border border-white/65 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
-                aria-label="상담하기 페이지로 이동"
-              >
-                상담하기
-              </Link>
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  href={ctaHref}
+                  className="inline-flex items-center rounded-full border border-white/65 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+                  aria-label="상담예약 페이지로 이동"
+                >
+                  상담예약
+                </Link>
+                <Link
+                  href="/enterprise-diagnosis"
+                  className="inline-flex items-center rounded-full border border-white/65 bg-transparent px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+                  aria-label="RISK 진단 페이지로 이동"
+                >
+                  RISK 진단
+                </Link>
+              </div>
             </div>
           </div>
         </div>
