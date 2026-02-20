@@ -158,4 +158,14 @@
   body {
     @apply bg-background text-foreground;
   }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .premium-landing {
+    --premium-point-blue: #e9f1fa;
+    --premium-point-gray: #edf1f4;
+  }
 }
