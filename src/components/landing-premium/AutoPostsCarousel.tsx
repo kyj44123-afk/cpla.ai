@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type AutoPostItem = {
   id: string;
@@ -45,6 +46,11 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
   const [index, setIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(3);
   const [items, setItems] = useState<AutoPostItem[]>(posts.length > 0 ? posts : FALLBACK_POSTS);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedTitle, setSelectedTitle] = useState("");
+  const [selectedContent, setSelectedContent] = useState("");
+  const [loadingPost, setLoadingPost] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -106,13 +112,46 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
     };
   }, [index, items.length, visibleCount]);
 
+  const openPostModal = async (post: AutoPostItem) => {
+    setModalOpen(true);
+    setSelectedTitle(post.title);
+    setSelectedContent("");
+    setLoadError("");
+
+    if (post.id.startsWith("fallback-")) {
+      setSelectedContent(
+        [
+          `# ${post.title}`,
+          "",
+          "현재는 샘플 포스트입니다.",
+          "실제 자동발행 글은 Admin에서 포스트를 발행하면 이 영역에 표시됩니다.",
+        ].join("\n"),
+      );
+      return;
+    }
+
+    setLoadingPost(true);
+    try {
+      const res = await fetch(`/api/auto-posts/${post.id}`, { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "포스트를 불러오지 못했습니다.");
+      setSelectedTitle(String(data.title ?? post.title));
+      setSelectedContent(String(data.content ?? ""));
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "포스트 로드 중 오류가 발생했습니다.";
+      setLoadError(msg);
+    } finally {
+      setLoadingPost(false);
+    }
+  };
+
   return (
     <section className="bg-white px-5 py-20 md:px-8 md:py-24">
       <div className="mx-auto w-full max-w-7xl">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">AI Auto Posts</p>
-            <h2 className="mt-3 font-serif text-3xl text-slate-900 md:text-5xl">AI가 자동 발행하는 포스트</h2>
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">DIRECTOR&apos;S PICK</p>
+            <h2 className="mt-3 font-serif text-3xl text-slate-900 md:text-5xl">Today&apos;s HR Insight</h2>
           </div>
           <div className="hidden gap-2 md:flex">
             <button
@@ -144,12 +183,13 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
                   <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{formatDate(post.createdAt)}</p>
                   <h3 className="mt-3 line-clamp-2 font-serif text-2xl leading-snug text-slate-900">{post.title}</h3>
                   <p className="mt-4 line-clamp-4 text-sm leading-relaxed text-slate-600">{post.excerpt}</p>
-                  <Link
-                    href={post.id.startsWith("fallback-") ? "/enterprise-diagnosis" : `/posts/${post.id}`}
+                  <button
+                    type="button"
+                    onClick={() => openPostModal(post)}
                     className="mt-6 inline-flex w-fit items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
                   >
                     자세히 보기
-                  </Link>
+                  </button>
                 </div>
               </article>
             ))}
@@ -177,6 +217,29 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
           </button>
         </div>
       </div>
+
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="max-h-[88vh] max-w-3xl overflow-hidden p-0">
+          <DialogHeader className="border-b border-slate-200 px-6 py-4">
+            <DialogTitle className="font-serif text-2xl text-slate-900">{selectedTitle}</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[70vh] overflow-y-auto px-6 py-5">
+            {loadingPost ? <p className="text-sm text-slate-600">포스트 생성/불러오는 중...</p> : null}
+            {!loadingPost && loadError ? <p className="text-sm text-red-600">{loadError}</p> : null}
+            {!loadingPost && !loadError ? (
+              <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{selectedContent}</div>
+            ) : null}
+          </div>
+          <div className="border-t border-slate-200 px-6 py-4">
+            <Link
+              href="/counseling"
+              className="inline-flex items-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              상담예약
+            </Link>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
