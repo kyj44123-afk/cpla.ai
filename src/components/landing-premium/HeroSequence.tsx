@@ -21,13 +21,11 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function drawImageCover(
+function drawImageContain(
   ctx: CanvasRenderingContext2D,
   image: HTMLImageElement,
   canvasWidth: number,
   canvasHeight: number,
-  focalX: number,
-  focalY: number,
   alpha = 1,
 ) {
   if (!image.naturalWidth || !image.naturalHeight) return;
@@ -41,15 +39,13 @@ function drawImageCover(
   let drawY = 0;
 
   if (imageRatio > canvasRatio) {
-    drawHeight = canvasHeight;
-    drawWidth = canvasHeight * imageRatio;
-    const overflowX = drawWidth - canvasWidth;
-    drawX = -overflowX * clamp(focalX, 0, 1);
-  } else {
     drawWidth = canvasWidth;
     drawHeight = canvasWidth / imageRatio;
-    const overflowY = drawHeight - canvasHeight;
-    drawY = -overflowY * clamp(focalY, 0, 1);
+    drawY = (canvasHeight - drawHeight) / 2;
+  } else {
+    drawHeight = canvasHeight;
+    drawWidth = canvasHeight * imageRatio;
+    drawX = (canvasWidth - drawWidth) / 2;
   }
 
   ctx.save();
@@ -66,6 +62,7 @@ export default function HeroSequence({
   subcopy,
 }: HeroSequenceProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const progressRef = useRef(0);
   const rafRenderIdRef = useRef<number | null>(null);
@@ -94,6 +91,7 @@ export default function HeroSequence({
 
   useEffect(() => {
     if (!useCanvas) return;
+
     const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
     const maxPreload = isMobile ? MAX_PRELOAD_MOBILE : MAX_PRELOAD_DESKTOP;
     const targets = sampledFrameSources.slice(0, maxPreload);
@@ -108,17 +106,22 @@ export default function HeroSequence({
 
   useEffect(() => {
     if (!useCanvas) return;
+
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const stage = stageRef.current;
+    if (!canvas || !stage) return;
 
     const resizeCanvas = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+      const rect = stage.getBoundingClientRect();
+      const width = Math.max(1, Math.floor(rect.width));
+      const height = Math.max(1, Math.floor(rect.height));
+
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
+
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -129,12 +132,10 @@ export default function HeroSequence({
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+      const rect = stage.getBoundingClientRect();
+      const width = Math.max(1, Math.floor(rect.width));
+      const height = Math.max(1, Math.floor(rect.height));
       ctx.clearRect(0, 0, width, height);
-      const isDesktop = width >= 1024;
-      const focalX = 0.5;
-      const focalY = isDesktop ? 0.16 : 0.26;
 
       const frameCount = sampledFrameSources.length;
       if (frameCount === 0) return;
@@ -149,8 +150,8 @@ export default function HeroSequence({
       const baseImage = loadedImagesRef.current.get(baseSrc);
       const nextImage = loadedImagesRef.current.get(nextSrc);
 
-      if (baseImage) drawImageCover(ctx, baseImage, width, height, focalX, focalY, 1);
-      if (nextImage && blend > 0) drawImageCover(ctx, nextImage, width, height, focalX, focalY, blend);
+      if (baseImage) drawImageContain(ctx, baseImage, width, height, 1);
+      if (nextImage && blend > 0) drawImageContain(ctx, nextImage, width, height, blend);
     };
 
     const requestRender = () => {
@@ -196,31 +197,39 @@ export default function HeroSequence({
   }, [sampledFrameSources, useCanvas]);
 
   return (
-    <section ref={sectionRef} className="relative h-[260vh]" aria-label="메인 비주얼">
-      <div className="sticky top-0 h-screen overflow-hidden">
-        {useCanvas ? (
-          <canvas ref={canvasRef} className="absolute inset-0 block" aria-hidden="true" />
-        ) : (
-          <div
-            className="absolute inset-0 bg-cover bg-no-repeat"
-            style={{ backgroundImage: `url("${introSrc}")`, backgroundPosition: "50% 16%" }}
-          />
-        )}
+    <section ref={sectionRef} className="relative h-[240vh]" aria-label="메인 비주얼">
+      <div className="sticky top-0 flex h-screen items-center justify-center px-3 pt-16 md:px-6 md:pt-20">
+        <div
+          ref={stageRef}
+          className="relative h-[74vh] w-full overflow-hidden rounded-[28px] border border-slate-200/50 bg-[radial-gradient(140%_120%_at_50%_0%,#1f2e45_0%,#101927_56%,#0a111b_100%)] md:h-[80vh]"
+        >
+          <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:36px_36px]" />
+          <div className="absolute inset-0 bg-[radial-gradient(90%_85%_at_50%_50%,rgba(145,170,203,0.18)_0%,rgba(145,170,203,0.05)_45%,rgba(10,17,27,0)_75%)]" />
 
-        <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(9,18,34,0.55)_12%,rgba(9,18,34,0.18)_52%,rgba(9,18,34,0.1)_100%)]" />
+          {useCanvas ? (
+            <canvas ref={canvasRef} className="absolute inset-0 block" aria-hidden="true" />
+          ) : (
+            <div
+              className="absolute inset-0 bg-contain bg-center bg-no-repeat"
+              style={{ backgroundImage: `url("${introSrc}")` }}
+            />
+          )}
 
-        <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl items-end px-5 pb-16 md:px-8 md:pb-24">
-          <div className="max-w-xl space-y-5">
-            <p className="text-xs uppercase tracking-[0.22em] text-slate-200">Official Labor Law Partner</p>
-            <h1 className="font-serif text-4xl leading-tight text-white md:text-6xl">{headline}</h1>
-            <p className="text-sm leading-relaxed text-slate-100 md:text-base">{subcopy}</p>
-            <Link
-              href={ctaHref}
-              className="inline-flex items-center rounded-full border border-white/65 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
-              aria-label="상담하기 페이지로 이동"
-            >
-              상담하기
-            </Link>
+          <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(9,18,34,0.55)_12%,rgba(9,18,34,0.18)_52%,rgba(9,18,34,0.1)_100%)]" />
+
+          <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl items-end px-5 pb-12 md:px-8 md:pb-20">
+            <div className="max-w-xl space-y-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-slate-200">Official Labor Law Partner</p>
+              <h1 className="font-serif text-4xl leading-tight text-white md:text-6xl">{headline}</h1>
+              <p className="text-sm leading-relaxed text-slate-100 md:text-base">{subcopy}</p>
+              <Link
+                href={ctaHref}
+                className="inline-flex items-center rounded-full border border-white/65 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+                aria-label="상담하기 페이지로 이동"
+              >
+                상담하기
+              </Link>
+            </div>
           </div>
         </div>
       </div>
