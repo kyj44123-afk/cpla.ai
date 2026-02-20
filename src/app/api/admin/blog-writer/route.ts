@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOpenAI } from "@/lib/openai";
 import { withSecurity, validateBody } from "@/lib/api-security";
+import { getAutoPostPromptProfile } from "@/lib/settings";
+import { describeAutoPostPromptProfile } from "@/lib/autoPostPromptProfile";
 import { z } from "zod";
 
 // ... (Types kept same) ...
@@ -676,6 +678,8 @@ export async function POST(req: NextRequest) {
           styleSample,
           sampledPosts: naverResearch.sampledPosts,
         });
+    const autoPromptProfile = getAutoPostPromptProfile();
+    const autoPromptLines = describeAutoPostPromptProfile(autoPromptProfile);
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -707,6 +711,7 @@ export async function POST(req: NextRequest) {
             `전문성 신호: ${styleBlueprint.expertiseSignals.join(" / ") || "사례, 조건, 예외, 체크리스트를 포함"}`,
             `금지 패턴: ${styleBlueprint.forbiddenPatterns.join(" / ") || "근거 없는 과장, 반복 키워드, 추상적 미사여구"}`,
             `네이버 노출 플레이북: ${styleBlueprint.naverExposurePlaybook.join(" / ") || "문제-해결-체크리스트-FAQ 구조"}`,
+            `자동발행 프롬프트 프로필: ${autoPromptLines.join(" / ")}`,
             `네이버 상위 샘플: ${JSON.stringify(naverResearch.sampledPosts.slice(0, 8))}`,
             "출력 JSON 스키마:",
             '{ "title": "", "introHook": "", "introBody": "", "summaryBox": [""], "image": { "query": "", "alt": "", "caption": "" }, "sections": [ { "heading": "", "lead": "", "bullets": [""], "body": "" } ], "caseStudy": { "title": "", "situation": "", "solution": "", "result": "" }, "checklist": [""], "faq": [ { "question": "", "answer": "" } ], "conclusion": "", "cta": "", "hashtags": ["#태그"] }',

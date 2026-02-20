@@ -1,17 +1,16 @@
 type ProductItem = {
   id: number;
   name: string;
-  price: string;
   imagePlaceholder: string;
 };
 
 const products: ProductItem[] = [
-  { id: 1, name: "노무 진단 리포트", price: "₩490,000", imagePlaceholder: "이미지 준비중" },
-  { id: 2, name: "근로계약 정비 패키지", price: "₩790,000", imagePlaceholder: "이미지 준비중" },
-  { id: 3, name: "임금체계 컨설팅", price: "₩1,290,000", imagePlaceholder: "이미지 준비중" },
-  { id: 4, name: "노사분쟁 대응 자문", price: "₩890,000", imagePlaceholder: "이미지 준비중" },
-  { id: 5, name: "인사규정 구축 서비스", price: "₩1,590,000", imagePlaceholder: "이미지 준비중" },
-  { id: 6, name: "기업 상시 자문 플랜", price: "₩2,190,000", imagePlaceholder: "이미지 준비중" },
+  { id: 1, name: "노무 진단 리포트", imagePlaceholder: "이미지 준비중" },
+  { id: 2, name: "근로계약 정비 패키지", imagePlaceholder: "이미지 준비중" },
+  { id: 3, name: "임금체계 컨설팅", imagePlaceholder: "이미지 준비중" },
+  { id: 4, name: "노사분쟁 대응 자문", imagePlaceholder: "이미지 준비중" },
+  { id: 5, name: "인사규정 구축 서비스", imagePlaceholder: "이미지 준비중" },
+  { id: 6, name: "기업 상시 자문 플랜", imagePlaceholder: "이미지 준비중" },
 ];
 
 export default function ProductGrid() {
@@ -31,10 +30,9 @@ export default function ProductGrid() {
                 {product.imagePlaceholder}
               </div>
               <h3 className="mt-5 text-lg font-semibold text-slate-900">{product.name}</h3>
-              <p className="mt-2 text-base font-medium text-slate-700">{product.price}</p>
               <button
                 type="button"
-                className="mt-6 inline-flex h-11 items-center justify-center rounded-full border border-slate-300 bg-white text-sm font-semibold text-slate-800 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+                className="mt-5 inline-flex h-11 items-center justify-center rounded-full border border-slate-300 bg-white text-sm font-semibold text-slate-800 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
                 aria-label={`${product.name} 담기`}
               >
                 담기
