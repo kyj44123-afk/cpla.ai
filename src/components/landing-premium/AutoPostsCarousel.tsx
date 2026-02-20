@@ -52,10 +52,6 @@ export default function AutoPostsCarousel({ posts }: AutoPostsCarouselProps) {
     };
   }, [index, posts.length, visibleCount]);
 
-  if (posts.length === 0) {
-    return null;
-  }
-
   return (
     <section className="bg-white px-5 py-20 md:px-8 md:py-24">
       <div className="mx-auto w-full max-w-7xl">
@@ -95,7 +91,7 @@ export default function AutoPostsCarousel({ posts }: AutoPostsCarouselProps) {
                   <h3 className="mt-3 line-clamp-2 font-serif text-2xl leading-snug text-slate-900">{post.title}</h3>
                   <p className="mt-4 line-clamp-4 text-sm leading-relaxed text-slate-600">{post.excerpt}</p>
                   <Link
-                    href={`/project/${post.id}`}
+                    href={post.id.startsWith("fallback-") ? "/enterprise-diagnosis" : `/posts/${post.id}`}
                     className="mt-6 inline-flex w-fit items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
                   >
                     자세히 보기

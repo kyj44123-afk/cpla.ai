@@ -45,6 +45,27 @@ type AutoPost = {
   createdAt: string;
 };
 
+const FALLBACK_AUTO_POSTS: AutoPost[] = [
+  {
+    id: "fallback-1",
+    title: "근로계약 체결 단계에서 가장 많이 놓치는 5가지",
+    excerpt: "신규 입사 시점에 발생하는 분쟁 리스크를 예방하기 위한 필수 점검 항목을 정리했습니다.",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "fallback-2",
+    title: "직장 내 괴롭힘 대응 프로세스, 어디서부터 시작해야 할까",
+    excerpt: "신고 접수부터 조사, 사후조치까지 기업이 지켜야 할 실무 절차를 단계별로 안내합니다.",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "fallback-3",
+    title: "임금체계 개편 전 반드시 확인해야 할 법적 체크리스트",
+    excerpt: "임금체계/통상임금/퇴직금 이슈를 한 번에 점검할 수 있는 실무형 기준을 제공합니다.",
+    createdAt: new Date().toISOString(),
+  },
+];
+
 async function getAutoPosts(): Promise<AutoPost[]> {
   try {
     const admin = getSupabaseAdmin();
@@ -52,13 +73,12 @@ async function getAutoPosts(): Promise<AutoPost[]> {
       .from("posts")
       .select("id, title, content, created_at, status")
       .eq("status", "open")
-      .not("content", "is", null)
       .order("created_at", { ascending: false })
       .limit(12);
 
-    if (error || !data) return [];
+    if (error || !data) return FALLBACK_AUTO_POSTS;
 
-    return data
+    const mapped = data
       .map((row) => {
         const content = String(row.content ?? "");
         const plain = content.replace(/[#>*`[\]()_-]/g, " ").replace(/\s+/g, " ").trim();
@@ -70,8 +90,10 @@ async function getAutoPosts(): Promise<AutoPost[]> {
         };
       })
       .filter((post) => post.title);
+
+    return mapped.length > 0 ? mapped : FALLBACK_AUTO_POSTS;
   } catch {
-    return [];
+    return FALLBACK_AUTO_POSTS;
   }
 }
 

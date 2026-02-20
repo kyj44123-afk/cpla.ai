@@ -39,14 +39,6 @@ export default function TopHeader() {
 
         <nav aria-label="주요 메뉴" className="flex items-center gap-5 text-sm md:gap-8">
           <Link
-            href="/counseling"
-            className={`transition-colors hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 ${
-              isScrolled ? "text-slate-700" : "text-white/90"
-            }`}
-          >
-            상담
-          </Link>
-          <Link
             href="/#products"
             className={`transition-colors hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 ${
               isScrolled ? "text-slate-700" : "text-white/90"
@@ -61,6 +53,14 @@ export default function TopHeader() {
             }`}
           >
             진단
+          </Link>
+          <Link
+            href="/#products"
+            className={`transition-colors hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 ${
+              isScrolled ? "text-slate-700" : "text-white/90"
+            }`}
+          >
+            괴롭힘·성희롱
           </Link>
           <Link
             href="/#products"
