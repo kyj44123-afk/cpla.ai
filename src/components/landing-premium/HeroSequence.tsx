@@ -14,11 +14,15 @@ type HeroSequenceProps = {
 const MOBILE_BREAKPOINT = 768;
 const MOBILE_FRAME_STEP = 1;
 const DESKTOP_FRAME_STEP = 1;
-const MAX_PRELOAD_MOBILE = 36;
-const MAX_PRELOAD_DESKTOP = 64;
+const MAX_PRELOAD_MOBILE = 40;
+const MAX_PRELOAD_DESKTOP = 80;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
+}
+
+function isReadyImage(image: HTMLImageElement | undefined) {
+  return Boolean(image && image.complete && image.naturalWidth > 0);
 }
 
 function drawImageContain(
@@ -28,8 +32,6 @@ function drawImageContain(
   canvasHeight: number,
   alpha = 1,
 ) {
-  if (!image.naturalWidth || !image.naturalHeight) return;
-
   const imageRatio = image.naturalWidth / image.naturalHeight;
   const canvasRatio = canvasWidth / canvasHeight;
 
@@ -67,6 +69,7 @@ export default function HeroSequence({
   const progressRef = useRef(0);
   const rafRenderIdRef = useRef<number | null>(null);
   const loadedImagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
+  const requestRenderRef = useRef<(() => void) | null>(null);
   const [isReducedMotion, setIsReducedMotion] = useState(false);
 
   const sampledFrameSources = useMemo(() => {
@@ -89,18 +92,25 @@ export default function HeroSequence({
 
   const useCanvas = !isReducedMotion && sampledFrameSources.length > 0;
 
+  const ensureImage = (src: string) => {
+    const existing = loadedImagesRef.current.get(src);
+    if (existing) return existing;
+
+    const image = new Image();
+    image.decoding = "async";
+    image.src = src;
+    image.onload = () => requestRenderRef.current?.();
+    loadedImagesRef.current.set(src, image);
+    return image;
+  };
+
   useEffect(() => {
     if (!useCanvas) return;
 
     const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
     const maxPreload = isMobile ? MAX_PRELOAD_MOBILE : MAX_PRELOAD_DESKTOP;
-    const targets = sampledFrameSources.slice(0, maxPreload);
-
-    targets.forEach((src) => {
-      if (loadedImagesRef.current.has(src)) return;
-      const image = new Image();
-      image.src = src;
-      loadedImagesRef.current.set(src, image);
+    sampledFrameSources.slice(0, maxPreload).forEach((src) => {
+      ensureImage(src);
     });
   }, [sampledFrameSources, useCanvas]);
 
@@ -128,6 +138,26 @@ export default function HeroSequence({
       renderFrame();
     };
 
+    const getNearestLoadedImage = (start: number) => {
+      const len = sampledFrameSources.length;
+      for (let offset = 0; offset < len; offset += 1) {
+        const prev = start - offset;
+        if (prev >= 0) {
+          const prevSrc = sampledFrameSources[prev];
+          const prevImage = loadedImagesRef.current.get(prevSrc);
+          if (isReadyImage(prevImage)) return prevImage;
+        }
+
+        const next = start + offset;
+        if (next < len) {
+          const nextSrc = sampledFrameSources[next];
+          const nextImage = loadedImagesRef.current.get(nextSrc);
+          if (isReadyImage(nextImage)) return nextImage;
+        }
+      }
+      return undefined;
+    };
+
     const renderFrame = () => {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
@@ -147,11 +177,22 @@ export default function HeroSequence({
 
       const baseSrc = sampledFrameSources[baseIndex];
       const nextSrc = sampledFrameSources[nextIndex];
-      const baseImage = loadedImagesRef.current.get(baseSrc);
-      const nextImage = loadedImagesRef.current.get(nextSrc);
 
-      if (baseImage) drawImageContain(ctx, baseImage, width, height, 1);
-      if (nextImage && blend > 0) drawImageContain(ctx, nextImage, width, height, blend);
+      const baseImage = ensureImage(baseSrc);
+      const nextImage = ensureImage(nextSrc);
+
+      if (isReadyImage(baseImage)) {
+        drawImageContain(ctx, baseImage, width, height, 1);
+        if (isReadyImage(nextImage) && blend > 0) {
+          drawImageContain(ctx, nextImage, width, height, blend);
+        }
+        return;
+      }
+
+      const fallbackImage = getNearestLoadedImage(baseIndex);
+      if (fallbackImage) {
+        drawImageContain(ctx, fallbackImage, width, height, 1);
+      }
     };
 
     const requestRender = () => {
@@ -161,6 +202,7 @@ export default function HeroSequence({
         renderFrame();
       });
     };
+    requestRenderRef.current = requestRender;
 
     const updateByScroll = () => {
       const section = sectionRef.current;
@@ -173,6 +215,15 @@ export default function HeroSequence({
       if (scrollRange <= 0) return;
 
       progressRef.current = clamp((window.scrollY - sectionTop) / scrollRange, 0, 1);
+
+      const len = sampledFrameSources.length;
+      const centerIndex = Math.floor(progressRef.current * Math.max(len - 1, 0));
+      const around = 8;
+      for (let i = centerIndex - around; i <= centerIndex + around; i += 1) {
+        if (i < 0 || i >= len) continue;
+        ensureImage(sampledFrameSources[i]);
+      }
+
       requestRender();
     };
 
@@ -188,6 +239,7 @@ export default function HeroSequence({
     window.addEventListener("resize", onResize);
 
     return () => {
+      requestRenderRef.current = null;
       window.removeEventListener("scroll", updateByScroll);
       window.removeEventListener("resize", onResize);
       if (rafRenderIdRef.current !== null) {
@@ -197,11 +249,11 @@ export default function HeroSequence({
   }, [sampledFrameSources, useCanvas]);
 
   return (
-    <section ref={sectionRef} className="relative h-[240vh]" aria-label="메인 비주얼">
-      <div className="sticky top-0 flex h-screen items-center justify-center px-3 pt-16 md:px-6 md:pt-20">
+    <section ref={sectionRef} className="relative h-[220vh]" aria-label="메인 비주얼">
+      <div className="sticky top-0 flex h-[100dvh] items-center justify-center px-3 pt-14 md:px-6 md:pt-20">
         <div
           ref={stageRef}
-          className="relative h-[74vh] w-full overflow-hidden rounded-[28px] border border-slate-200/50 bg-[radial-gradient(140%_120%_at_50%_0%,#1f2e45_0%,#101927_56%,#0a111b_100%)] md:h-[80vh]"
+          className="relative h-[82dvh] w-full overflow-hidden rounded-[28px] border border-slate-200/50 bg-[radial-gradient(140%_120%_at_50%_0%,#1f2e45_0%,#101927_56%,#0a111b_100%)] md:h-[84vh]"
         >
           <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:36px_36px]" />
           <div className="absolute inset-0 bg-[radial-gradient(90%_85%_at_50%_50%,rgba(145,170,203,0.18)_0%,rgba(145,170,203,0.05)_45%,rgba(10,17,27,0)_75%)]" />
@@ -215,12 +267,12 @@ export default function HeroSequence({
             />
           )}
 
-          <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(9,18,34,0.55)_12%,rgba(9,18,34,0.18)_52%,rgba(9,18,34,0.1)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(9,18,34,0.52)_12%,rgba(9,18,34,0.18)_52%,rgba(9,18,34,0.1)_100%)]" />
 
-          <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl items-end px-5 pb-12 md:px-8 md:pb-20">
-            <div className="max-w-xl space-y-5">
+          <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl items-end px-5 pb-10 md:px-8 md:pb-18">
+            <div className="max-w-xl space-y-4 rounded-2xl bg-slate-900/35 p-4 backdrop-blur-[2px] md:bg-transparent md:p-0 md:backdrop-blur-none">
               <p className="text-xs uppercase tracking-[0.22em] text-slate-200">Official Labor Law Partner</p>
-              <h1 className="font-serif text-4xl leading-tight text-white md:text-6xl">{headline}</h1>
+              <h1 className="font-serif text-3xl leading-tight text-white md:text-6xl">{headline}</h1>
               <p className="text-sm leading-relaxed text-slate-100 md:text-base">{subcopy}</p>
               <Link
                 href={ctaHref}
