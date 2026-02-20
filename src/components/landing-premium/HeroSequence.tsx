@@ -12,10 +12,50 @@ type HeroSequenceProps = {
 };
 
 const MOBILE_BREAKPOINT = 768;
-const MAX_PRELOAD_FRAMES = 24;
+const MOBILE_FRAME_STEP = 1;
+const DESKTOP_FRAME_STEP = 1;
+const MAX_PRELOAD_MOBILE = 36;
+const MAX_PRELOAD_DESKTOP = 64;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
+}
+
+function drawImageCover(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  canvasWidth: number,
+  canvasHeight: number,
+  focalX: number,
+  focalY: number,
+  alpha = 1,
+) {
+  if (!image.naturalWidth || !image.naturalHeight) return;
+
+  const imageRatio = image.naturalWidth / image.naturalHeight;
+  const canvasRatio = canvasWidth / canvasHeight;
+
+  let drawWidth = canvasWidth;
+  let drawHeight = canvasHeight;
+  let drawX = 0;
+  let drawY = 0;
+
+  if (imageRatio > canvasRatio) {
+    drawHeight = canvasHeight;
+    drawWidth = canvasHeight * imageRatio;
+    const overflowX = drawWidth - canvasWidth;
+    drawX = -overflowX * clamp(focalX, 0, 1);
+  } else {
+    drawWidth = canvasWidth;
+    drawHeight = canvasWidth / imageRatio;
+    const overflowY = drawHeight - canvasHeight;
+    drawY = -overflowY * clamp(focalY, 0, 1);
+  }
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+  ctx.restore();
 }
 
 export default function HeroSequence({
@@ -26,12 +66,16 @@ export default function HeroSequence({
   subcopy,
 }: HeroSequenceProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const [activeFrame, setActiveFrame] = useState(0);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const progressRef = useRef(0);
+  const rafRenderIdRef = useRef<number | null>(null);
+  const loadedImagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
   const [isReducedMotion, setIsReducedMotion] = useState(false);
 
   const sampledFrameSources = useMemo(() => {
     if (typeof window === "undefined") return frameSources;
-    const step = window.innerWidth < MOBILE_BREAKPOINT ? 2 : 1;
+    const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+    const step = isMobile ? MOBILE_FRAME_STEP : DESKTOP_FRAME_STEP;
     return frameSources.filter((_, index) => index % step === 0);
   }, [frameSources]);
 
@@ -46,19 +90,78 @@ export default function HeroSequence({
     return () => mediaQuery.removeEventListener("change", onMotionChange);
   }, []);
 
+  const useCanvas = !isReducedMotion && sampledFrameSources.length > 0;
+
   useEffect(() => {
-    if (isReducedMotion) return;
-    const preloadTargets = sampledFrameSources.slice(0, MAX_PRELOAD_FRAMES);
-    preloadTargets.forEach((src) => {
+    if (!useCanvas) return;
+    const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+    const maxPreload = isMobile ? MAX_PRELOAD_MOBILE : MAX_PRELOAD_DESKTOP;
+    const targets = sampledFrameSources.slice(0, maxPreload);
+
+    targets.forEach((src) => {
+      if (loadedImagesRef.current.has(src)) return;
       const image = new Image();
       image.src = src;
+      loadedImagesRef.current.set(src, image);
     });
-  }, [sampledFrameSources, isReducedMotion]);
+  }, [sampledFrameSources, useCanvas]);
 
   useEffect(() => {
-    if (isReducedMotion) return;
+    if (!useCanvas) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const onScroll = () => {
+    const resizeCanvas = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      renderFrame();
+    };
+
+    const renderFrame = () => {
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      ctx.clearRect(0, 0, width, height);
+      const isDesktop = width >= 1024;
+      const focalX = 0.5;
+      const focalY = isDesktop ? 0.16 : 0.26;
+
+      const frameCount = sampledFrameSources.length;
+      if (frameCount === 0) return;
+
+      const exactFrame = progressRef.current * (frameCount - 1);
+      const baseIndex = Math.floor(exactFrame);
+      const nextIndex = Math.min(baseIndex + 1, frameCount - 1);
+      const blend = exactFrame - baseIndex;
+
+      const baseSrc = sampledFrameSources[baseIndex];
+      const nextSrc = sampledFrameSources[nextIndex];
+      const baseImage = loadedImagesRef.current.get(baseSrc);
+      const nextImage = loadedImagesRef.current.get(nextSrc);
+
+      if (baseImage) drawImageCover(ctx, baseImage, width, height, focalX, focalY, 1);
+      if (nextImage && blend > 0) drawImageCover(ctx, nextImage, width, height, focalX, focalY, blend);
+    };
+
+    const requestRender = () => {
+      if (rafRenderIdRef.current !== null) return;
+      rafRenderIdRef.current = window.requestAnimationFrame(() => {
+        rafRenderIdRef.current = null;
+        renderFrame();
+      });
+    };
+
+    const updateByScroll = () => {
       const section = sectionRef.current;
       if (!section) return;
 
@@ -66,35 +169,43 @@ export default function HeroSequence({
       const sectionHeight = section.offsetHeight;
       const viewportHeight = window.innerHeight;
       const scrollRange = sectionHeight - viewportHeight;
-
       if (scrollRange <= 0) return;
 
-      const progress = clamp((window.scrollY - sectionTop) / scrollRange, 0, 1);
-      const frameIndex = Math.floor(progress * Math.max(sampledFrameSources.length - 1, 0));
-      setActiveFrame(frameIndex);
+      progressRef.current = clamp((window.scrollY - sectionTop) / scrollRange, 0, 1);
+      requestRender();
     };
 
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    resizeCanvas();
+    updateByScroll();
+
+    const onResize = () => {
+      resizeCanvas();
+      updateByScroll();
+    };
+
+    window.addEventListener("scroll", updateByScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("scroll", updateByScroll);
+      window.removeEventListener("resize", onResize);
+      if (rafRenderIdRef.current !== null) {
+        window.cancelAnimationFrame(rafRenderIdRef.current);
+      }
     };
-  }, [sampledFrameSources.length, isReducedMotion]);
-
-  const currentBackground =
-    !isReducedMotion && sampledFrameSources.length > 0
-      ? sampledFrameSources[activeFrame]
-      : introSrc;
+  }, [sampledFrameSources, useCanvas]);
 
   return (
-    <section ref={sectionRef} className="relative h-[300vh]" aria-label="메인 비주얼">
+    <section ref={sectionRef} className="relative h-[260vh]" aria-label="메인 비주얼">
       <div className="sticky top-0 h-screen overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-[background-image] duration-150"
-          style={{ backgroundImage: `url("${currentBackground}")` }}
-        />
+        {useCanvas ? (
+          <canvas ref={canvasRef} className="absolute inset-0 block" aria-hidden="true" />
+        ) : (
+          <div
+            className="absolute inset-0 bg-cover bg-no-repeat"
+            style={{ backgroundImage: `url("${introSrc}")`, backgroundPosition: "50% 16%" }}
+          />
+        )}
 
         <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(9,18,34,0.55)_12%,rgba(9,18,34,0.18)_52%,rgba(9,18,34,0.1)_100%)]" />
 
