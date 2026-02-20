@@ -36,12 +36,6 @@ const solutionFlow = [
   },
 ];
 
-const aiWorks = [
-  "1. 고도화된 AI 분석 Tool",
-  "2. Expert in the Loop",
-  "3. 창조적 인사이트 확장",
-];
-
 export default function HeroFollowupSections() {
   return (
     <div className="bg-white">
@@ -100,22 +94,6 @@ export default function HeroFollowupSections() {
         <div className="mx-auto w-full max-w-7xl">
           <p className="text-center text-xs uppercase tracking-[0.18em] text-slate-500">Leading with</p>
           <h2 className="mt-5 text-center font-serif text-5xl text-slate-900 md:text-7xl">노무법인 호연</h2>
-        </div>
-      </section>
-
-      <section className="px-5 pb-24 md:px-8 md:pb-28">
-        <div className="mx-auto w-full max-w-7xl">
-          <h2 className="text-center font-serif text-3xl text-slate-900 md:text-5xl">AI works</h2>
-          <div className="mt-10 grid gap-4 md:grid-cols-3 md:gap-6">
-            {aiWorks.map((item) => (
-              <article
-                key={item}
-                className="rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f5f8fc_100%)] p-6 text-center shadow-[0_14px_26px_-26px_rgba(15,23,42,0.8)]"
-              >
-                <p className="text-base font-medium leading-relaxed text-slate-800 md:text-lg">{item}</p>
-              </article>
-            ))}
-          </div>
         </div>
       </section>
     </div>

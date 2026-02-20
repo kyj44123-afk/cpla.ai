@@ -44,7 +44,7 @@ export default function TopHeader() {
               isScrolled ? "text-slate-700" : "text-white/90"
             }`}
           >
-            상담안내
+            상담
           </Link>
           <Link
             href="/#products"
@@ -52,7 +52,7 @@ export default function TopHeader() {
               isScrolled ? "text-slate-700" : "text-white/90"
             }`}
           >
-            노동법률자문
+            자문
           </Link>
           <Link
             href="/#products"
@@ -60,7 +60,7 @@ export default function TopHeader() {
               isScrolled ? "text-slate-700" : "text-white/90"
             }`}
           >
-            노무진단·컨설팅
+            진단
           </Link>
           <Link
             href="/#products"
@@ -68,7 +68,7 @@ export default function TopHeader() {
               isScrolled ? "text-slate-700" : "text-white/90"
             }`}
           >
-            기업교육문의
+            교육
           </Link>
         </nav>
       </div>
