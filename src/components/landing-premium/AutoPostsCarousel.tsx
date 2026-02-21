@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type AutoPostItem = {
@@ -14,6 +15,12 @@ type AutoPostItem = {
 
 type AutoPostsCarouselProps = {
   posts?: AutoPostItem[];
+};
+
+const revealTransition = { duration: 0.7, ease: "easeOut" as const };
+const revealVariants = {
+  hidden: { opacity: 0, y: 28 },
+  visible: { opacity: 1, y: 0 },
 };
 
 const FALLBACK_POSTS: AutoPostItem[] = [
@@ -142,9 +149,16 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
   };
 
   return (
-    <section className="bg-white px-5 py-20 md:px-8 md:py-24">
+    <motion.section
+      className="bg-white px-5 py-20 md:px-8 md:py-24"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.15 }}
+      variants={revealVariants}
+      transition={revealTransition}
+    >
       <div className="mx-auto w-full max-w-7xl">
-        <div className="flex items-end justify-between gap-4">
+        <motion.div className="flex items-end justify-between gap-4" variants={revealVariants} transition={{ duration: 0.65 }}>
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">DIRECTOR&apos;S PICK</p>
             <h2 className="mt-3 font-serif text-3xl text-slate-900 md:text-5xl">Today&apos;s HR Insight</h2>
@@ -169,11 +183,21 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
               →
             </button>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="mt-10 grid gap-5" style={{ gridTemplateColumns: `repeat(${visibleItems.length}, minmax(0, 1fr))` }}>
+        <motion.div
+          className="mt-10 grid gap-5"
+          style={{ gridTemplateColumns: `repeat(${visibleItems.length}, minmax(0, 1fr))` }}
+          variants={revealVariants}
+          transition={{ duration: 0.65, delay: 0.08 }}
+        >
           {visibleItems.map((post) => (
-            <article key={post.id} className="flex h-full flex-col rounded-3xl border border-slate-200 bg-[linear-gradient(180deg,#f7fbff_0%,#ffffff_100%)] p-6 shadow-[0_14px_28px_-24px_rgba(15,23,42,0.6)]">
+            <motion.article
+              key={post.id}
+              className="flex h-full flex-col rounded-3xl border border-slate-200 bg-[linear-gradient(180deg,#f7fbff_0%,#ffffff_100%)] p-6 shadow-[0_14px_28px_-24px_rgba(15,23,42,0.6)]"
+              variants={revealVariants}
+              transition={{ duration: 0.5 }}
+            >
               <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{formatDate(post.createdAt)}</p>
               <h3 className="mt-3 line-clamp-2 font-serif text-2xl leading-snug text-slate-900">{post.title}</h3>
               <p className="mt-4 line-clamp-4 text-sm leading-relaxed text-slate-600">{post.excerpt}</p>
@@ -184,9 +208,9 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
               >
                 자세히 보기
               </button>
-            </article>
+            </motion.article>
           ))}
-        </div>
+        </motion.div>
 
         <div className="mt-5 flex justify-center gap-2 md:hidden">
           <button
@@ -228,6 +252,6 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
           </div>
         </DialogContent>
       </Dialog>
-    </section>
+    </motion.section>
   );
 }
