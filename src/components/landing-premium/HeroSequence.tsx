@@ -69,6 +69,7 @@ export default function HeroSequence({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const progressRef = useRef(0);
   const rafRenderIdRef = useRef<number | null>(null);
+  const rafScrollIdRef = useRef<number | null>(null);
   const loadedImagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
   const introImageRef = useRef<HTMLImageElement | null>(null);
   const requestRenderRef = useRef<(() => void) | null>(null);
@@ -222,13 +223,12 @@ export default function HeroSequence({
       const section = sectionRef.current;
       if (!section) return;
 
-      const sectionTop = section.offsetTop;
-      const sectionHeight = section.offsetHeight;
       const viewportHeight = window.innerHeight;
-      const scrollRange = sectionHeight - viewportHeight;
-      if (scrollRange <= 0) return;
+      const scrollRange = Math.max(section.offsetHeight - viewportHeight, 1);
+      const sectionTopInViewport = section.getBoundingClientRect().top;
+      const traveled = clamp(-sectionTopInViewport, 0, scrollRange);
 
-      progressRef.current = clamp((window.scrollY - sectionTop) / scrollRange, 0, 1);
+      progressRef.current = traveled / scrollRange;
 
       // Preload frames near current position
       const len = sampledFrameSources.length;
@@ -242,21 +242,32 @@ export default function HeroSequence({
       requestRender();
     };
 
+    const scheduleScrollUpdate = () => {
+      if (rafScrollIdRef.current !== null) return;
+      rafScrollIdRef.current = window.requestAnimationFrame(() => {
+        rafScrollIdRef.current = null;
+        updateByScroll();
+      });
+    };
+
     resizeCanvas();
     updateByScroll();
 
     const onResize = () => {
       resizeCanvas();
-      updateByScroll();
+      scheduleScrollUpdate();
     };
 
-    window.addEventListener("scroll", updateByScroll, { passive: true });
+    window.addEventListener("scroll", scheduleScrollUpdate, { passive: true });
     window.addEventListener("resize", onResize);
 
     return () => {
       requestRenderRef.current = null;
-      window.removeEventListener("scroll", updateByScroll);
+      window.removeEventListener("scroll", scheduleScrollUpdate);
       window.removeEventListener("resize", onResize);
+      if (rafScrollIdRef.current !== null) {
+        window.cancelAnimationFrame(rafScrollIdRef.current);
+      }
       if (rafRenderIdRef.current !== null) {
         window.cancelAnimationFrame(rafRenderIdRef.current);
       }
