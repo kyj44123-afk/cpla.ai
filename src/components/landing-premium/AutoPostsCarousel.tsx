@@ -155,10 +155,8 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
 
   useEffect(() => {
     const updateVisibleCount = () => {
-      if (window.innerWidth < 768) {
+      if (window.innerWidth < 1024) {
         setVisibleCount(1);
-      } else if (window.innerWidth < 1200) {
-        setVisibleCount(2);
       } else {
         setVisibleCount(3);
       }
@@ -254,7 +252,11 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
         <div className="mt-10 overflow-hidden">
           <div className="flex transition-transform duration-300 ease-out" style={trackStyle}>
             {items.map((post) => (
-              <article key={post.id} className="px-2.5" style={{ width: `${100 / items.length}%` }}>
+              <article
+                key={post.id}
+                className="px-0 md:px-2.5"
+                style={{ width: `${100 / items.length}%` }}
+              >
                 <div className="flex h-full flex-col rounded-3xl border border-slate-200 bg-[linear-gradient(180deg,#f7fbff_0%,#ffffff_100%)] p-6 shadow-[0_14px_28px_-24px_rgba(15,23,42,0.6)]">
                   <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{formatDate(post.createdAt)}</p>
                   <h3 className="mt-3 line-clamp-2 font-serif text-2xl leading-snug text-slate-900">{post.title}</h3>
