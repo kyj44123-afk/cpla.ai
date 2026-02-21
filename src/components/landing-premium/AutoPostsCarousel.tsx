@@ -8,6 +8,7 @@ type AutoPostItem = {
   id: string;
   title: string;
   excerpt: string;
+  fullContent: string;
   createdAt: string;
 };
 
@@ -20,18 +21,21 @@ const FALLBACK_POSTS: AutoPostItem[] = [
     id: "fallback-1",
     title: "근로계약 체결 단계에서 자주 놓치는 5가지",
     excerpt: "채용 직후 분쟁을 줄이기 위해 계약서에서 반드시 확인해야 할 핵심 항목을 정리했습니다.",
+    fullContent: "# 근로계약 체결 단계에서 자주 놓치는 5가지\n\n현재는 샘플 포스트입니다.\n실제 자동 포스트가 생성되면 이 영역에 본문이 표시됩니다.",
     createdAt: new Date().toISOString(),
   },
   {
     id: "fallback-2",
     title: "직장 내 괴롭힘 조사 프로세스 실무 체크",
     excerpt: "신고 접수부터 조사, 후속 조치까지 기업이 지켜야 할 절차를 단계별로 안내합니다.",
+    fullContent: "# 직장 내 괴롭힘 조사 프로세스 실무 체크\n\n현재는 샘플 포스트입니다.\n실제 자동 포스트가 생성되면 이 영역에 본문이 표시됩니다.",
     createdAt: new Date().toISOString(),
   },
   {
     id: "fallback-3",
     title: "임금체계 개편 전 확인해야 할 법적 체크리스트",
     excerpt: "통상임금, 수당, 퇴직금 이슈를 사전에 점검해 리스크를 줄이는 방법을 다룹니다.",
+    fullContent: "# 임금체계 개편 전 확인해야 할 법적 체크리스트\n\n현재는 샘플 포스트입니다.\n실제 자동 포스트가 생성되면 이 영역에 본문이 표시됩니다.",
     createdAt: new Date().toISOString(),
   },
 ];
@@ -59,6 +63,45 @@ function isCorruptedText(text: string) {
 
 function sanitizeText(text: string, fallback: string) {
   return isCorruptedText(text) ? fallback : text;
+}
+
+/* ---------- Simple Markdown-like renderer ---------- */
+function MarkdownContent({ content }: { content: string }) {
+  const lines = content.split("\n");
+
+  return (
+    <div className="space-y-2 text-sm leading-relaxed text-slate-700">
+      {lines.map((line, i) => {
+        const trimmed = line.trim();
+
+        if (trimmed.startsWith("### ")) {
+          return <h4 key={i} className="mt-4 mb-1 text-base font-bold text-slate-800">{trimmed.slice(4)}</h4>;
+        }
+        if (trimmed.startsWith("## ")) {
+          return <h3 key={i} className="mt-5 mb-1 text-lg font-bold text-slate-900">{trimmed.slice(3)}</h3>;
+        }
+        if (trimmed.startsWith("# ")) {
+          return <h2 key={i} className="mt-5 mb-2 text-xl font-bold text-slate-900">{trimmed.slice(2)}</h2>;
+        }
+
+        if (!trimmed) {
+          return <div key={i} className="h-2" />;
+        }
+
+        const parts = trimmed.split(/(\*\*[^*]+\*\*)/g);
+        return (
+          <p key={i}>
+            {parts.map((part, j) => {
+              if (part.startsWith("**") && part.endsWith("**")) {
+                return <strong key={j} className="font-semibold text-slate-800">{part.slice(2, -2)}</strong>;
+              }
+              return <span key={j}>{part}</span>;
+            })}
+          </p>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsCarouselProps) {
@@ -94,6 +137,7 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
             id: String(row.id),
             title: sanitizeText(String(row.title ?? ""), `제목 확인 중 (${rowIndex + 1})`),
             excerpt: sanitizeText(plain.slice(0, 130), "본문 인코딩을 확인 중입니다."),
+            fullContent: content,
             createdAt: String(row.created_at ?? ""),
           };
         });
@@ -143,18 +187,16 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
     setSelectedContent("");
     setLoadError("");
 
-    if (post.id.startsWith("fallback-")) {
+    // Use the full content already fetched with the list — no extra API call needed
+    if (post.fullContent && post.fullContent.trim().length > 0) {
+      setSelectedTitle(sanitizeText(post.title, "제목 인코딩 확인 중"));
       setSelectedContent(
-        [
-          `# ${post.title}`,
-          "",
-          "현재는 샘플 포스트입니다.",
-          "실제 자동 포스트가 생성되면 이 영역에 본문이 표시됩니다.",
-        ].join("\n"),
+        sanitizeText(post.fullContent, "본문 데이터 인코딩에 문제가 있어 내용을 표시할 수 없습니다."),
       );
       return;
     }
 
+    // Fallback: fetch from dedicated API only if content was missing from the list
     setLoadingPost(true);
     try {
       const res = await fetch(`/api/auto-posts/${post.id}`, { cache: "no-store" });
@@ -253,15 +295,15 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
       </div>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-h-[88vh] max-w-3xl overflow-hidden p-0">
+        <DialogContent className="!max-w-3xl max-h-[88vh] overflow-hidden p-0">
           <DialogHeader className="border-b border-slate-200 px-6 py-4">
             <DialogTitle className="font-serif text-2xl text-slate-900">{selectedTitle}</DialogTitle>
           </DialogHeader>
           <div className="max-h-[70vh] overflow-y-auto px-6 py-5">
             {loadingPost ? <p className="text-sm text-slate-600">포스트를 불러오는 중입니다...</p> : null}
             {!loadingPost && loadError ? <p className="text-sm text-red-600">{loadError}</p> : null}
-            {!loadingPost && !loadError ? (
-              <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{selectedContent}</div>
+            {!loadingPost && !loadError && selectedContent ? (
+              <MarkdownContent content={selectedContent} />
             ) : null}
           </div>
           <div className="border-t border-slate-200 px-6 py-4">

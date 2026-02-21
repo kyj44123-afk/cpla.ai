@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 
-const SCROLLED_THRESHOLD = 32;
 const MENU_ITEMS = [
   { href: "/advisory", label: "자문" },
   { href: "/diagnosis", label: "진단" },
@@ -15,34 +13,13 @@ const MENU_ITEMS = [
 
 export default function TopHeader() {
   const pathname = usePathname();
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => {
-      setIsScrolled(window.scrollY > SCROLLED_THRESHOLD);
-    };
-
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const useSolidTheme = pathname !== "/" || isScrolled;
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        useSolidTheme
-          ? "border-b border-slate-200/80 bg-white/95 backdrop-blur-md"
-          : "bg-transparent"
-      }`}
-    >
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md transition-all duration-300">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-4 md:h-20 md:px-8">
         <Link
           href="/"
-          className={`shrink-0 text-sm font-semibold tracking-[0.12em] transition-colors md:text-base ${
-            useSolidTheme ? "text-slate-900" : "text-white"
-          }`}
+          className="shrink-0 text-sm font-semibold tracking-[0.12em] text-slate-900 transition-colors md:text-base"
         >
           CPLA+AI
         </Link>
@@ -58,11 +35,7 @@ export default function TopHeader() {
                 key={item.href}
                 href={item.href}
                 className={`rounded-full px-3 py-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 ${
-                  isActive
-                    ? "bg-slate-900 text-white"
-                    : useSolidTheme
-                      ? "text-slate-700 hover:bg-slate-100"
-                      : "text-white/90 hover:bg-white/10"
+                  isActive ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 {item.label}

@@ -49,8 +49,8 @@ export default async function Home() {
         introSrc={introSource}
         frameSources={frameSources}
         ctaHref="/counseling"
-        headline={"신뢰를 완성하는\n노동법률 파트너"}
-        subcopy="공인노무사 곽영준의 깊이 있는 경험과 정교한 전략, 그리고 적극적 AI 활용으로 기업과 개인의 중요한 결정에 명확한 기준을 제시합니다."
+        headline={"노무를 완성하는\n노동법률 파트너"}
+        subcopy="공인노무사와 경영진이 함께 쌓아온 경험과 정교한 전략, 그리고 AI 분석으로 기업과 개인의 중요한 결정을 더 빠르고 명확하게 지원합니다."
       />
       <AutoPostsCarousel />
       <PostFeatureCtaCards />

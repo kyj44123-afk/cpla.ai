@@ -71,7 +71,10 @@ export default function HeroSequence({
   const rafRenderIdRef = useRef<number | null>(null);
   const loadedImagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
   const requestRenderRef = useRef<(() => void) | null>(null);
+  const hasDrawnFrameRef = useRef(false);
+
   const [isReducedMotion, setIsReducedMotion] = useState(false);
+  const [hasDrawnFrame, setHasDrawnFrame] = useState(false);
 
   const sampledFrameSources = useMemo(() => {
     if (typeof window === "undefined") return frameSources;
@@ -122,6 +125,13 @@ export default function HeroSequence({
     const stage = stageRef.current;
     if (!canvas || !stage) return;
 
+    const markDrawn = () => {
+      if (!hasDrawnFrameRef.current) {
+        hasDrawnFrameRef.current = true;
+        setHasDrawnFrame(true);
+      }
+    };
+
     const resizeCanvas = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const rect = stage.getBoundingClientRect();
@@ -167,6 +177,7 @@ export default function HeroSequence({
       const width = Math.max(1, Math.floor(rect.width));
       const height = Math.max(1, Math.floor(rect.height));
       ctx.clearRect(0, 0, width, height);
+
       const isDesktop = width >= 1024;
       const alignX = isDesktop ? 0.82 : 0.5;
 
@@ -189,12 +200,14 @@ export default function HeroSequence({
         if (isReadyImage(nextImage) && blend > 0) {
           drawImageContain(ctx, nextImage, width, height, alignX, blend);
         }
+        markDrawn();
         return;
       }
 
       const fallbackImage = getNearestLoadedImage(baseIndex);
       if (fallbackImage) {
         drawImageContain(ctx, fallbackImage, width, height, alignX, 1);
+        markDrawn();
       }
     };
 
@@ -205,6 +218,7 @@ export default function HeroSequence({
         renderFrame();
       });
     };
+
     requestRenderRef.current = requestRender;
 
     const updateByScroll = () => {
@@ -261,14 +275,19 @@ export default function HeroSequence({
           <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:36px_36px]" />
           <div className="absolute inset-0 bg-[radial-gradient(90%_85%_at_50%_50%,rgba(145,170,203,0.18)_0%,rgba(145,170,203,0.05)_45%,rgba(10,17,27,0)_75%)]" />
 
+          <div
+            className="absolute inset-0 bg-contain bg-center bg-no-repeat md:bg-[position:82%_50%]"
+            style={{ backgroundImage: `url("${introSrc}")` }}
+            aria-hidden="true"
+          />
+
           {useCanvas ? (
-            <canvas ref={canvasRef} className="absolute inset-0 block" aria-hidden="true" />
-          ) : (
-            <div
-              className="absolute inset-0 bg-contain bg-center bg-no-repeat md:bg-[position:82%_50%]"
-              style={{ backgroundImage: `url("${introSrc}")` }}
+            <canvas
+              ref={canvasRef}
+              className={`absolute inset-0 block transition-opacity duration-300 ${hasDrawnFrame ? "opacity-100" : "opacity-0"}`}
+              aria-hidden="true"
             />
-          )}
+          ) : null}
 
           <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(9,18,34,0.52)_12%,rgba(9,18,34,0.18)_52%,rgba(9,18,34,0.1)_100%)]" />
 
