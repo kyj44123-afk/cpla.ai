@@ -4,6 +4,7 @@ import AutoPostsCarousel from "@/components/landing-premium/AutoPostsCarousel";
 import BrandStory from "@/components/landing-premium/BrandStory";
 import HeroFollowupSections from "@/components/landing-premium/HeroFollowupSections";
 import HeroSequence from "@/components/landing-premium/HeroSequence";
+import PostFeatureCtaCards from "@/components/landing-premium/PostFeatureCtaCards";
 import ProductGrid from "@/components/landing-premium/ProductGrid";
 import SiteFooter from "@/components/landing-premium/SiteFooter";
 import TopHeader from "@/components/landing-premium/TopHeader";
@@ -52,6 +53,7 @@ export default async function Home() {
         subcopy="공인노무사 곽영준의 깊이 있는 경험과 정교한 전략, 그리고 적극적 AI 활용으로 기업과 개인의 중요한 결정에 명확한 기준을 제시합니다."
       />
       <AutoPostsCarousel />
+      <PostFeatureCtaCards />
       <HeroFollowupSections />
       <BrandStory />
       <ProductGrid />

@@ -18,20 +18,20 @@ type AutoPostsCarouselProps = {
 const FALLBACK_POSTS: AutoPostItem[] = [
   {
     id: "fallback-1",
-    title: "근로계약 체결 단계에서 가장 많이 놓치는 5가지",
-    excerpt: "신규 입사 시점에 발생하는 분쟁 리스크를 예방하기 위한 필수 점검 항목을 정리했습니다.",
+    title: "근로계약 체결 단계에서 자주 놓치는 5가지",
+    excerpt: "채용 직후 분쟁을 줄이기 위해 계약서에서 반드시 확인해야 할 핵심 항목을 정리했습니다.",
     createdAt: new Date().toISOString(),
   },
   {
     id: "fallback-2",
-    title: "직장 내 괴롭힘 대응 프로세스, 어디서부터 시작해야 할까",
-    excerpt: "신고 접수부터 조사, 사후조치까지 기업이 지켜야 할 실무 절차를 단계별로 안내합니다.",
+    title: "직장 내 괴롭힘 조사 프로세스 실무 체크",
+    excerpt: "신고 접수부터 조사, 후속 조치까지 기업이 지켜야 할 절차를 단계별로 안내합니다.",
     createdAt: new Date().toISOString(),
   },
   {
     id: "fallback-3",
-    title: "임금체계 개편 전 반드시 확인해야 할 법적 체크리스트",
-    excerpt: "임금체계/통상임금/퇴직금 이슈를 한 번에 점검할 수 있는 실무형 기준을 제공합니다.",
+    title: "임금체계 개편 전 확인해야 할 법적 체크리스트",
+    excerpt: "통상임금, 수당, 퇴직금 이슈를 사전에 점검해 리스크를 줄이는 방법을 다룹니다.",
     createdAt: new Date().toISOString(),
   },
 ];
@@ -40,6 +40,25 @@ function formatDate(dateString: string) {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleDateString("ko-KR", { year: "numeric", month: "short", day: "numeric" });
+}
+
+function isCorruptedText(text: string) {
+  if (!text) return true;
+  const normalized = text.trim();
+  if (!normalized) return true;
+
+  const questionRatio = ((normalized.match(/\?/g) || []).length || 0) / normalized.length;
+  const hangulRatio = ((normalized.match(/[가-힣]/g) || []).length || 0) / normalized.length;
+  const hanRatio = ((normalized.match(/[\u4E00-\u9FFF]/g) || []).length || 0) / normalized.length;
+
+  if (questionRatio > 0.2) return true;
+  if (hangulRatio < 0.08 && hanRatio > 0.2) return true;
+
+  return false;
+}
+
+function sanitizeText(text: string, fallback: string) {
+  return isCorruptedText(text) ? fallback : text;
 }
 
 export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsCarouselProps) {
@@ -57,23 +76,28 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
       try {
         const res = await fetch("/api/posts", { cache: "no-store" });
         if (!res.ok) return;
+
         const data = (await res.json()) as Array<{
           id: string;
           title: string;
           content: string | null;
           created_at: string;
         }>;
+
         if (!Array.isArray(data) || data.length === 0) return;
-        const mapped = data.slice(0, 12).map((row) => {
+
+        const mapped = data.slice(0, 12).map((row, rowIndex) => {
           const content = String(row.content ?? "");
           const plain = content.replace(/[#>*`[\]()_-]/g, " ").replace(/\s+/g, " ").trim();
+
           return {
             id: String(row.id),
-            title: String(row.title ?? "제목 없음"),
-            excerpt: plain.slice(0, 130) || "자동 발행된 포스트 본문입니다.",
+            title: sanitizeText(String(row.title ?? ""), `제목 확인 중 (${rowIndex + 1})`),
+            excerpt: sanitizeText(plain.slice(0, 130), "본문 인코딩을 확인 중입니다."),
             createdAt: String(row.created_at ?? ""),
           };
         });
+
         if (mapped.length > 0) {
           setItems(mapped);
         }
@@ -81,6 +105,7 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
         // Keep fallback cards.
       }
     };
+
     fetchPosts();
   }, []);
 
@@ -124,7 +149,7 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
           `# ${post.title}`,
           "",
           "현재는 샘플 포스트입니다.",
-          "실제 자동발행 글은 Admin에서 포스트를 발행하면 이 영역에 표시됩니다.",
+          "실제 자동 포스트가 생성되면 이 영역에 본문이 표시됩니다.",
         ].join("\n"),
       );
       return;
@@ -135,8 +160,17 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
       const res = await fetch(`/api/auto-posts/${post.id}`, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "포스트를 불러오지 못했습니다.");
-      setSelectedTitle(String(data.title ?? post.title));
-      setSelectedContent(String(data.content ?? ""));
+
+      const fetchedTitle = String(data.title ?? post.title);
+      const fetchedContent = String(data.content ?? "");
+
+      setSelectedTitle(sanitizeText(fetchedTitle, "제목 인코딩 확인 중"));
+      setSelectedContent(
+        sanitizeText(
+          fetchedContent,
+          "본문 데이터 인코딩에 문제가 있어 내용을 표시할 수 없습니다. 관리자에서 원본 데이터를 확인해주세요.",
+        ),
+      );
     } catch (error) {
       const msg = error instanceof Error ? error.message : "포스트 로드 중 오류가 발생했습니다.";
       setLoadError(msg);
@@ -224,7 +258,7 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
             <DialogTitle className="font-serif text-2xl text-slate-900">{selectedTitle}</DialogTitle>
           </DialogHeader>
           <div className="max-h-[70vh] overflow-y-auto px-6 py-5">
-            {loadingPost ? <p className="text-sm text-slate-600">포스트 생성/불러오는 중...</p> : null}
+            {loadingPost ? <p className="text-sm text-slate-600">포스트를 불러오는 중입니다...</p> : null}
             {!loadingPost && loadError ? <p className="text-sm text-red-600">{loadError}</p> : null}
             {!loadingPost && !loadError ? (
               <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{selectedContent}</div>
@@ -235,7 +269,7 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
               href="/counseling"
               className="inline-flex items-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
             >
-              상담예약
+              상담 예약
             </Link>
           </div>
         </DialogContent>
