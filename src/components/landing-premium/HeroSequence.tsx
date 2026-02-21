@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type HeroSequenceProps = {
   introSrc: string;
@@ -23,86 +23,89 @@ export default function HeroSequence({
   subcopy,
 }: HeroSequenceProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const updateRafRef = useRef<number | null>(null);
+  const rafIdRef = useRef<number | null>(null);
+  const [frameIndex, setFrameIndex] = useState(0);
+  const [frameReady, setFrameReady] = useState(false);
 
-  const [currentFrame, setCurrentFrame] = useState(0);
+  const frames = useMemo(() => (frameSources.length > 0 ? frameSources : [introSrc]), [frameSources, introSrc]);
+  const activeFrameSrc = frames[frameIndex] ?? introSrc;
 
   useEffect(() => {
-    if (frameSources.length === 0) return;
+    if (frames.length === 0) return;
 
-    const preloadCount = Math.min(frameSources.length, 80);
+    const preloadCount = Math.min(frames.length, 90);
     for (let i = 0; i < preloadCount; i += 1) {
       const image = new Image();
       image.decoding = "async";
-      image.src = frameSources[i];
+      image.src = frames[i];
     }
-  }, [frameSources]);
+  }, [frames]);
 
   useEffect(() => {
-    if (frameSources.length === 0) return;
+    if (frames.length <= 1) return;
 
-    let lastFrame = -1;
+    let lastIndex = -1;
 
-    const updateFrame = () => {
-      updateRafRef.current = null;
-
+    const updateByScroll = () => {
+      rafIdRef.current = null;
       const section = sectionRef.current;
       if (!section) return;
 
       const viewportHeight = window.innerHeight;
       const scrollRange = Math.max(section.offsetHeight - viewportHeight, 1);
-      const sectionTopInViewport = section.getBoundingClientRect().top;
-      const traveled = clamp(-sectionTopInViewport, 0, scrollRange);
+      const rectTop = section.getBoundingClientRect().top;
+      const traveled = clamp(-rectTop, 0, scrollRange);
       const progress = traveled / scrollRange;
-      const nextFrame = Math.round(progress * (frameSources.length - 1));
+      const nextIndex = Math.round(progress * (frames.length - 1));
 
-      if (nextFrame === lastFrame) return;
-      lastFrame = nextFrame;
-      setCurrentFrame(nextFrame);
+      if (nextIndex === lastIndex) return;
+      lastIndex = nextIndex;
+      setFrameIndex(nextIndex);
     };
 
-    const onScrollOrResize = () => {
-      if (updateRafRef.current !== null) return;
-      updateRafRef.current = window.requestAnimationFrame(updateFrame);
+    const scheduleUpdate = () => {
+      if (rafIdRef.current !== null) return;
+      rafIdRef.current = window.requestAnimationFrame(updateByScroll);
     };
 
-    onScrollOrResize();
-    window.addEventListener("scroll", onScrollOrResize, { passive: true });
-    window.addEventListener("resize", onScrollOrResize);
+    scheduleUpdate();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
 
     return () => {
-      window.removeEventListener("scroll", onScrollOrResize);
-      window.removeEventListener("resize", onScrollOrResize);
-      if (updateRafRef.current !== null) {
-        window.cancelAnimationFrame(updateRafRef.current);
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+      if (rafIdRef.current !== null) {
+        window.cancelAnimationFrame(rafIdRef.current);
       }
     };
-  }, [frameSources]);
-
-  const activeFrameSrc = frameSources[currentFrame] || "";
+  }, [frames]);
 
   return (
-    <section ref={sectionRef} className="relative h-[220vh]" aria-label="Main visual">
+    <section ref={sectionRef} className="relative z-0 h-[240vh]" aria-label="Main visual">
       <div className="sticky top-0 flex h-[100dvh] items-center justify-center px-3 pt-14 md:px-6 md:pt-20">
         <div className="relative h-[82dvh] w-full overflow-hidden rounded-[28px] border border-slate-200/50 bg-[radial-gradient(140%_120%_at_50%_0%,#1f2e45_0%,#101927_56%,#0a111b_100%)] md:h-[84vh]">
-          <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:36px_36px]" />
+          <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:36px_36px]" />
           <div className="absolute inset-0 bg-[radial-gradient(90%_85%_at_50%_50%,rgba(145,170,203,0.18)_0%,rgba(145,170,203,0.05)_45%,rgba(10,17,27,0)_75%)]" />
 
-          <div
-            className="absolute inset-0 bg-contain bg-center bg-no-repeat md:bg-[position:82%_50%]"
-            style={{ backgroundImage: `url("${introSrc}")` }}
+          <img
+            src={introSrc}
+            alt=""
             aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-contain object-center md:object-[82%_50%]"
           />
 
-          {activeFrameSrc ? (
-            <div
-              className="absolute inset-0 bg-contain bg-center bg-no-repeat md:bg-[position:82%_50%]"
-              style={{ backgroundImage: `url("${activeFrameSrc}")` }}
-              aria-hidden="true"
-            />
-          ) : null}
+          <img
+            src={activeFrameSrc}
+            alt=""
+            aria-hidden="true"
+            onLoad={() => setFrameReady(true)}
+            className={`absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-200 md:object-[82%_50%] ${
+              frameReady ? "opacity-100" : "opacity-0"
+            }`}
+          />
 
-          <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(9,18,34,0.52)_12%,rgba(9,18,34,0.18)_52%,rgba(9,18,34,0.1)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(9,18,34,0.56)_12%,rgba(9,18,34,0.24)_52%,rgba(9,18,34,0.14)_100%)]" />
 
           <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl items-end px-5 pb-10 md:px-8 md:pb-18">
             <div className="max-w-xl space-y-4 rounded-2xl bg-slate-900/35 p-4 backdrop-blur-[2px] md:bg-transparent md:p-0 md:backdrop-blur-none">
