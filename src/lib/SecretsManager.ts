@@ -10,6 +10,14 @@ export class SecretsManager {
     private static getKey(): Buffer {
         if (this.key) return this.key;
 
+        // Priority 1: Environment variable (recommended for serverless)
+        const envKey = process.env.ENCRYPTION_KEY;
+        if (envKey) {
+            this.key = Buffer.from(envKey, 'hex');
+            return this.key;
+        }
+
+        // Priority 2: Disk-based key file (legacy/local dev)
         if (fs.existsSync(SECRET_KEY_PATH)) {
             const hexKey = fs.readFileSync(SECRET_KEY_PATH, 'utf-8');
             this.key = Buffer.from(hexKey, 'hex');
@@ -17,6 +25,7 @@ export class SecretsManager {
             // Generate a new random key
             this.key = crypto.randomBytes(32); // 256 bits
             fs.writeFileSync(SECRET_KEY_PATH, this.key.toString('hex'));
+            console.warn('[SecretsManager] Generated disk-based key. Set ENCRYPTION_KEY env var for production.');
         }
 
         return this.key;

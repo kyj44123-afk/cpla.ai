@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
 import { getOpenAI } from "@/lib/openai";
-import { retrieveContext } from "@/lib/rag";
+import { retrieveContext, type DocumentChunk } from "@/lib/rag";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { searchNationalLaw, searchPrecedent } from "@/lib/nationalLaw";
 import { mapKeywords } from "@/lib/keywordMapper";
 import { headers } from "next/headers";
+
+type ChatMessage = { role: "user" | "assistant" | "system"; content: string };
+type PrecedentResult = { title: string; caseNumber?: string; content: string };
+
+const MAX_MESSAGES = 20;
+const MAX_MESSAGE_LENGTH = 3000;
+const MAX_FILE_CONTENT_LENGTH = 10000;
+
 
 // ============================================
 // Rate Limiting: In-Memory Store
@@ -93,7 +101,7 @@ export async function POST(req: Request) {
         if (!rateCheck.allowed) {
             return NextResponse.json(
                 {
-                    error: "?쇱씪 吏덈Ц ?쒕룄(5??瑜?珥덇낵?덉뒿?덈떎. ?댁씪 ?ㅼ떆 ?쒕룄?댁＜?몄슂.",
+                    error: "하루 질문 한도(5회)를 초과했습니다. 내일 다시 시도해주세요.",
                     limitExceeded: true
                 },
                 { status: 429 }
@@ -101,8 +109,22 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { messages, sessionId } = body;
-        const lastMessage = messages[messages.length - 1];
+        const { messages, sessionId, fileContent: rawFileContent } = body;
+
+        if (!Array.isArray(messages) || messages.length === 0) {
+            return NextResponse.json({ error: "Missing messages" }, { status: 400 });
+        }
+
+        if (messages.length > MAX_MESSAGES) {
+            return NextResponse.json({ error: "대화 내역이 너무 깁니다. 새 대화를 시작해주세요." }, { status: 400 });
+        }
+
+        const sanitizedMessages: ChatMessage[] = messages.map((m: ChatMessage) => ({
+            role: m.role,
+            content: String(m.content || "").slice(0, MAX_MESSAGE_LENGTH),
+        }));
+
+        const lastMessage = sanitizedMessages[sanitizedMessages.length - 1];
 
         if (!lastMessage) {
             return NextResponse.json({ error: "Missing messages" }, { status: 400 });
@@ -112,7 +134,7 @@ export async function POST(req: Request) {
         if (isLikelyGibberish(lastMessage.content)) {
             return NextResponse.json(
                 {
-                    error: "?낅젰?섏떊 ?댁슜???댄빐?섍린 ?대졄?듬땲?? ?섏씠吏瑜??덈줈怨좎묠????吏덈Ц???ㅼ떆 ?묒꽦??二쇱꽭??",
+                    error: "입력하신 내용을 이해하기 어렵습니다. 한국어를 바르게 작성한 질문을 다시 작성해 주세요.",
                     gibberish: true
                 },
                 { status: 400 }
@@ -133,7 +155,7 @@ export async function POST(req: Request) {
         let contextText = "";
         try {
             const contextChunks = await retrieveContext(lastMessage.content);
-            contextText = contextChunks.map((chunk: any) => chunk.content).join("\n\n");
+            contextText = contextChunks.map((chunk: DocumentChunk) => chunk.content).join("\n\n");
         } catch (e) {
             console.log("RAG context retrieval skipped (no database configured)");
         }
@@ -141,7 +163,7 @@ export async function POST(req: Request) {
         // 2. Search National Law Database (Statutes & Precedents)
         let lawDataText = "";
         let precedentDataText = "";
-        let precedentResults: any[] = [];
+        let precedentResults: PrecedentResult[] = [];
         try {
             // 0. Keyword Extraction for better search results
             console.log(`Starting keyword extraction for: ${lastMessage.content} `);
@@ -253,8 +275,8 @@ Input: "${lastMessage.content}"`
         }
 
         // 3. AI Summarization for Precedents (New: Consumer-friendly rewrite)
-        let processedPrecedents = precedentResults;
-        const openai = getOpenAI(); // Initialize here for use in summarization AND main response
+        let processedPrecedents: PrecedentResult[] = precedentResults;
+        const openai = getOpenAI();
 
         if (precedentResults.length > 0) {
             console.log("Summarizing precedents for consumer friendliness...");
@@ -265,7 +287,7 @@ Input: "${lastMessage.content}"`
                 // Process in parallel
                 processedPrecedents = await Promise.all(precedentResults.map(async (p) => {
                     try {
-                        const openai = getOpenAI(); // Re-initialize or pass if needed, assuming it's cheap
+                        const openai = getOpenAI();
                         const summaryResponse = await openai.chat.completions.create({
                             model: summaryModel,
                             messages: [
@@ -355,7 +377,7 @@ If the provided precedent data is not relevant to the user's question, you may i
                     model: "gpt-4o",
                     messages: [
                         { role: "system", content: systemPrompt },
-                        ...messages.map((m: any) => ({ role: m.role, content: m.content })),
+                        ...sanitizedMessages.map((m: ChatMessage) => ({ role: m.role, content: m.content })),
                     ],
                     stream: true,
                 });
@@ -374,7 +396,7 @@ If the provided precedent data is not relevant to the user's question, you may i
         // Serialize precedents for header
         // Encode in Base64 or just URI encode to be safe with headers (utf-8 characters)
         // CRITICAL: Truncate content to avoid HPE_HEADER_OVERFLOW (Limit to 1200 chars * 4 = ~4.8KB + overhead < 8KB)
-        const headerPrecedents = (processedPrecedents || []).map((p: any) => ({
+        const headerPrecedents = (processedPrecedents || []).map((p: PrecedentResult) => ({
             ...p,
             content: (p.content || "").substring(0, 1200) + (p.content?.length > 1200 ? "..." : "")
         }));
@@ -390,7 +412,7 @@ If the provided precedent data is not relevant to the user's question, you may i
             },
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Chat API Error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }

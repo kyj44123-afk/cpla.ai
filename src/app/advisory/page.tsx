@@ -5,37 +5,37 @@ import { PrecedentExplorerWidget } from "@/components/landing-premium/HeroAiWidg
 
 const plans = [
   {
-    name: "Light",
-    target: "Small teams with low issue frequency",
-    price: "KRW 390k / month~",
-    items: ["Monthly advisory", "Basic HR/labor Q&A", "1 urgent issue priority support"],
+    name: "라이트",
+    target: "이슈 빈도가 낮은 소규모 사업장",
+    price: "월 39만원~",
+    items: ["월 정기 자문", "기초 인사노무 문답", "긴급 이슈 1회 우선 대응"],
   },
   {
-    name: "Standard",
-    target: "Growing companies with HR staff",
-    price: "KRW 790k / month~",
-    items: ["Weekly advisory", "Policy/template review", "Pre-dispute risk checks"],
+    name: "스탠다드",
+    target: "인사 담당자가 있는 성장 단계 기업",
+    price: "월 79만원~",
+    items: ["주간 자문", "규정/서식 검토", "분쟁 징후 사전 점검"],
   },
   {
-    name: "Premium",
-    target: "Multi-site or complex issue organizations",
-    price: "KRW 1.49m / month~",
-    items: ["Always-on hotline", "Issue reports", "Labor strategy advisory"],
+    name: "프리미엄",
+    target: "다수 사업장 또는 복합 이슈 기업",
+    price: "월 149만원~",
+    items: ["상시 핫라인", "노무 이슈 리포트", "노사관계 전략 자문"],
   },
 ];
 
 const useCases = [
   {
-    title: "Contract framework cleanup",
-    detail: "Reorganized contracts and policies by role to reduce hiring-stage dispute risk.",
+    title: "근로계약 체계 정비",
+    detail: "직군별 근로계약서와 취업규칙을 정비해 채용 단계 분쟁 가능성을 줄인 사례",
   },
   {
-    title: "Disciplinary process hardening",
-    detail: "Improved evidence and procedure integrity to prevent unfair-discipline conflicts.",
+    title: "징계 절차 리스크 대응",
+    detail: "징계사유 입증 구조와 절차를 점검해 부당징계 분쟁으로의 확산을 예방한 사례",
   },
   {
-    title: "Exit and wage issue pre-settlement",
-    detail: "Unified payout rules to avoid escalations into group complaints.",
+    title: "퇴직/임금 이슈 사전 조정",
+    detail: "퇴직금·수당 계산 기준을 통일해 집단 민원으로 번지기 전에 해결한 사례",
   },
 ];
 
@@ -49,16 +49,16 @@ export default function AdvisoryPage() {
           <header className="grid gap-6 rounded-3xl border border-slate-200 bg-white p-7 shadow-[0_24px_50px_-42px_rgba(15,23,42,0.75)] md:grid-cols-[1.1fr_0.9fr] md:items-start md:p-10">
             <div>
               <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Advisory</p>
-              <h1 className="mt-4 font-serif text-3xl leading-tight md:text-5xl">Your always-available labor partner</h1>
+              <h1 className="mt-4 font-serif text-3xl leading-tight md:text-5xl">언제든 물어볼 수 있는 인사노무 파트너</h1>
               <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-600 md:text-base">
-                Ongoing advisory is not just post-issue response. It is an operating system that prevents issues before they happen.
+                상시 자문 계약은 문제가 생긴 뒤 대응하는 방식이 아니라, 문제를 만들지 않는 운영 체계를 만드는 방법입니다.
               </p>
             </div>
             <PrecedentExplorerWidget />
           </header>
 
           <section className="mt-10">
-            <h2 className="font-serif text-2xl text-slate-900 md:text-4xl">Plan Comparison</h2>
+            <h2 className="font-serif text-2xl text-slate-900 md:text-4xl">자문 플랜 비교</h2>
             <div className="mt-6 grid gap-6 md:grid-cols-3">
               {plans.map((plan) => (
                 <article key={plan.name} className="rounded-3xl border border-slate-200 bg-white p-6">
@@ -78,7 +78,7 @@ export default function AdvisoryPage() {
           </section>
 
           <section className="mt-10">
-            <h2 className="font-serif text-2xl text-slate-900 md:text-4xl">Use Cases</h2>
+            <h2 className="font-serif text-2xl text-slate-900 md:text-4xl">자문 활용 사례</h2>
             <div className="mt-6 grid gap-5 md:grid-cols-3">
               {useCases.map((item) => (
                 <article key={item.title} className="rounded-3xl border border-slate-200 bg-white p-6">
@@ -90,13 +90,10 @@ export default function AdvisoryPage() {
           </section>
 
           <section className="mt-10 rounded-3xl border border-slate-200 bg-slate-900 p-7 text-white md:p-10">
-            <h2 className="font-serif text-2xl md:text-4xl">Check if advisory is the right next step</h2>
-            <p className="mt-3 text-sm text-slate-200 md:text-base">Share your situation and we will recommend the best-fit plan.</p>
-            <Link
-              href="/counseling"
-              className="mt-6 inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
-            >
-              Request advisory contract
+            <h2 className="font-serif text-2xl md:text-4xl">우리 회사도 자문이 필요한 단계인지 확인해보세요</h2>
+            <p className="mt-3 text-sm text-slate-200 md:text-base">상황을 남겨주시면 규모와 이슈 빈도에 맞는 플랜부터 제안드립니다.</p>
+            <Link href="/counseling" className="mt-6 inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
+              자문 계약 문의하기
             </Link>
           </section>
         </div>

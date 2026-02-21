@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { getClientIpFromHeaders } from "@/lib/security-core";
+import { checkRateLimit } from "@/lib/api-security";
 
 const BodySchema = z.object({
   sessionId: z.string().uuid(),
@@ -13,6 +15,11 @@ const BodySchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIpFromHeaders(new Headers(req.headers));
+    if (!checkRateLimit(`discovery-log:${ip}`, 20, 60_000)) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });

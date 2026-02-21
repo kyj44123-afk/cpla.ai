@@ -38,10 +38,10 @@ export function PrecedentExplorerWidget() {
         body: JSON.stringify({ tool: "precedent-search", keyword }),
       });
       const data = (await res.json()) as { cases?: { caseNumber: string; summary: string }[]; error?: string };
-      if (!res.ok) throw new Error(data.error || "Failed to search precedents.");
+      if (!res.ok) throw new Error(data.error || "판례 탐색에 실패했습니다.");
       setCases(data.cases || []);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Request failed.");
+      setError(e instanceof Error ? e.message : "요청 처리 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -50,13 +50,13 @@ export function PrecedentExplorerWidget() {
   return (
     <aside className={panelClass}>
       <p className="text-xs uppercase tracking-[0.18em] text-slate-500">LLM Tool</p>
-      <h3 className="mt-2 text-xl font-semibold text-slate-900">Precedent Explorer</h3>
-      <p className="mt-2 text-sm text-slate-600">Enter a keyword to get 3 related case numbers with short summaries.</p>
+      <h3 className="mt-2 text-xl font-semibold text-slate-900">판례탐색기</h3>
+      <p className="mt-2 text-sm text-slate-600">키워드를 입력하면 관련 판례 3건의 판결번호와 요약을 보여줍니다.</p>
       <div className="mt-4 flex gap-2">
         <input
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          placeholder="ex) unfair dismissal"
+          placeholder="예: 부당해고, 임금체불"
           className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm"
         />
         <button
@@ -65,7 +65,7 @@ export function PrecedentExplorerWidget() {
           disabled={loading || !keyword.trim()}
           className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {loading ? "Searching" : "Search"}
+          {loading ? "검색중" : "탐색"}
         </button>
       </div>
 
@@ -104,11 +104,11 @@ export function ContractDiagnosisWidget() {
         body: form,
       });
       const data = (await res.json()) as { missing?: string[]; note?: string; error?: string };
-      if (!res.ok) throw new Error(data.error || "Diagnosis failed.");
+      if (!res.ok) throw new Error(data.error || "진단에 실패했습니다.");
       setMissing(data.missing || []);
       setNote(data.note || "");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Request failed.");
+      setError(e instanceof Error ? e.message : "요청 처리 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -117,8 +117,8 @@ export function ContractDiagnosisWidget() {
   return (
     <aside className={panelClass}>
       <p className="text-xs uppercase tracking-[0.18em] text-slate-500">LLM Tool</p>
-      <h3 className="mt-2 text-xl font-semibold text-slate-900">Contract Quick Check</h3>
-      <p className="mt-2 text-sm text-slate-600">Upload a PDF and get likely missing clause keywords.</p>
+      <h3 className="mt-2 text-xl font-semibold text-slate-900">근로계약서 간단진단</h3>
+      <p className="mt-2 text-sm text-slate-600">PDF를 업로드하면 누락 가능 조항 키워드를 찾아드립니다.</p>
       <div className="mt-4 space-y-2">
         <input
           type="file"
@@ -132,7 +132,7 @@ export function ContractDiagnosisWidget() {
           disabled={loading || !file}
           className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {loading ? "Analyzing" : "Run"}
+          {loading ? "분석중" : "진단하기"}
         </button>
       </div>
 
@@ -140,7 +140,7 @@ export function ContractDiagnosisWidget() {
 
       {missing.length > 0 ? (
         <div className="mt-4">
-          <p className="text-sm font-semibold text-slate-900">Possible missing items</p>
+          <p className="text-sm font-semibold text-slate-900">누락 가능 항목</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {missing.map((item) => (
               <span key={item} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
@@ -159,15 +159,13 @@ export function ConsultingLinkWidget() {
   return (
     <aside className={panelClass}>
       <p className="text-xs uppercase tracking-[0.18em] text-slate-500">LLM Tool</p>
-      <h3 className="mt-2 text-xl font-semibold text-slate-900">Enterprise Diagnosis Link</h3>
-      <p className="mt-2 text-sm text-slate-600">
-        Check the enterprise risk diagnosis first, then move to consulting planning.
-      </p>
+      <h3 className="mt-2 text-xl font-semibold text-slate-900">기업 진단 연결</h3>
+      <p className="mt-2 text-sm text-slate-600">컨설팅 전에 기업 리스크 진단을 먼저 진행해 우선 과제를 확인하세요.</p>
       <Link
         href="/enterprise-diagnosis"
         className="mt-5 inline-flex rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
       >
-        Go to /enterprise-diagnosis
+        /enterprise-diagnosis 이동
       </Link>
     </aside>
   );
@@ -189,10 +187,10 @@ export function FactStructurerWidget() {
         body: JSON.stringify({ tool: "fact-structure", input }),
       });
       const data = (await res.json()) as { structured?: FactShape; error?: string };
-      if (!res.ok) throw new Error(data.error || "Structuring failed.");
+      if (!res.ok) throw new Error(data.error || "구조화에 실패했습니다.");
       setStructured(data.structured || null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Request failed.");
+      setError(e instanceof Error ? e.message : "요청 처리 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -200,24 +198,24 @@ export function FactStructurerWidget() {
 
   const rows = structured
     ? [
-        { label: "Who", value: structured.who },
-        { label: "When", value: structured.when },
-        { label: "Where", value: structured.where },
-        { label: "What", value: structured.what_action },
-        { label: "How", value: structured.how },
-        { label: "Context", value: structured.context },
+        { label: "누가", value: structured.who },
+        { label: "언제", value: structured.when },
+        { label: "어디서", value: structured.where },
+        { label: "어떤 행동", value: structured.what_action },
+        { label: "어떤 방식", value: structured.how },
+        { label: "어떤 맥락", value: structured.context },
       ]
     : [];
 
   return (
     <aside className={panelClass}>
       <p className="text-xs uppercase tracking-[0.18em] text-slate-500">LLM Tool</p>
-      <h3 className="mt-2 text-xl font-semibold text-slate-900">Fact Structurer</h3>
-      <p className="mt-2 text-sm text-slate-600">Describe the situation and get a 6W-style structured view.</p>
+      <h3 className="mt-2 text-xl font-semibold text-slate-900">사실관계 구조화</h3>
+      <p className="mt-2 text-sm text-slate-600">상황을 입력하면 육하원칙 기준으로 구조화해 보여줍니다.</p>
       <textarea
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="Describe the incident in detail"
+        placeholder="사건 상황을 상세히 입력해주세요"
         className="mt-4 h-28 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
       />
       <button
@@ -226,7 +224,7 @@ export function FactStructurerWidget() {
         disabled={loading || !input.trim()}
         className="mt-3 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
       >
-        {loading ? "Structuring" : "Structure"}
+        {loading ? "정리중" : "구조화하기"}
       </button>
 
       {error ? <p className="mt-3 text-sm text-rose-600">{error}</p> : null}
@@ -264,11 +262,11 @@ export function QuizCarouselWidget() {
         body: JSON.stringify({ tool: "quiz-generator", industry }),
       });
       const data = (await res.json()) as { cards?: QuizCard[]; error?: string };
-      if (!res.ok) throw new Error(data.error || "Quiz generation failed.");
+      if (!res.ok) throw new Error(data.error || "퀴즈 생성에 실패했습니다.");
       setCards(data.cards || []);
       setIndex(0);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Request failed.");
+      setError(e instanceof Error ? e.message : "요청 처리 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -279,13 +277,13 @@ export function QuizCarouselWidget() {
   return (
     <aside className={panelClass}>
       <p className="text-xs uppercase tracking-[0.18em] text-slate-500">LLM Tool</p>
-      <h3 className="mt-2 text-xl font-semibold text-slate-900">Quiz Quiz</h3>
-      <p className="mt-2 text-sm text-slate-600">Type an industry and get 3 custom labor-law quiz cards.</p>
+      <h3 className="mt-2 text-xl font-semibold text-slate-900">퀴즈퀴즈</h3>
+      <p className="mt-2 text-sm text-slate-600">업종을 입력하면 맞춤형 노동법 퀴즈 카드 3개를 생성합니다.</p>
       <div className="mt-4 flex gap-2">
         <input
           value={industry}
           onChange={(e) => setIndustry(e.target.value)}
-          placeholder="ex) manufacturing, IT"
+          placeholder="예: 제조업, IT"
           className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm"
         />
         <button
@@ -294,7 +292,7 @@ export function QuizCarouselWidget() {
           disabled={loading || !industry.trim()}
           className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {loading ? "Generating" : "Generate"}
+          {loading ? "생성중" : "생성"}
         </button>
       </div>
 
@@ -344,11 +342,11 @@ export function QuizCarouselWidget() {
             onClick={() => setShowAnswer((prev) => !prev)}
             className="mt-3 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800"
           >
-            {showAnswer ? "Hide answer" : "Show answer"}
+            {showAnswer ? "정답 숨기기" : "정답/해설 보기"}
           </button>
           {showAnswer ? (
             <p className="mt-2 text-xs leading-relaxed text-slate-700">
-              Answer: {current.answerIndex + 1}
+              정답: {current.answerIndex + 1}번
               <br />
               {current.explanation}
             </p>

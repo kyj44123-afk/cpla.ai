@@ -12,7 +12,7 @@ const products: ProductItem[] = [
   {
     id: 1,
     name: "노무 자문 계약",
-    description: "기업 규모와 이슈 빈도에 맞춘 상시 자문 플랜으로, 빠른 의사결정을 지원합니다.",
+    description: "기업 규모와 이슈 빈도에 맞춘 상시 자문 플랜으로 빠른 의사결정을 지원합니다.",
     href: "/advisory",
     cta: "자문 플랜 보기",
   },
@@ -40,14 +40,14 @@ const products: ProductItem[] = [
   {
     id: 5,
     name: "기업 교육 프로그램",
-    description: "법정 의무교육부터 리더십·맞춤형 과정까지 실무 중심으로 운영합니다.",
+    description: "법정 의무교육부터 리더 대상 과정까지 실무 중심으로 운영합니다.",
     href: "/training",
     cta: "교육 프로그램 보기",
   },
   {
     id: 6,
     name: "빠른 상담 신청",
-    description: "현재 상황을 간단히 남기면 필요한 서비스부터 우선 제안드립니다.",
+    description: "현재 상황을 남기면 필요한 서비스부터 우선 제안드립니다.",
     href: "/counseling",
     cta: "상담 바로 신청",
   },
@@ -60,7 +60,7 @@ export default function ProductGrid() {
         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Service List</p>
         <h2 className="mt-3 font-serif text-3xl text-slate-900 md:text-5xl">기업 상황별 서비스</h2>
         <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-600 md:text-base">
-          메인에서 바로 세부 페이지로 이동해 서비스 범위와 적용 사례를 확인하고, 가장 맞는 방식으로 상담을 시작하세요.
+          메인에서 세부 페이지로 이동해 서비스 범위와 적용 사례를 확인하고 가장 맞는 방식으로 상담을 시작하세요.
         </p>
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

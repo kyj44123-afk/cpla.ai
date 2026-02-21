@@ -15,7 +15,7 @@ const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 function createContentSecurityPolicy(): string {
   const scriptPolicy =
     process.env.NODE_ENV === "production"
-      ? "script-src 'self' 'unsafe-inline'"
+      ? "script-src 'self' 'strict-dynamic'"
       : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
 
   return [

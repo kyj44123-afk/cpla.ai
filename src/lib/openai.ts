@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { getOpenAIKey } from "./settings";
 
 let openaiInstance: OpenAI | null = null;
+let lastApiKey: string = "";
 
 export function getOpenAI(): OpenAI {
     const apiKey = getOpenAIKey();
@@ -11,8 +12,9 @@ export function getOpenAI(): OpenAI {
     }
 
     // Create new instance if key changed or not initialized
-    if (!openaiInstance) {
+    if (!openaiInstance || lastApiKey !== apiKey) {
         openaiInstance = new OpenAI({ apiKey });
+        lastApiKey = apiKey;
     }
 
     return openaiInstance;
