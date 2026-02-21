@@ -8,7 +8,7 @@ import PostFeatureCtaCards from "@/components/landing-premium/PostFeatureCtaCard
 import SiteFooter from "@/components/landing-premium/SiteFooter";
 import TopHeader from "@/components/landing-premium/TopHeader";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 function getFrameOrder(filename: string) {
   const basename = filename.replace(/\.[^.]+$/, "");
