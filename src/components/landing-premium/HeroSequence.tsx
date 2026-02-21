@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 type HeroSequenceProps = {
   introSrc: string;
@@ -72,9 +72,6 @@ export default function HeroSequence({
   const loadedImagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
   const introImageRef = useRef<HTMLImageElement | null>(null);
   const requestRenderRef = useRef<(() => void) | null>(null);
-  const hasDrawnFrameRef = useRef(false);
-
-  const [hasDrawnFrame, setHasDrawnFrame] = useState(false);
 
   const sampledFrameSources = useMemo(() => {
     if (typeof window === "undefined") return frameSources;
@@ -106,7 +103,6 @@ export default function HeroSequence({
     sampledFrameSources.slice(0, maxPreload).forEach((src) => {
       ensureImage(src);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sampledFrameSources, useCanvas]);
 
   // Canvas rendering + scroll listener
@@ -116,13 +112,6 @@ export default function HeroSequence({
     const canvas = canvasRef.current;
     const stage = stageRef.current;
     if (!canvas || !stage) return;
-
-    const markDrawn = () => {
-      if (!hasDrawnFrameRef.current) {
-        hasDrawnFrameRef.current = true;
-        setHasDrawnFrame(true);
-      }
-    };
 
     const resizeCanvas = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -203,7 +192,6 @@ export default function HeroSequence({
         if (isReadyImage(nextImage) && blend > 0) {
           drawImageContain(ctx, nextImage, width, height, alignX, blend);
         }
-        markDrawn();
         return;
       }
 
@@ -211,14 +199,12 @@ export default function HeroSequence({
       const fallbackImage = getNearestLoadedImage(baseIndex);
       if (fallbackImage) {
         drawImageContain(ctx, fallbackImage, width, height, alignX, 1);
-        markDrawn();
         return;
       }
 
       // Last resort: intro image
       if (isReadyImage(introImage)) {
         drawImageContain(ctx, introImage, width, height, alignX, 1);
-        markDrawn();
       }
     };
 
@@ -275,7 +261,6 @@ export default function HeroSequence({
         window.cancelAnimationFrame(rafRenderIdRef.current);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [introSrc, sampledFrameSources, useCanvas]);
 
   return (
@@ -299,7 +284,7 @@ export default function HeroSequence({
           {useCanvas ? (
             <canvas
               ref={canvasRef}
-              className={`absolute inset-0 block transition-opacity duration-300 ${hasDrawnFrame ? "opacity-100" : "opacity-0"}`}
+              className="absolute inset-0 block"
               aria-hidden="true"
             />
           ) : null}
