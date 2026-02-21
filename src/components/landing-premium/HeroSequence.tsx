@@ -70,10 +70,10 @@ export default function HeroSequence({
   const progressRef = useRef(0);
   const rafRenderIdRef = useRef<number | null>(null);
   const loadedImagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
+  const introImageRef = useRef<HTMLImageElement | null>(null);
   const requestRenderRef = useRef<(() => void) | null>(null);
   const hasDrawnFrameRef = useRef(false);
 
-  const [isReducedMotion, setIsReducedMotion] = useState(false);
   const [hasDrawnFrame, setHasDrawnFrame] = useState(false);
 
   const sampledFrameSources = useMemo(() => {
@@ -83,18 +83,7 @@ export default function HeroSequence({
     return frameSources.filter((_, index) => index % step === 0);
   }, [frameSources]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const onMotionChange = () => setIsReducedMotion(mediaQuery.matches);
-    onMotionChange();
-
-    mediaQuery.addEventListener("change", onMotionChange);
-    return () => mediaQuery.removeEventListener("change", onMotionChange);
-  }, []);
-
-  const useCanvas = !isReducedMotion && sampledFrameSources.length > 0;
+  const useCanvas = sampledFrameSources.length > 0;
 
   const ensureImage = (src: string) => {
     const existing = loadedImagesRef.current.get(src);
@@ -194,6 +183,16 @@ export default function HeroSequence({
 
       const baseImage = ensureImage(baseSrc);
       const nextImage = ensureImage(nextSrc);
+      const introImage =
+        introImageRef.current ??
+        (() => {
+          const image = new Image();
+          image.decoding = "async";
+          image.src = introSrc;
+          image.onload = () => requestRenderRef.current?.();
+          introImageRef.current = image;
+          return image;
+        })();
 
       if (isReadyImage(baseImage)) {
         drawImageContain(ctx, baseImage, width, height, alignX, 1);
@@ -207,6 +206,12 @@ export default function HeroSequence({
       const fallbackImage = getNearestLoadedImage(baseIndex);
       if (fallbackImage) {
         drawImageContain(ctx, fallbackImage, width, height, alignX, 1);
+        markDrawn();
+        return;
+      }
+
+      if (isReadyImage(introImage)) {
+        drawImageContain(ctx, introImage, width, height, alignX, 1);
         markDrawn();
       }
     };
@@ -263,10 +268,10 @@ export default function HeroSequence({
         window.cancelAnimationFrame(rafRenderIdRef.current);
       }
     };
-  }, [sampledFrameSources, useCanvas]);
+  }, [introSrc, sampledFrameSources, useCanvas]);
 
   return (
-    <section ref={sectionRef} className="relative h-[220vh]" aria-label="메인 비주얼">
+    <section ref={sectionRef} className="relative h-[220vh]" aria-label="Main visual">
       <div className="sticky top-0 flex h-[100dvh] items-center justify-center px-3 pt-14 md:px-6 md:pt-20">
         <div
           ref={stageRef}
@@ -294,24 +299,22 @@ export default function HeroSequence({
           <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl items-end px-5 pb-10 md:px-8 md:pb-18">
             <div className="max-w-xl space-y-4 rounded-2xl bg-slate-900/35 p-4 backdrop-blur-[2px] md:bg-transparent md:p-0 md:backdrop-blur-none">
               <p className="text-xs uppercase tracking-[0.22em] text-slate-200">Official Labor Law Partner</p>
-              <h1 className="whitespace-pre-line font-serif text-3xl leading-tight text-white md:text-6xl">
-                {headline}
-              </h1>
+              <h1 className="whitespace-pre-line font-serif text-3xl leading-tight text-white md:text-6xl">{headline}</h1>
               <p className="text-sm leading-relaxed text-slate-100 md:text-base">{subcopy}</p>
               <div className="flex flex-wrap items-center gap-3">
                 <Link
                   href={ctaHref}
                   className="inline-flex items-center rounded-full border border-white/65 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
-                  aria-label="상담예약 페이지로 이동"
+                  aria-label="Go to counseling page"
                 >
-                  상담예약
+                  {"\uC0C1\uB2F4 \uC608\uC57D"}
                 </Link>
                 <Link
                   href="/enterprise-diagnosis"
                   className="inline-flex items-center rounded-full border border-white/65 bg-transparent px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
-                  aria-label="RISK 진단 페이지로 이동"
+                  aria-label="Go to risk diagnosis page"
                 >
-                  RISK 진단
+                  {"RISK \uC9C4\uB2E8"}
                 </Link>
               </div>
             </div>

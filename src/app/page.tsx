@@ -5,7 +5,6 @@ import BrandStory from "@/components/landing-premium/BrandStory";
 import HeroFollowupSections from "@/components/landing-premium/HeroFollowupSections";
 import HeroSequence from "@/components/landing-premium/HeroSequence";
 import PostFeatureCtaCards from "@/components/landing-premium/PostFeatureCtaCards";
-import ProductGrid from "@/components/landing-premium/ProductGrid";
 import SiteFooter from "@/components/landing-premium/SiteFooter";
 import TopHeader from "@/components/landing-premium/TopHeader";
 
@@ -56,7 +55,6 @@ export default async function Home() {
       <PostFeatureCtaCards />
       <HeroFollowupSections />
       <BrandStory />
-      <ProductGrid />
       <SiteFooter />
     </main>
   );
