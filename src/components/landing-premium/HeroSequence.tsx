@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 type HeroSequenceProps = {
   introSrc: string;
@@ -11,11 +11,7 @@ type HeroSequenceProps = {
   subcopy: string;
 };
 
-const MOBILE_BREAKPOINT = 768;
-const MOBILE_FRAME_STEP = 1;
-const DESKTOP_FRAME_STEP = 1;
-const MAX_PRELOAD_MOBILE = 40;
-const MAX_PRELOAD_DESKTOP = 80;
+const MAX_PRELOAD_FRAMES = 80;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -74,16 +70,12 @@ export default function HeroSequence({
   const introImageRef = useRef<HTMLImageElement | null>(null);
   const requestRenderRef = useRef<(() => void) | null>(null);
 
-  const sampledFrameSources = useMemo(() => {
-    if (typeof window === "undefined") return frameSources;
-    const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
-    const step = isMobile ? MOBILE_FRAME_STEP : DESKTOP_FRAME_STEP;
-    return frameSources.filter((_, index) => index % step === 0);
-  }, [frameSources]);
+  // SSR/CSR mismatch를 피하기 위해 동일한 소스를 사용
+  const sampledFrameSources = frameSources;
 
   const useCanvas = sampledFrameSources.length > 0;
 
-  const ensureImage = (src: string) => {
+  const ensureImage = useCallback((src: string) => {
     const existing = loadedImagesRef.current.get(src);
     if (existing) return existing;
 
@@ -93,18 +85,16 @@ export default function HeroSequence({
     image.onload = () => requestRenderRef.current?.();
     loadedImagesRef.current.set(src, image);
     return image;
-  };
+  }, []);
 
   // Preload frames into the persistent Map
   useEffect(() => {
     if (!useCanvas) return;
 
-    const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
-    const maxPreload = isMobile ? MAX_PRELOAD_MOBILE : MAX_PRELOAD_DESKTOP;
-    sampledFrameSources.slice(0, maxPreload).forEach((src) => {
+    sampledFrameSources.slice(0, MAX_PRELOAD_FRAMES).forEach((src) => {
       ensureImage(src);
     });
-  }, [sampledFrameSources, useCanvas]);
+  }, [ensureImage, sampledFrameSources, useCanvas]);
 
   // Canvas rendering + scroll listener
   useEffect(() => {
@@ -272,21 +262,21 @@ export default function HeroSequence({
         window.cancelAnimationFrame(rafRenderIdRef.current);
       }
     };
-  }, [introSrc, sampledFrameSources, useCanvas]);
+  }, [ensureImage, introSrc, sampledFrameSources, useCanvas]);
 
   return (
-    <section ref={sectionRef} className="relative h-[220vh]" aria-label="Main visual">
+    <section ref={sectionRef} className="relative isolate h-[220vh]" aria-label="Main visual">
       <div className="sticky top-0 flex h-[100dvh] items-center justify-center px-3 pt-14 md:px-6 md:pt-20">
         <div
           ref={stageRef}
           className="relative h-[82dvh] w-full overflow-hidden rounded-[28px] border border-slate-200/50 bg-[radial-gradient(140%_120%_at_50%_0%,#1f2e45_0%,#101927_56%,#0a111b_100%)] md:h-[84vh]"
         >
-          <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:36px_36px]" />
-          <div className="absolute inset-0 bg-[radial-gradient(90%_85%_at_50%_50%,rgba(145,170,203,0.18)_0%,rgba(145,170,203,0.05)_45%,rgba(10,17,27,0)_75%)]" />
+          <div className="absolute inset-0 z-[1] opacity-40 [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:36px_36px]" />
+          <div className="absolute inset-0 z-[2] bg-[radial-gradient(90%_85%_at_50%_50%,rgba(145,170,203,0.18)_0%,rgba(145,170,203,0.05)_45%,rgba(10,17,27,0)_75%)]" />
 
           {/* Static intro image as background fallback */}
           <div
-            className="absolute inset-0 bg-contain bg-center bg-no-repeat md:bg-[position:82%_50%]"
+            className="absolute inset-0 z-[3] bg-contain bg-center bg-no-repeat md:bg-[position:82%_50%]"
             style={{ backgroundImage: `url("${introSrc}")` }}
             aria-hidden="true"
           />
@@ -295,12 +285,12 @@ export default function HeroSequence({
           {useCanvas ? (
             <canvas
               ref={canvasRef}
-              className="absolute inset-0 block"
+              className="absolute inset-0 z-[5] block"
               aria-hidden="true"
             />
           ) : null}
 
-          <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(9,18,34,0.52)_12%,rgba(9,18,34,0.18)_52%,rgba(9,18,34,0.1)_100%)]" />
+          <div className="absolute inset-0 z-[6] bg-[linear-gradient(110deg,rgba(9,18,34,0.44)_12%,rgba(9,18,34,0.14)_52%,rgba(9,18,34,0.08)_100%)]" />
 
           <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl items-end px-5 pb-10 md:px-8 md:pb-18">
             <div className="max-w-xl space-y-4 rounded-2xl bg-slate-900/35 p-4 backdrop-blur-[2px] md:bg-transparent md:p-0 md:backdrop-blur-none">

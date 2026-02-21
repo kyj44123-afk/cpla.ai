@@ -23,7 +23,7 @@ function createContentSecurityPolicy(): string {
     scriptPolicy,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' blob: data: https://source.unsplash.com https://images.unsplash.com",
-    "font-src 'self'",
+    "font-src 'self' https://cdn.jsdelivr.net",
     "connect-src 'self' https:",
     "object-src 'none'",
     "base-uri 'self'",
