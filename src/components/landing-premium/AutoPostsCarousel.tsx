@@ -105,10 +105,10 @@ export default function AutoPostsCarousel({ posts = FALLBACK_POSTS }: AutoPostsC
   const canNext = index < maxIndex;
 
   const trackStyle = useMemo(() => {
-    const width = 100 / visibleCount;
+    const step = items.length > 0 ? 100 / items.length : 0;
     return {
       width: `${(items.length * 100) / visibleCount}%`,
-      transform: `translateX(-${index * width}%)`,
+      transform: `translateX(-${index * step}%)`,
     };
   }, [index, items.length, visibleCount]);
 

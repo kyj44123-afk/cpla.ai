@@ -22,12 +22,40 @@ async function getUserIdFromAuthHeader(authHeader: string | null): Promise<strin
 
 export async function GET() {
   const admin = getSupabaseAdmin();
-  const { data, error } = await admin
+  let data: Array<Record<string, unknown>> | null = null;
+  let error: { message?: string } | null = null;
+
+  const full = await admin
     .from("posts")
     .select("id, title, content, budget, deadline, status, created_at, author_id")
     .eq("status", "open")
     .order("created_at", { ascending: false })
     .limit(100);
+
+  if (!full.error && full.data) {
+    data = full.data as Array<Record<string, unknown>>;
+  } else {
+    const minimal = await admin
+      .from("posts")
+      .select("id, title, created_at")
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (minimal.error) {
+      error = { message: minimal.error.message };
+    } else {
+      data = (minimal.data ?? []).map((row) => ({
+        id: row.id,
+        title: row.title,
+        content: null,
+        budget: null,
+        deadline: null,
+        status: "open",
+        created_at: row.created_at,
+        author_id: null,
+      }));
+    }
+  }
 
   if (error) {
     return NextResponse.json({ message: "Failed to load posts" }, { status: 500 });

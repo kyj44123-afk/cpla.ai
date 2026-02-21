@@ -76,6 +76,61 @@ export async function generateAutoPostMarkdown(title: string): Promise<string> {
   }
 }
 
+export async function generateDailyAutoPostTitles(count = 3): Promise<string[]> {
+  const safeCount = Math.min(Math.max(count, 1), 5);
+  const profile = getAutoPostPromptProfile();
+  const profileLines = describeAutoPostPromptProfile(profile);
+
+  try {
+    const openai = getOpenAI();
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.7,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: [
+            "당신은 기업 인사노무 전문 에디터다.",
+            "매일 자동발행할 포스트 제목만 생성한다.",
+            "출력은 JSON으로만 제공한다.",
+          ].join("\n"),
+        },
+        {
+          role: "user",
+          content: [
+            `생성 개수: ${safeCount}`,
+            `프롬프트 프로필: ${profileLines.join(" / ")}`,
+            `오늘 날짜(KST): ${new Date().toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })}`,
+            '출력 스키마: { "titles": ["", ""] }',
+            "조건:",
+            "- 실무형 인사노무/노동법률 주제",
+            "- 과장 금지, 구체적 이슈 중심",
+            "- 한국어 제목",
+          ].join("\n"),
+        },
+      ],
+    });
+
+    const raw = completion.choices[0]?.message?.content ?? "{}";
+    const parsed = JSON.parse(raw) as { titles?: string[] };
+    const titles = Array.isArray(parsed.titles)
+      ? parsed.titles.map((v) => String(v || "").trim()).filter(Boolean).slice(0, safeCount)
+      : [];
+
+    if (titles.length > 0) return titles;
+  } catch {
+    // fallback below
+  }
+
+  const kstDate = new Date().toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" });
+  return [
+    `${kstDate} 기준 근로계약 리스크 점검 포인트`,
+    `${kstDate} 기준 직장 내 괴롭힘 대응 실무 가이드`,
+    `${kstDate} 기준 임금·퇴직금 분쟁 예방 체크리스트`,
+  ].slice(0, safeCount);
+}
+
 export function shouldRefreshAutoPost(updatedAt: string | null | undefined, maxAgeHours = 24) {
   if (!updatedAt) return true;
   const updated = new Date(updatedAt).getTime();

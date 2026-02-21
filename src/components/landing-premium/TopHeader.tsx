@@ -26,17 +26,7 @@ export default function TopHeader() {
           : "bg-transparent"
       }`}
     >
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-5 md:h-20 md:px-8">
-        <Link
-          href="/"
-          className={`font-serif text-lg tracking-[0.08em] transition-colors ${
-            isScrolled ? "text-slate-900" : "text-white"
-          }`}
-          aria-label="노무법인 호연 홈으로 이동"
-        >
-          공인노무사 곽영준
-        </Link>
-
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-center px-5 md:h-20 md:px-8">
         <nav aria-label="주요 메뉴" className="flex items-center gap-5 text-sm md:gap-8">
           <Link
             href="/#products"
@@ -53,6 +43,14 @@ export default function TopHeader() {
             }`}
           >
             진단
+          </Link>
+          <Link
+            href="/#products"
+            className={`transition-colors hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 ${
+              isScrolled ? "text-slate-700" : "text-white/90"
+            }`}
+          >
+            컨설팅
           </Link>
           <Link
             href="/#products"
