@@ -17,13 +17,18 @@ export default function ScrollReveal({ children, className, delayMs = 0 }: Scrol
     const node = rootRef.current;
     if (!node) return;
 
+    if (typeof IntersectionObserver === "undefined") {
+      window.requestAnimationFrame(() => setIsVisible(true));
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
         setIsVisible(true);
         observer.disconnect();
       },
-      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
+      { threshold: 0, rootMargin: "0px 0px -8% 0px" },
     );
 
     observer.observe(node);
