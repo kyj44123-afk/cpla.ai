@@ -5,13 +5,19 @@ import BrandStory from "@/components/landing-premium/BrandStory";
 import HeroFollowupSections from "@/components/landing-premium/HeroFollowupSections";
 import HeroSequence from "@/components/landing-premium/HeroSequence";
 import PostFeatureCtaCards from "@/components/landing-premium/PostFeatureCtaCards";
+import ScrollReveal from "@/components/landing-premium/ScrollReveal";
 import SiteFooter from "@/components/landing-premium/SiteFooter";
 import TopHeader from "@/components/landing-premium/TopHeader";
 
+export const dynamic = "force-dynamic";
+
 function getFrameOrder(filename: string) {
-  const match = filename.match(/_(\d+)\.jpg$/i);
-  if (!match) return Number.MAX_SAFE_INTEGER;
-  return Number(match[1]);
+  const basename = filename.replace(/\.[^.]+$/, "");
+  const parts = basename.split("_");
+  const tail = parts[parts.length - 1];
+  const order = Number.parseInt(tail ?? "", 10);
+  if (Number.isNaN(order)) return Number.MAX_SAFE_INTEGER;
+  return order;
 }
 
 async function getHeroFrameSources() {
@@ -51,10 +57,18 @@ export default async function Home() {
         headline={"노무를 완성하는\n노동법률 파트너"}
         subcopy="공인노무사와 경영진이 함께 쌓아온 경험과 정교한 전략, 그리고 AI 분석으로 기업과 개인의 중요한 결정을 더 빠르고 명확하게 지원합니다."
       />
-      <AutoPostsCarousel />
-      <PostFeatureCtaCards />
-      <HeroFollowupSections />
-      <BrandStory />
+      <ScrollReveal>
+        <AutoPostsCarousel />
+      </ScrollReveal>
+      <ScrollReveal delayMs={80}>
+        <PostFeatureCtaCards />
+      </ScrollReveal>
+      <ScrollReveal delayMs={140}>
+        <HeroFollowupSections />
+      </ScrollReveal>
+      <ScrollReveal delayMs={200}>
+        <BrandStory />
+      </ScrollReveal>
       <SiteFooter />
     </main>
   );

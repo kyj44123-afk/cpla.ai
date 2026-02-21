@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type HeroSequenceProps = {
   introSrc: string;
@@ -11,50 +11,8 @@ type HeroSequenceProps = {
   subcopy: string;
 };
 
-const MOBILE_BREAKPOINT = 768;
-const MOBILE_FRAME_STEP = 1;
-const DESKTOP_FRAME_STEP = 1;
-const MAX_PRELOAD_MOBILE = 40;
-const MAX_PRELOAD_DESKTOP = 80;
-
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
-}
-
-function isReadyImage(image: HTMLImageElement | undefined): image is HTMLImageElement {
-  return Boolean(image && image.complete && image.naturalWidth > 0);
-}
-
-function drawImageContain(
-  ctx: CanvasRenderingContext2D,
-  image: HTMLImageElement,
-  canvasWidth: number,
-  canvasHeight: number,
-  alignX: number,
-  alpha = 1,
-) {
-  const imageRatio = image.naturalWidth / image.naturalHeight;
-  const canvasRatio = canvasWidth / canvasHeight;
-
-  let drawWidth = canvasWidth;
-  let drawHeight = canvasHeight;
-  let drawX = 0;
-  let drawY = 0;
-
-  if (imageRatio > canvasRatio) {
-    drawWidth = canvasWidth;
-    drawHeight = canvasWidth / imageRatio;
-    drawY = (canvasHeight - drawHeight) / 2;
-  } else {
-    drawHeight = canvasHeight;
-    drawWidth = canvasHeight * imageRatio;
-    drawX = (canvasWidth - drawWidth) * clamp(alignX, 0, 1);
-  }
-
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
-  ctx.restore();
 }
 
 export default function HeroSequence({
@@ -65,161 +23,29 @@ export default function HeroSequence({
   subcopy,
 }: HeroSequenceProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const stageRef = useRef<HTMLDivElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const progressRef = useRef(0);
-  const rafRenderIdRef = useRef<number | null>(null);
-  const rafScrollIdRef = useRef<number | null>(null);
-  const loadedImagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
-  const introImageRef = useRef<HTMLImageElement | null>(null);
-  const requestRenderRef = useRef<(() => void) | null>(null);
+  const updateRafRef = useRef<number | null>(null);
 
-  const sampledFrameSources = useMemo(() => {
-    if (typeof window === "undefined") return frameSources;
-    const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
-    const step = isMobile ? MOBILE_FRAME_STEP : DESKTOP_FRAME_STEP;
-    return frameSources.filter((_, index) => index % step === 0);
+  const [currentFrame, setCurrentFrame] = useState(0);
+
+  useEffect(() => {
+    if (frameSources.length === 0) return;
+
+    const preloadCount = Math.min(frameSources.length, 80);
+    for (let i = 0; i < preloadCount; i += 1) {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = frameSources[i];
+    }
   }, [frameSources]);
 
-  const useCanvas = sampledFrameSources.length > 0;
-
-  const ensureImage = (src: string) => {
-    const existing = loadedImagesRef.current.get(src);
-    if (existing) return existing;
-
-    const image = new Image();
-    image.decoding = "async";
-    image.src = src;
-    image.onload = () => requestRenderRef.current?.();
-    loadedImagesRef.current.set(src, image);
-    return image;
-  };
-
-  // Preload frames into the persistent Map
   useEffect(() => {
-    if (!useCanvas) return;
+    if (frameSources.length === 0) return;
 
-    const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
-    const maxPreload = isMobile ? MAX_PRELOAD_MOBILE : MAX_PRELOAD_DESKTOP;
-    sampledFrameSources.slice(0, maxPreload).forEach((src) => {
-      ensureImage(src);
-    });
-  }, [sampledFrameSources, useCanvas]);
+    let lastFrame = -1;
 
-  // Canvas rendering + scroll listener
-  useEffect(() => {
-    if (!useCanvas) return;
+    const updateFrame = () => {
+      updateRafRef.current = null;
 
-    const canvas = canvasRef.current;
-    const stage = stageRef.current;
-    if (!canvas || !stage) return;
-
-    const resizeCanvas = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const rect = stage.getBoundingClientRect();
-      const width = Math.max(1, Math.floor(rect.width));
-      const height = Math.max(1, Math.floor(rect.height));
-
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      renderFrame();
-    };
-
-    const getNearestLoadedImage = (start: number) => {
-      const len = sampledFrameSources.length;
-      for (let offset = 0; offset < len; offset += 1) {
-        const prev = start - offset;
-        if (prev >= 0) {
-          const prevSrc = sampledFrameSources[prev];
-          const prevImage = loadedImagesRef.current.get(prevSrc);
-          if (isReadyImage(prevImage)) return prevImage;
-        }
-
-        const next = start + offset;
-        if (next < len) {
-          const nextSrc = sampledFrameSources[next];
-          const nextImage = loadedImagesRef.current.get(nextSrc);
-          if (isReadyImage(nextImage)) return nextImage;
-        }
-      }
-      return undefined;
-    };
-
-    const renderFrame = () => {
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      const rect = stage.getBoundingClientRect();
-      const width = Math.max(1, Math.floor(rect.width));
-      const height = Math.max(1, Math.floor(rect.height));
-      ctx.clearRect(0, 0, width, height);
-
-      const isDesktop = width >= 1024;
-      const alignX = isDesktop ? 0.82 : 0.5;
-
-      const frameCount = sampledFrameSources.length;
-      if (frameCount === 0) return;
-
-      const exactFrame = progressRef.current * (frameCount - 1);
-      const baseIndex = Math.floor(exactFrame);
-      const nextIndex = Math.min(baseIndex + 1, frameCount - 1);
-      const blend = exactFrame - baseIndex;
-
-      const baseSrc = sampledFrameSources[baseIndex];
-      const nextSrc = sampledFrameSources[nextIndex];
-
-      const baseImage = ensureImage(baseSrc);
-      const nextImage = ensureImage(nextSrc);
-      const introImage =
-        introImageRef.current ??
-        (() => {
-          const image = new Image();
-          image.decoding = "async";
-          image.src = introSrc;
-          image.onload = () => requestRenderRef.current?.();
-          introImageRef.current = image;
-          return image;
-        })();
-
-      // Draw the best available frame
-      if (isReadyImage(baseImage)) {
-        drawImageContain(ctx, baseImage, width, height, alignX, 1);
-        if (isReadyImage(nextImage) && blend > 0) {
-          drawImageContain(ctx, nextImage, width, height, alignX, blend);
-        }
-        return;
-      }
-
-      // Fallback: nearest loaded frame
-      const fallbackImage = getNearestLoadedImage(baseIndex);
-      if (fallbackImage) {
-        drawImageContain(ctx, fallbackImage, width, height, alignX, 1);
-        return;
-      }
-
-      // Last resort: intro image
-      if (isReadyImage(introImage)) {
-        drawImageContain(ctx, introImage, width, height, alignX, 1);
-      }
-    };
-
-    const requestRender = () => {
-      if (rafRenderIdRef.current !== null) return;
-      rafRenderIdRef.current = window.requestAnimationFrame(() => {
-        rafRenderIdRef.current = null;
-        renderFrame();
-      });
-    };
-
-    requestRenderRef.current = requestRender;
-
-    const updateByScroll = () => {
       const section = sectionRef.current;
       if (!section) return;
 
@@ -227,75 +53,51 @@ export default function HeroSequence({
       const scrollRange = Math.max(section.offsetHeight - viewportHeight, 1);
       const sectionTopInViewport = section.getBoundingClientRect().top;
       const traveled = clamp(-sectionTopInViewport, 0, scrollRange);
+      const progress = traveled / scrollRange;
+      const nextFrame = Math.round(progress * (frameSources.length - 1));
 
-      progressRef.current = traveled / scrollRange;
-
-      // Preload frames near current position
-      const len = sampledFrameSources.length;
-      const centerIndex = Math.floor(progressRef.current * Math.max(len - 1, 0));
-      const around = 8;
-      for (let i = centerIndex - around; i <= centerIndex + around; i += 1) {
-        if (i < 0 || i >= len) continue;
-        ensureImage(sampledFrameSources[i]);
-      }
-
-      requestRender();
+      if (nextFrame === lastFrame) return;
+      lastFrame = nextFrame;
+      setCurrentFrame(nextFrame);
     };
 
-    const scheduleScrollUpdate = () => {
-      if (rafScrollIdRef.current !== null) return;
-      rafScrollIdRef.current = window.requestAnimationFrame(() => {
-        rafScrollIdRef.current = null;
-        updateByScroll();
-      });
+    const onScrollOrResize = () => {
+      if (updateRafRef.current !== null) return;
+      updateRafRef.current = window.requestAnimationFrame(updateFrame);
     };
 
-    resizeCanvas();
-    updateByScroll();
-
-    const onResize = () => {
-      resizeCanvas();
-      scheduleScrollUpdate();
-    };
-
-    window.addEventListener("scroll", scheduleScrollUpdate, { passive: true });
-    window.addEventListener("resize", onResize);
+    onScrollOrResize();
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize);
 
     return () => {
-      requestRenderRef.current = null;
-      window.removeEventListener("scroll", scheduleScrollUpdate);
-      window.removeEventListener("resize", onResize);
-      if (rafScrollIdRef.current !== null) {
-        window.cancelAnimationFrame(rafScrollIdRef.current);
-      }
-      if (rafRenderIdRef.current !== null) {
-        window.cancelAnimationFrame(rafRenderIdRef.current);
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
+      if (updateRafRef.current !== null) {
+        window.cancelAnimationFrame(updateRafRef.current);
       }
     };
-  }, [introSrc, sampledFrameSources, useCanvas]);
+  }, [frameSources]);
+
+  const activeFrameSrc = frameSources[currentFrame] || "";
 
   return (
     <section ref={sectionRef} className="relative h-[220vh]" aria-label="Main visual">
       <div className="sticky top-0 flex h-[100dvh] items-center justify-center px-3 pt-14 md:px-6 md:pt-20">
-        <div
-          ref={stageRef}
-          className="relative h-[82dvh] w-full overflow-hidden rounded-[28px] border border-slate-200/50 bg-[radial-gradient(140%_120%_at_50%_0%,#1f2e45_0%,#101927_56%,#0a111b_100%)] md:h-[84vh]"
-        >
+        <div className="relative h-[82dvh] w-full overflow-hidden rounded-[28px] border border-slate-200/50 bg-[radial-gradient(140%_120%_at_50%_0%,#1f2e45_0%,#101927_56%,#0a111b_100%)] md:h-[84vh]">
           <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:36px_36px]" />
           <div className="absolute inset-0 bg-[radial-gradient(90%_85%_at_50%_50%,rgba(145,170,203,0.18)_0%,rgba(145,170,203,0.05)_45%,rgba(10,17,27,0)_75%)]" />
 
-          {/* Static intro image as background fallback */}
           <div
             className="absolute inset-0 bg-contain bg-center bg-no-repeat md:bg-[position:82%_50%]"
             style={{ backgroundImage: `url("${introSrc}")` }}
             aria-hidden="true"
           />
 
-          {/* Canvas renders scroll-driven frames on top */}
-          {useCanvas ? (
-            <canvas
-              ref={canvasRef}
-              className="absolute inset-0 block"
+          {activeFrameSrc ? (
+            <div
+              className="absolute inset-0 bg-contain bg-center bg-no-repeat md:bg-[position:82%_50%]"
+              style={{ backgroundImage: `url("${activeFrameSrc}")` }}
               aria-hidden="true"
             />
           ) : null}
